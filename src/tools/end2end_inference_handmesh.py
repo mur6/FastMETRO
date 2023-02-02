@@ -61,6 +61,12 @@ def run_inference(args, image_list, FastMETRO_model, mano_model, renderer):
 
             # forward-pass
             out = FastMETRO_model(batch_imgs)
+            torch.onnx.export(
+                FastMETRO_model,
+                batch_imgs,
+                "inf_handmesh.onnx", export_params=True
+            )
+            break
             pred_cam, pred_3d_vertices_fine = out['pred_cam'], out['pred_3d_vertices_fine']     
             
             # obtain 3d joints from full mesh
