@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------------------------------
 # FastMETRO Official Code
-# Copyright (c) POSTECH Algorithmic Machine Intelligence Lab. (P-AMI Lab.) All Rights Reserved 
+# Copyright (c) POSTECH Algorithmic Machine Intelligence Lab. (P-AMI Lab.) All Rights Reserved
 # Licensed under the MIT license.
 # ----------------------------------------------------------------------------------------------
 # Modified from DETR (https://github.com/facebookresearch/detr)
@@ -16,10 +16,20 @@ import torch.nn.functional as F
 from typing import Optional
 from torch import nn, Tensor
 
+
 class Transformer(nn.Module):
     """Transformer encoder-decoder"""
-    def __init__(self, model_dim=512, nhead=8, num_enc_layers=3, num_dec_layers=3, 
-                feedforward_dim=2048, dropout=0.1, activation="relu"):
+
+    def __init__(
+        self,
+        model_dim=512,
+        nhead=8,
+        num_enc_layers=3,
+        num_dec_layers=3,
+        feedforward_dim=2048,
+        dropout=0.1,
+        activation="relu",
+    ):
         """
         Parameters:
             - model_dim: The hidden dimension size in the transformer architecture
@@ -35,12 +45,16 @@ class Transformer(nn.Module):
         self.nhead = nhead
 
         # transformer encoder
-        encoder_layer = TransformerEncoderLayer(model_dim, nhead, feedforward_dim, dropout, activation)
+        encoder_layer = TransformerEncoderLayer(
+            model_dim, nhead, feedforward_dim, dropout, activation
+        )
         encoder_norm = nn.LayerNorm(model_dim)
         self.encoder = TransformerEncoder(encoder_layer, num_enc_layers, encoder_norm)
 
         # transformer decoder
-        decoder_layer = TransformerDecoderLayer(model_dim, nhead, feedforward_dim, dropout, activation)
+        decoder_layer = TransformerDecoderLayer(
+            model_dim, nhead, feedforward_dim, dropout, activation
+        )
         decoder_norm = nn.LayerNorm(model_dim)
         self.decoder = TransformerDecoder(decoder_layer, num_dec_layers, decoder_norm)
 
@@ -53,41 +67,60 @@ class Transformer(nn.Module):
 
     def forward(self, img_features, cam_token, jv_tokens, pos_embed, attention_mask=None):
         device = img_features.device
-        hw, bs, _ = img_features.shape # (height * width), batch_size, feature_dim
-        mask = torch.zeros((bs, hw), dtype=torch.bool, device=device) # batch_size X (height * width)
+        hw, bs, _ = img_features.shape  # (height * width), batch_size, feature_dim
+        mask = torch.zeros(
+            (bs, hw), dtype=torch.bool, device=device
+        )  # batch_size X (height * width)
 
-        # Transformer Encoder 
-        zero_mask = torch.zeros((bs, 1), dtype=torch.bool, device=device) # batch_size X 1
-        mem_mask = torch.cat([zero_mask, mask], dim=1) # batch_size X (1 + height * width)
-        cam_with_img = torch.cat([cam_token, img_features], dim=0) # (1 + height * width) X batch_size X feature_dim
-        e_outputs = self.encoder(cam_with_img, src_key_padding_mask=mem_mask, pos=pos_embed) # (1 + height * width) X batch_size X feature_dim
-        cam_features, enc_img_features = e_outputs.split([1, hw], dim=0) 
+        # Transformer Encoder
+        zero_mask = torch.zeros((bs, 1), dtype=torch.bool, device=device)  # batch_size X 1
+        mem_mask = torch.cat([zero_mask, mask], dim=1)  # batch_size X (1 + height * width)
+        cam_with_img = torch.cat(
+            [cam_token, img_features], dim=0
+        )  # (1 + height * width) X batch_size X feature_dim
+        e_outputs = self.encoder(
+            cam_with_img, src_key_padding_mask=mem_mask, pos=pos_embed
+        )  # (1 + height * width) X batch_size X feature_dim
+        cam_features, enc_img_features = e_outputs.split([1, hw], dim=0)
 
         # Transformer Decoder
-        zero_tgt = torch.zeros_like(jv_tokens) # (num_joints + num_vertices) X batch_size X feature_dim
-        jv_features = self.decoder(jv_tokens, enc_img_features, tgt_mask=attention_mask, 
-                                   memory_key_padding_mask=mask, pos=pos_embed, query_pos=zero_tgt) # (num_joints + num_vertices) X batch_size X feature_dim
+        zero_tgt = torch.zeros_like(
+            jv_tokens
+        )  # (num_joints + num_vertices) X batch_size X feature_dim
+        jv_features = self.decoder(
+            jv_tokens,
+            enc_img_features,
+            tgt_mask=attention_mask,
+            memory_key_padding_mask=mask,
+            pos=pos_embed,
+            query_pos=zero_tgt,
+        )  # (num_joints + num_vertices) X batch_size X feature_dim
 
         return cam_features, enc_img_features, jv_features
 
 
 class TransformerEncoder(nn.Module):
     """Transformer encoder"""
+
     def __init__(self, encoder_layer, num_layers, norm=None):
         super().__init__()
         self.num_layers = num_layers
         self.norm = norm
         self.layers = _get_clones(encoder_layer, num_layers)
 
-    def forward(self, src,
-                mask: Optional[Tensor] = None,
-                src_key_padding_mask: Optional[Tensor] = None,
-                pos: Optional[Tensor] = None):
+    def forward(
+        self,
+        src,
+        mask: Optional[Tensor] = None,
+        src_key_padding_mask: Optional[Tensor] = None,
+        pos: Optional[Tensor] = None,
+    ):
         output = src
 
         for layer in self.layers:
-            output = layer(output, src_mask=mask,
-                           src_key_padding_mask=src_key_padding_mask, pos=pos)
+            output = layer(
+                output, src_mask=mask, src_key_padding_mask=src_key_padding_mask, pos=pos
+            )
 
         if self.norm is not None:
             output = self.norm(output)
@@ -97,27 +130,37 @@ class TransformerEncoder(nn.Module):
 
 class TransformerDecoder(nn.Module):
     """Transformer decoder"""
+
     def __init__(self, decoder_layer, num_layers, norm=None):
         super().__init__()
         self.num_layers = num_layers
         self.norm = norm
         self.layers = _get_clones(decoder_layer, num_layers)
 
-    def forward(self, tgt, memory,
-                tgt_mask: Optional[Tensor] = None,
-                memory_mask: Optional[Tensor] = None,
-                tgt_key_padding_mask: Optional[Tensor] = None,
-                memory_key_padding_mask: Optional[Tensor] = None,
-                pos: Optional[Tensor] = None,
-                query_pos: Optional[Tensor] = None):
+    def forward(
+        self,
+        tgt,
+        memory,
+        tgt_mask: Optional[Tensor] = None,
+        memory_mask: Optional[Tensor] = None,
+        tgt_key_padding_mask: Optional[Tensor] = None,
+        memory_key_padding_mask: Optional[Tensor] = None,
+        pos: Optional[Tensor] = None,
+        query_pos: Optional[Tensor] = None,
+    ):
         output = tgt
 
         for layer in self.layers:
-            output = layer(output, memory, tgt_mask=tgt_mask,
-                           memory_mask=memory_mask,
-                           tgt_key_padding_mask=tgt_key_padding_mask,
-                           memory_key_padding_mask=memory_key_padding_mask,
-                           pos=pos, query_pos=query_pos)
+            output = layer(
+                output,
+                memory,
+                tgt_mask=tgt_mask,
+                memory_mask=memory_mask,
+                tgt_key_padding_mask=tgt_key_padding_mask,
+                memory_key_padding_mask=memory_key_padding_mask,
+                pos=pos,
+                query_pos=query_pos,
+            )
 
         if self.norm is not None:
             output = self.norm(output)
@@ -127,6 +170,7 @@ class TransformerDecoder(nn.Module):
 
 class TransformerEncoderLayer(nn.Module):
     """Transformer encoder layer"""
+
     def __init__(self, model_dim, nhead, feedforward_dim=2048, dropout=0.1, activation="relu"):
         super().__init__()
         self.self_attn = nn.MultiheadAttention(model_dim, nhead, dropout=dropout)
@@ -148,14 +192,18 @@ class TransformerEncoderLayer(nn.Module):
         # tensor[0] is for a camera token (no positional encoding)
         return tensor if pos is None else torch.cat([tensor[:1], (tensor[1:] + pos)], dim=0)
 
-    def forward(self, src,
-                src_mask: Optional[Tensor] = None,
-                src_key_padding_mask: Optional[Tensor] = None,
-                pos: Optional[Tensor] = None):
+    def forward(
+        self,
+        src,
+        src_mask: Optional[Tensor] = None,
+        src_key_padding_mask: Optional[Tensor] = None,
+        pos: Optional[Tensor] = None,
+    ):
         src2 = self.norm1(src)
         q = k = self.with_pos_embed(src2, pos)
-        src2 = self.self_attn(q, k, value=src2, attn_mask=src_mask,
-                              key_padding_mask=src_key_padding_mask)[0]
+        src2 = self.self_attn(
+            q, k, value=src2, attn_mask=src_mask, key_padding_mask=src_key_padding_mask
+        )[0]
         src = src + self.dropout1(src2)
         src2 = self.norm2(src)
         src2 = self.linear2(self.dropout(self.activation(self.linear1(src2))))
@@ -165,6 +213,7 @@ class TransformerEncoderLayer(nn.Module):
 
 class TransformerDecoderLayer(nn.Module):
     """Transformer decoder layer"""
+
     def __init__(self, model_dim, nhead, feedforward_dim=2048, dropout=0.1, activation="relu"):
         super().__init__()
         self.self_attn = nn.MultiheadAttention(model_dim, nhead, dropout=dropout)
@@ -187,31 +236,41 @@ class TransformerDecoderLayer(nn.Module):
     def with_pos_embed(self, tensor, pos: Optional[Tensor]):
         return tensor if pos is None else tensor + pos
 
-    def forward(self, tgt, memory,
-                tgt_mask: Optional[Tensor] = None,
-                memory_mask: Optional[Tensor] = None,
-                tgt_key_padding_mask: Optional[Tensor] = None,
-                memory_key_padding_mask: Optional[Tensor] = None,
-                pos: Optional[Tensor] = None,
-                query_pos: Optional[Tensor] = None):
+    def forward(
+        self,
+        tgt,
+        memory,
+        tgt_mask: Optional[Tensor] = None,
+        memory_mask: Optional[Tensor] = None,
+        tgt_key_padding_mask: Optional[Tensor] = None,
+        memory_key_padding_mask: Optional[Tensor] = None,
+        pos: Optional[Tensor] = None,
+        query_pos: Optional[Tensor] = None,
+    ):
         tgt2 = self.norm1(tgt)
         q = k = self.with_pos_embed(tgt2, query_pos)
-        tgt2 = self.self_attn(q, k, value=tgt2, attn_mask=tgt_mask,
-                            key_padding_mask=tgt_key_padding_mask)[0]
+        tgt2 = self.self_attn(
+            q, k, value=tgt2, attn_mask=tgt_mask, key_padding_mask=tgt_key_padding_mask
+        )[0]
         tgt = tgt + self.dropout1(tgt2)
         tgt2 = self.norm2(tgt)
-        tgt2 = self.multihead_attn(query=self.with_pos_embed(tgt2, query_pos),
-                                   key=self.with_pos_embed(memory, pos),
-                                   value=memory, attn_mask=memory_mask,
-                                   key_padding_mask=memory_key_padding_mask)[0]
+        tgt2 = self.multihead_attn(
+            query=self.with_pos_embed(tgt2, query_pos),
+            key=self.with_pos_embed(memory, pos),
+            value=memory,
+            attn_mask=memory_mask,
+            key_padding_mask=memory_key_padding_mask,
+        )[0]
         tgt = tgt + self.dropout2(tgt2)
         tgt2 = self.norm3(tgt)
         tgt2 = self.linear2(self.dropout(self.activation(self.linear1(tgt2))))
         tgt = tgt + self.dropout3(tgt2)
         return tgt
 
+
 def _get_clones(module, N):
     return nn.ModuleList([copy.deepcopy(module) for _ in range(N)])
+
 
 def _get_activation_fn(activation):
     """Return an activation function given a string"""
@@ -223,10 +282,13 @@ def _get_activation_fn(activation):
         return F.glu
     raise RuntimeError("activation should be relu/gelu, not {activation}.")
 
+
 def build_transformer(transformer_config):
-    return Transformer(model_dim=transformer_config['model_dim'],
-                       dropout=transformer_config['dropout'],
-                       nhead=transformer_config['nhead'],
-                       feedforward_dim=transformer_config['feedforward_dim'],
-                       num_enc_layers=transformer_config['num_enc_layers'],
-                       num_dec_layers=transformer_config['num_dec_layers'])
+    return Transformer(
+        model_dim=transformer_config["model_dim"],
+        dropout=transformer_config["dropout"],
+        nhead=transformer_config["nhead"],
+        feedforward_dim=transformer_config["feedforward_dim"],
+        num_enc_layers=transformer_config["num_enc_layers"],
+        num_dec_layers=transformer_config["num_dec_layers"],
+    )

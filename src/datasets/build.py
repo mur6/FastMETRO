@@ -9,8 +9,8 @@ import torch
 import logging
 import code
 from src.utils.comm import get_world_size
-from src.datasets.human_mesh_tsv import (MeshTSVDataset, MeshTSVYamlDataset)
-from src.datasets.hand_mesh_tsv import (HandMeshTSVDataset, HandMeshTSVYamlDataset)
+from src.datasets.human_mesh_tsv import MeshTSVDataset, MeshTSVYamlDataset
+from src.datasets.hand_mesh_tsv import HandMeshTSVDataset, HandMeshTSVYamlDataset
 
 
 def build_dataset(yaml_file, args, is_train=True, scale_factor=1):
@@ -52,13 +52,9 @@ class IterationBasedBatchSampler(torch.utils.data.sampler.BatchSampler):
 
 
 def make_batch_data_sampler(sampler, images_per_gpu, num_iters=None, start_iter=0):
-    batch_sampler = torch.utils.data.sampler.BatchSampler(
-        sampler, images_per_gpu, drop_last=False
-    )
+    batch_sampler = torch.utils.data.sampler.BatchSampler(sampler, images_per_gpu, drop_last=False)
     if num_iters is not None and num_iters >= 0:
-        batch_sampler = IterationBasedBatchSampler(
-            batch_sampler, num_iters, start_iter
-        )
+        batch_sampler = IterationBasedBatchSampler(batch_sampler, num_iters, start_iter)
     return batch_sampler
 
 
@@ -72,12 +68,12 @@ def make_data_sampler(dataset, shuffle, distributed):
     return sampler
 
 
-def make_data_loader(args, yaml_file, is_distributed=True, 
-        is_train=True, start_iter=0, scale_factor=1):
-
+def make_data_loader(
+    args, yaml_file, is_distributed=True, is_train=True, start_iter=0, scale_factor=1
+):
     dataset = build_dataset(yaml_file, args, is_train=is_train, scale_factor=scale_factor)
     logger = logging.getLogger(__name__)
-    if is_train==True:
+    if is_train == True:
         shuffle = True
         images_per_gpu = args.per_gpu_train_batch_size
         images_per_batch = images_per_gpu * get_world_size()
@@ -93,17 +89,18 @@ def make_data_loader(args, yaml_file, is_distributed=True,
         start_iter = 0
 
     sampler = make_data_sampler(dataset, shuffle, is_distributed)
-    batch_sampler = make_batch_data_sampler(
-        sampler, images_per_gpu, num_iters, start_iter
-    )
+    batch_sampler = make_batch_data_sampler(sampler, images_per_gpu, num_iters, start_iter)
     data_loader = torch.utils.data.DataLoader(
-        dataset, num_workers=args.num_workers, batch_sampler=batch_sampler,
+        dataset,
+        num_workers=args.num_workers,
+        batch_sampler=batch_sampler,
         pin_memory=True,
     )
     return data_loader
 
 
-#==============================================================================================
+# ==============================================================================================
+
 
 def build_hand_dataset(yaml_file, args, is_train=True, scale_factor=1):
     print(yaml_file)
@@ -114,12 +111,12 @@ def build_hand_dataset(yaml_file, args, is_train=True, scale_factor=1):
     return HandMeshTSVYamlDataset(args, yaml_file, is_train, False, scale_factor)
 
 
-def make_hand_data_loader(args, yaml_file, is_distributed=True, 
-        is_train=True, start_iter=0, scale_factor=1):
-
+def make_hand_data_loader(
+    args, yaml_file, is_distributed=True, is_train=True, start_iter=0, scale_factor=1
+):
     dataset = build_hand_dataset(yaml_file, args, is_train=is_train, scale_factor=scale_factor)
     logger = logging.getLogger(__name__)
-    if is_train==True:
+    if is_train == True:
         shuffle = True
         images_per_gpu = args.per_gpu_train_batch_size
         images_per_batch = images_per_gpu * get_world_size()
@@ -135,12 +132,11 @@ def make_hand_data_loader(args, yaml_file, is_distributed=True,
         start_iter = 0
 
     sampler = make_data_sampler(dataset, shuffle, is_distributed)
-    batch_sampler = make_batch_data_sampler(
-        sampler, images_per_gpu, num_iters, start_iter
-    )
+    batch_sampler = make_batch_data_sampler(sampler, images_per_gpu, num_iters, start_iter)
     data_loader = torch.utils.data.DataLoader(
-        dataset, num_workers=args.num_workers, batch_sampler=batch_sampler,
+        dataset,
+        num_workers=args.num_workers,
+        batch_sampler=batch_sampler,
         pin_memory=True,
     )
     return data_loader
-

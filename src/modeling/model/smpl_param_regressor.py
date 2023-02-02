@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------------------------------
 # FastMETRO Official Code
-# Copyright (c) POSTECH Algorithmic Machine Intelligence Lab. (P-AMI Lab.) All Rights Reserved 
+# Copyright (c) POSTECH Algorithmic Machine Intelligence Lab. (P-AMI Lab.) All Rights Reserved
 # Licensed under the MIT license.
 # ----------------------------------------------------------------------------------------------
 # Modified from GraphCMR (https://github.com/nkolot/GraphCMR)
@@ -16,15 +16,19 @@ import torch.nn.functional as F
 import numpy as np
 from torch import nn
 
+
 class SMPL_Parameter_Regressor(nn.Module):
     """SMPL Parameter Regressor"""
+
     def __init__(self):
         super().__init__()
-        self.regressor = nn.Sequential(FCBlock(1723*3, 1024),
-                                        FCResBlock(1024, 1024),
-                                        FCResBlock(1024, 1024),
-                                        nn.Linear(1024, 24*3*3+10))
-    
+        self.regressor = nn.Sequential(
+            FCBlock(1723 * 3, 1024),
+            FCResBlock(1024, 1024),
+            FCResBlock(1024, 1024),
+            nn.Linear(1024, 24 * 3 * 3 + 10),
+        )
+
     def forward(self, pred_vertices):
         """Forward pass.
         Input:
@@ -36,14 +40,14 @@ class SMPL_Parameter_Regressor(nn.Module):
         device = pred_vertices.device
         batch_size = pred_vertices.size(0)
 
-        rotmat_beta = self.regressor(pred_vertices.reshape(batch_size, 1723*3))
-        rotmat = rotmat_beta[:, :24*3*3].view(-1, 24, 3, 3).contiguous()
-        pred_betas = rotmat_beta[:, 24*3*3:].contiguous()
-        
+        rotmat_beta = self.regressor(pred_vertices.reshape(batch_size, 1723 * 3))
+        rotmat = rotmat_beta[:, : 24 * 3 * 3].view(-1, 24, 3, 3).contiguous()
+        pred_betas = rotmat_beta[:, 24 * 3 * 3 :].contiguous()
+
         rotmat = rotmat.view(-1, 3, 3).contiguous()
-        rotmat =  rotmat.cpu()
+        rotmat = rotmat.cpu()
         U, S, V = batch_svd(rotmat)
-        rotmat = torch.matmul(U, V.transpose(1,2))
+        rotmat = torch.matmul(U, V.transpose(1, 2))
         det = torch.zeros(rotmat.shape[0], 1, 1).to(rotmat.device)
         with torch.no_grad():
             for i in range(rotmat.shape[0]):
@@ -57,7 +61,15 @@ class SMPL_Parameter_Regressor(nn.Module):
 
 class FCBlock(nn.Module):
     """Wrapper around nn.Linear that includes batch normalization and activation functions."""
-    def __init__(self, in_size, out_size, batchnorm=True, activation=nn.ReLU(inplace=True), dropout=False):
+
+    def __init__(
+        self,
+        in_size,
+        out_size,
+        batchnorm=True,
+        activation=nn.ReLU(inplace=True),
+        dropout=False,
+    ):
         super(FCBlock, self).__init__()
         module_list = [nn.Linear(in_size, out_size)]
         if batchnorm:
@@ -74,16 +86,27 @@ class FCBlock(nn.Module):
 
 class FCResBlock(nn.Module):
     """Residual block using fully-connected layers."""
-    def __init__(self, in_size, out_size, batchnorm=True, activation=nn.ReLU(inplace=True), dropout=False):
+
+    def __init__(
+        self,
+        in_size,
+        out_size,
+        batchnorm=True,
+        activation=nn.ReLU(inplace=True),
+        dropout=False,
+    ):
         super(FCResBlock, self).__init__()
-        self.fc_block = nn.Sequential(nn.Linear(in_size, out_size),
-                                      nn.BatchNorm1d(out_size),
-                                      nn.ReLU(inplace=True),
-                                      nn.Linear(out_size, out_size),
-                                      nn.BatchNorm1d(out_size))
+        self.fc_block = nn.Sequential(
+            nn.Linear(in_size, out_size),
+            nn.BatchNorm1d(out_size),
+            nn.ReLU(inplace=True),
+            nn.Linear(out_size, out_size),
+            nn.BatchNorm1d(out_size),
+        )
 
     def forward(self, x):
         return F.relu(x + self.fc_block(x))
+
 
 def batch_svd(A):
     """Wrapper around torch.svd that works when the input is a batch of matrices."""
@@ -99,6 +122,7 @@ def batch_svd(A):
     S = torch.stack(S_list, dim=0)
     V = torch.stack(V_list, dim=0)
     return U, S, V
+
 
 def build_smpl_parameter_regressor():
     return SMPL_Parameter_Regressor()

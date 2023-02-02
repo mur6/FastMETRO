@@ -5,8 +5,8 @@ Licensed under the MIT license.
 Basic logger. It Computes and stores the average and current value
 """
 
+
 class AverageMeter(object):
-    
     def __init__(self):
         self.reset()
 
@@ -23,20 +23,18 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
-
 class EvalMetricsLogger(object):
-    
     def __init__(self):
         self.reset()
 
     def reset(self):
         self.epoch = 0
-        # define a upper-bound performance (worst case) 
+        # define a upper-bound performance (worst case)
         # numbers are in unit millimeter
-        self.mPVPE = 100.0/1000.0
-        self.mPJPE = 100.0/1000.0
-        self.PAmPJPE = 100.0/1000.0
-        
+        self.mPVPE = 100.0 / 1000.0
+        self.mPJPE = 100.0 / 1000.0
+        self.PAmPJPE = 100.0 / 1000.0
+
     def set(self, epoch=0, mPVPE=0.1, mPJPE=0.1, PAmPJPE=0.1):
         self.epoch = epoch
         self.mPVPE = mPVPE
@@ -48,4 +46,3 @@ class EvalMetricsLogger(object):
         self.mPVPE = mPVPE
         self.mPJPE = mPJPE
         self.PAmPJPE = PAmPJPE
-        
