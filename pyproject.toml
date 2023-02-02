@@ -25,3 +25,8 @@ exclude = "(.git|.mypy_cache|.venv)"
 [tool.isort]
 profile = "black"
 line_length = 100
+
+[tool.flake8]
+max-line-length = 100
+# ignore = "E203,E266,W503,"
+extend-ignore = "E203"
