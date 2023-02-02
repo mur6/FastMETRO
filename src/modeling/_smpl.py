@@ -10,18 +10,18 @@ It is adapted from opensource project GraphCMR (https://github.com/nkolot/GraphC
 """
 from __future__ import division
 
-import torch
-import torch.nn as nn
 import numpy as np
 import scipy.sparse
+import torch
+import torch.nn as nn
 
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
 
-from src.utils.geometric_layers import rodrigues
 import src.modeling.data.config as cfg
+from src.utils.geometric_layers import rodrigues
 
 
 class SMPL(nn.Module):

@@ -6,13 +6,14 @@
 import os
 
 os.environ["PYOPENGL_PLATFORM"] = "egl"
-import torch
-import numpy as np
-import torch.nn.functional as F
 import math
+
 import cv2
-import trimesh
+import numpy as np
 import pyrender
+import torch
+import torch.nn.functional as F
+import trimesh
 from pyrender.constants import RenderFlags
 
 

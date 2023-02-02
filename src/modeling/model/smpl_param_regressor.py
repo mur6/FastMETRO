@@ -11,9 +11,10 @@
 (Optional) SMPL parameter regressor.
 """
 from __future__ import absolute_import, division, print_function
+
+import numpy as np
 import torch
 import torch.nn.functional as F
-import numpy as np
 from torch import nn
 
 

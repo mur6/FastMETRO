@@ -4,13 +4,15 @@
 # Licensed under the MIT license.
 # ----------------------------------------------------------------------------------------------
 
-import os.path as op
-import torch
-import logging
 import code
-from src.utils.comm import get_world_size
-from src.datasets.human_mesh_tsv import MeshTSVDataset, MeshTSVYamlDataset
+import logging
+import os.path as op
+
+import torch
+
 from src.datasets.hand_mesh_tsv import HandMeshTSVDataset, HandMeshTSVYamlDataset
+from src.datasets.human_mesh_tsv import MeshTSVDataset, MeshTSVYamlDataset
+from src.utils.comm import get_world_size
 
 
 def build_dataset(yaml_file, args, is_train=True, scale_factor=1):

@@ -12,24 +12,27 @@ End-to-End inference codes for
 """
 
 from __future__ import absolute_import, division, print_function
+
 import argparse
 import os
 import os.path as op
+
+import cv2
+import numpy as np
 import torch
 import torchvision.models as models
-import numpy as np
-import cv2
 from PIL import Image
 from torchvision import transforms
-from src.modeling.model import FastMETRO_Body_Network as FastMETRO_Network
+
+import src.modeling.data.config as cfg
 from src.modeling._smpl import SMPL, Mesh
-from src.modeling.hrnet.hrnet_cls_net_featmaps import get_cls_net
 from src.modeling.hrnet.config import config as hrnet_config
 from src.modeling.hrnet.config import update_config as hrnet_update_config
-import src.modeling.data.config as cfg
+from src.modeling.hrnet.hrnet_cls_net_featmaps import get_cls_net
+from src.modeling.model import FastMETRO_Body_Network as FastMETRO_Network
+from src.utils.geometric_layers import orthographic_projection, rodrigues
 from src.utils.logger import setup_logger
 from src.utils.miscellaneous import mkdir, set_seed
-from src.utils.geometric_layers import orthographic_projection, rodrigues
 from src.utils.renderer_opendr import (
     OpenDR_Renderer,
     visualize_reconstruction_opendr,

@@ -8,12 +8,14 @@
 FastMETRO model.
 """
 from __future__ import absolute_import, division, print_function
-import torch
+
 import numpy as np
+import torch
 from torch import nn
-from .transformer import build_transformer
+
 from .position_encoding import build_position_encoding
 from .smpl_param_regressor import build_smpl_parameter_regressor
+from .transformer import build_transformer
 
 
 class FastMETRO_Body_Network(nn.Module):

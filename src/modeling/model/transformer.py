@@ -11,10 +11,11 @@
 Transformer encoder-decoder architecture in FastMETRO model.
 """
 import copy
+from typing import Optional
+
 import torch
 import torch.nn.functional as F
-from typing import Optional
-from torch import nn, Tensor
+from torch import Tensor, nn
 
 
 class Transformer(nn.Module):

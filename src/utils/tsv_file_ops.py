@@ -5,14 +5,16 @@ Licensed under the MIT license.
 Basic operations for TSV files
 """
 
+import base64
+import json
 import os
 import os.path as op
-import json
-import numpy as np
-import base64
+
 import cv2
-from tqdm import tqdm
+import numpy as np
 import yaml
+from tqdm import tqdm
+
 from src.utils.miscellaneous import mkdir
 from src.utils.tsv_file import TSVFile
 

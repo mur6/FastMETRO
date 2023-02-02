@@ -9,10 +9,12 @@
 # ----------------------------------------------------------------------------------------------
 
 from __future__ import print_function
+
 import os
-import sys
-import re
 import os.path as op
+import re
+import sys
+
 from setuptools import find_packages, setup
 
 # change directory to this module path

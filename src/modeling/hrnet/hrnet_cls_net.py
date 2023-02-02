@@ -6,21 +6,18 @@
 # Modified by Kevin Lin (keli@microsoft.com)
 # ------------------------------------------------------------------------------
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
-import os
-import logging
+import code
 import functools
+import logging
+import os
 
 import numpy as np
-
 import torch
-import torch.nn as nn
 import torch._utils
+import torch.nn as nn
 import torch.nn.functional as F
-import code
 
 BN_MOMENTUM = 0.1
 logger = logging.getLogger(__name__)

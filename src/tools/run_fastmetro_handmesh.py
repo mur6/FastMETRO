@@ -12,42 +12,45 @@ Training and evaluation codes for
 """
 
 from __future__ import absolute_import, division, print_function
+
 import argparse
+import code
+import datetime
+import json
 import os
 import os.path as op
-import code
-import json
 import time
-import datetime
+
+import cv2
+import numpy as np
 import torch
 import torchvision.models as models
-from torchvision.utils import make_grid
-import numpy as np
-import cv2
 from torch.nn import functional as F
-from src.modeling.model import FastMETRO_Hand_Network as FastMETRO_Network
-from src.modeling._mano import MANO, Mesh
-from src.modeling.hrnet.hrnet_cls_net_featmaps import get_cls_net
-from src.modeling.hrnet.config import config as hrnet_config
-from src.modeling.hrnet.config import update_config as hrnet_update_config
+from torchvision.utils import make_grid
+
 import src.modeling.data.config as cfg
 from src.datasets.build import make_hand_data_loader
-from src.utils.logger import setup_logger
-from src.utils.comm import is_main_process, get_rank, get_world_size
-from src.utils.miscellaneous import mkdir, set_seed
-from src.utils.metric_logger import AverageMeter
+from src.modeling._mano import MANO, Mesh
+from src.modeling.hrnet.config import config as hrnet_config
+from src.modeling.hrnet.config import update_config as hrnet_update_config
+from src.modeling.hrnet.hrnet_cls_net_featmaps import get_cls_net
+from src.modeling.model import FastMETRO_Hand_Network as FastMETRO_Network
+from src.utils.comm import get_rank, get_world_size, is_main_process
 from src.utils.geometric_layers import orthographic_projection
+from src.utils.logger import setup_logger
+from src.utils.metric_logger import AverageMeter
+from src.utils.miscellaneous import mkdir, set_seed
 from src.utils.renderer_opendr import (
     OpenDR_Renderer,
-    visualize_reconstruction_opendr,
     visualize_reconstruction_multi_view_opendr,
+    visualize_reconstruction_opendr,
 )
 
 try:
     from src.utils.renderer_pyrender import (
         PyRender_Renderer,
-        visualize_reconstruction_pyrender,
         visualize_reconstruction_multi_view_pyrender,
+        visualize_reconstruction_pyrender,
     )
 except:
     print("Failed to import renderer_pyrender. Please see docs/Installation.md")

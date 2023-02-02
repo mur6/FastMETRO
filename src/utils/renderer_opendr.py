@@ -7,19 +7,18 @@ Rendering tools for 3D mesh visualization on 2D image.
 Parts of the code are taken from https://github.com/akanazawa/hmr
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
-import numpy as np
-import cv2
 import code
-import opendr
 import math
-from opendr.camera import ProjectPoints
-from opendr.renderer import ColoredRenderer, TexturedRenderer
-from opendr.lighting import LambertianPointLight
 import random
+
+import cv2
+import numpy as np
+import opendr
+from opendr.camera import ProjectPoints
+from opendr.lighting import LambertianPointLight
+from opendr.renderer import ColoredRenderer, TexturedRenderer
 
 
 # Rotate the points by a specified angle.

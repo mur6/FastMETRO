@@ -13,14 +13,17 @@ GraphCMR (https://github.com/nkolot/GraphCMR/)
 """
 
 from __future__ import division
+
+import code
+import json
+import os.path as osp
+
 import numpy as np
+import scipy.sparse
 import torch
 import torch.nn as nn
-import os.path as osp
-import json
-import code
 from manopth.manolayer import ManoLayer
-import scipy.sparse
+
 import src.modeling.data.config as cfg
 
 

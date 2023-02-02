@@ -12,11 +12,12 @@ Modified from open source projects:
 
 """
 
-import numpy as np
 import base64
+
 import cv2
-import torch
+import numpy as np
 import scipy.misc
+import torch
 
 
 def img_from_base64(imagestring):

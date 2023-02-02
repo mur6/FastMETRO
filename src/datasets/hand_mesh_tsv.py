@@ -4,31 +4,28 @@
 # Licensed under the MIT license.
 # ----------------------------------------------------------------------------------------------
 
-import cv2
-import math
-import json
-from PIL import Image
-import os.path as op
-import numpy as np
 import code
+import json
+import math
+import os.path as op
 
-from src.utils.tsv_file import TSVFile, CompositeTSVFile
-from src.utils.tsv_file_ops import (
-    load_linelist_file,
-    load_from_yaml_file,
-    find_file_path_in_yaml,
-)
-from src.utils.image_ops import (
-    img_from_base64,
-    crop,
-    flip_img,
-    flip_pose,
-    flip_kp,
-    transform,
-    rot_aa,
-)
+import cv2
+import numpy as np
 import torch
 import torchvision.transforms as transforms
+from PIL import Image
+
+from src.utils.image_ops import (
+    crop,
+    flip_img,
+    flip_kp,
+    flip_pose,
+    img_from_base64,
+    rot_aa,
+    transform,
+)
+from src.utils.tsv_file import CompositeTSVFile, TSVFile
+from src.utils.tsv_file_ops import find_file_path_in_yaml, load_from_yaml_file, load_linelist_file
 
 
 class HandMeshTSVDataset(object):
