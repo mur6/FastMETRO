@@ -6,7 +6,17 @@ authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "~3.10"
+matplotlib = "^3.6.3"
+opencv-python = "^4.7.0.68"
+torch = "^1.13.1"
+torchvision = "^0.14.1"
+scikit-image = "^0.19.3"
+scipy = "^1.10.0"
+yacs = "^0.1.8"
+cython = "^0.29.33"
+chumpy = {git = "https://github.com/mur6/chumpy.git", rev = "master"}
+pyrender = "^0.1.45"
 
 
 [tool.poetry.group.dev.dependencies]
