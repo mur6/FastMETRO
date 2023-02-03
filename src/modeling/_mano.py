@@ -235,8 +235,8 @@ class Mesh(object):
     ):
         self._A, self._U, self._D = get_graph_params(filename=filename, nsize=nsize)
         # self._A = [a.to(device) for a in self._A]
-        self._U = [u.to(device) for u in self._U]
-        self._D = [d.to(device) for d in self._D]
+        self._U = [u.to_dense() for u in self._U]
+        self._D = [d.to_dense() for d in self._D]
         self.num_downsampling = num_downsampling
 
     def downsample(self, x, n1=0, n2=None):
@@ -266,7 +266,7 @@ class Mesh(object):
             for i in range(x.shape[0]):
                 y = x[i]
                 for j in reversed(range(n2, n1)):
-                    y = spmm(self._U[j], y)
+                    y = torch.matmul(self._U[j], y)
                 out.append(y)
             x = torch.stack(out, dim=0)
         return x
