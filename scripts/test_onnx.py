@@ -24,7 +24,7 @@ def test2(model_filename):
     print(f"This: output={outputs}")
 
 
-def test3(image_file):
+def test3(model_filename, image_file):
     transform = transforms.Compose(
         [
             transforms.Resize(224),
@@ -39,14 +39,16 @@ def test3(image_file):
     print(img_tensor.shape)
     # img_tensor = transform(img)
 
-    batch_imgs = torch.unsqueeze(img_tensor, 0)
+    batch_imgs = torch.unsqueeze(img_tensor, 0).numpy()
     print(batch_imgs.shape)
-
-    # template_vertices, template_3d_joints = generate_t_pose_template_mesh(mano)
-    # template_vertices_sub = get_template_vertices_sub(mesh_sampler, template_vertices)
-    # template_vertices, template_3d_joints, template_vertices_sub = template_normalize(template_vertices, template_3d_joints, template_vertices_sub)
-    template_vertices, template_3d_joints, template_vertices_sub = torch.load("template_params.pt")
-    # print(template_vertices.shape)
+    ort_sess = ort.InferenceSession(str(model_filename))
+    outputs = ort_sess.run(None, {"input": batch_imgs})
+    pred_cam, pred_3d_joints, pred_3d_vertices_coarse, pred_3d_vertices_fine = outputs
+    # Print Result
+    print(f"pred_cam: {pred_cam.shape}")
+    print(f"pred_3d_joints: {pred_3d_joints.shape}")
+    print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
+    print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
 
 
 def parse_args():
@@ -68,4 +70,4 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
     # test2(args.onnx_filename)
-    test3(args.sample_dir)
+    test3(args.onnx_filename, args.sample_dir)
