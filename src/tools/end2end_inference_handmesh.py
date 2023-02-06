@@ -71,13 +71,21 @@ def run_inference(args, image_list, FastMETRO_model, mano_model, renderer):
 
             # forward-pass
             out = FastMETRO_model(batch_imgs)
+            print(f"#####################: out: {len(out)}")
             torch.onnx.export(
                 FastMETRO_model,
                 batch_imgs,
                 "inf_handmesh.onnx",
                 input_names=["input"],
-                output_names=["output"],
+                # output_names=["output"],
+                output_names=[
+                    "pred_cam",
+                    "pred_3d_joints",
+                    "pred_3d_vertices_coarse",
+                    "pred_3d_vertices_fine",
+                ],
             )
+            print(f"#################################")
             # export_params=True
             break
             pred_cam, pred_3d_vertices_fine = (
