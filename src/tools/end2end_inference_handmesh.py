@@ -36,7 +36,7 @@ from src.utils.miscellaneous import mkdir, set_seed
 
 # from src.utils.renderer_opendr import OpenDR_Renderer, visualize_reconstruction_opendr
 # try:
-from src.utils.renderer_pyrender import PyRender_Renderer, visualize_reconstruction_pyrender
+# from src.utils.renderer_pyrender import PyRender_Renderer, visualize_reconstruction_pyrender
 
 # except:
 #     print("Failed to import renderer_pyrender. Please see docs/Installation.md")
@@ -66,12 +66,19 @@ def run_inference(args, image_list, FastMETRO_model, mano_model, renderer):
             img_tensor = transform(img)
             img_visual = transform_visualize(img)
 
-            batch_imgs = torch.unsqueeze(img_tensor, 0).cuda()
-            batch_visual_imgs = torch.unsqueeze(img_visual, 0).cuda()
+            batch_imgs = torch.unsqueeze(img_tensor, 0)  # .cuda()
+            batch_visual_imgs = torch.unsqueeze(img_visual, 0)  # .cuda()
 
             # forward-pass
             out = FastMETRO_model(batch_imgs)
-            torch.onnx.export(FastMETRO_model, batch_imgs, "inf_handmesh.onnx", export_params=True)
+            torch.onnx.export(
+                FastMETRO_model,
+                batch_imgs,
+                "inf_handmesh.onnx",
+                input_names=["input"],
+                output_names=["output"],
+            )
+            # export_params=True
             break
             pred_cam, pred_3d_vertices_fine = (
                 out["pred_cam"],
@@ -215,7 +222,7 @@ def main(args):
     if args.use_opendr_renderer:
         renderer = OpenDR_Renderer(faces=mano_model.face)
     else:
-        renderer = PyRender_Renderer(faces=mano_model.face)
+        renderer = None  # PyRender_Renderer(faces=mano_model.face)
 
     # Load pretrained model
     logger.info("Inference: Loading from checkpoint {}".format(args.resume_checkpoint))

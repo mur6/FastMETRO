@@ -231,7 +231,7 @@ class Mesh(object):
         filename=cfg.MANO_sampling_matrix,
         num_downsampling=1,
         nsize=1,
-        device=torch.device("cuda"),
+        device=torch.device("cpu"),
     ):
         self._A, self._U, self._D = get_graph_params(filename=filename, nsize=nsize)
         # self._A = [a.to(device) for a in self._A]
