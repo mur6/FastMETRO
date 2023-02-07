@@ -6,4 +6,4 @@
 
 __version__ = "1.0.0"
 
-from .modeling_fastmetro import FastMETRO_Body_Network, FastMETRO_Hand_Network
+from .modeling_fastmetro import FastMETRO_Hand_Network
