@@ -97,9 +97,9 @@ def test3(model_filename, image_file):
     print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
     mesh = make_hand_mesh(pred_3d_vertices_fine.squeeze(0))
     print(mesh)
-    # visualize_mesh(mesh=mesh)
+    visualize_mesh(mesh=mesh)
     # visualize_points(points=pred_3d_joints.squeeze(0))
-    print(pred_3d_joints.squeeze(0))
+    # print(pred_3d_joints.squeeze(0))
 
 
 def parse_args():
