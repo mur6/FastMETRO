@@ -205,10 +205,15 @@ class FastMETRO_Original_Hand_Network(nn.Module):
         return out
 
 
+############################
+
+
 class FastMETRO_Hand_Network(nn.Module):
     """FastMETRO for 3D hand mesh reconstruction from a single RGB image"""
 
-    def __init__(self, args, backbone, mesh_sampler, num_joints=21, num_vertices=195):
+    def __init__(
+        self, args, backbone, mesh_sampler, num_joints=21, num_vertices=195, num_ring_infos=64
+    ):
         """
         Parameters:
             - args: Arguments
@@ -223,6 +228,7 @@ class FastMETRO_Hand_Network(nn.Module):
         self.mesh_sampler = mesh_sampler
         self.num_joints = num_joints
         self.num_vertices = num_vertices
+        self.num_ring_infos = num_ring_infos
 
         # the number of transformer layers
         if "FastMETRO-S" in args.model_name:
