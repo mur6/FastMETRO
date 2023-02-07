@@ -40,3 +40,4 @@ predictions
 .azureml
 .git
 onnx/
+ckpt/
