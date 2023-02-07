@@ -285,6 +285,9 @@ class FastMETRO_Hand_Network(nn.Module):
         self.vertex_token_embed = nn.Embedding(
             self.num_vertices, self.transformer_config_1["model_dim"]
         )
+        self.ring_infos_token_embed = nn.Embedding(
+            self.num_ring_infos, self.transformer_config_1["model_dim"]
+        )
         # positional encodings
         self.position_encoding_1 = build_position_encoding(
             pos_type=self.transformer_config_1["pos_type"],
@@ -303,9 +306,10 @@ class FastMETRO_Hand_Network(nn.Module):
             args.conv_1x1_dim, self.transformer_config_1["model_dim"], kernel_size=1
         )
 
-        # attention mask
+        # attention mask [TODO]
         zeros_1 = torch.tensor(np.zeros((num_vertices, num_joints)).astype(bool))
         zeros_2 = torch.tensor(np.zeros((num_joints, (num_joints + num_vertices))).astype(bool))
+        # / attention mask [TODO]
         adjacency_indices = torch.load("./src/modeling/data/mano_195_adjmat_indices.pt")
         adjacency_matrix_value = torch.load("./src/modeling/data/mano_195_adjmat_values.pt")
         adjacency_matrix_size = torch.load("./src/modeling/data/mano_195_adjmat_size.pt")
