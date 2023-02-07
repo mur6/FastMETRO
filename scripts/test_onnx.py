@@ -28,12 +28,20 @@ from src.modeling._mano import MANO, Mesh
 #     print(f"This: output={outputs}")
 
 
-def visualize_mesh(*, mesh):
+def visualize_mesh(*, mesh, cam):
     color = [102, 102, 102, 64]
     for facet in mesh.facets:
         # mesh.visual.face_colors[facet] = [color, color]
         mesh.visual.face_colors[facet] = color
-    scene = trimesh.Scene()
+    print(f"cam: {cam}")
+    P = np.eye(4)
+    P[0, 3] = cam[0]
+    P[1, 3] = cam[1]
+    P[2, 3] = cam[2]
+    print(f"P: {P}")
+    scene = trimesh.Scene()  # camera_transform=P
+    print(scene.camera_transform)
+    # scene.camera.K = K
     scene.add_geometry(mesh)
     # scene.add_geometry(create_point_geom(a_point, "red"))
     scene.show()
@@ -91,13 +99,15 @@ def test3(model_filename, image_file):
     outputs = ort_sess.run(None, {"input": batch_imgs})
     pred_cam, pred_3d_joints, pred_3d_vertices_coarse, pred_3d_vertices_fine = outputs
     # Print Result
-    print(f"pred_cam: {pred_cam.shape}")
+    print(f"pred_cam: {pred_cam}")
+    cam = pred_cam[0]
+    # K = torch.tensor([[fx, scale, tx], [0, fy, ty], [0, 0, 1]])
     print(f"pred_3d_joints: {pred_3d_joints.shape}")
     print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
     print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
     mesh = make_hand_mesh(pred_3d_vertices_fine.squeeze(0))
-    print(mesh)
-    visualize_mesh(mesh=mesh)
+    # print(mesh)
+    visualize_mesh(mesh=mesh, cam=cam)
     # visualize_points(points=pred_3d_joints.squeeze(0))
     # print(pred_3d_joints.squeeze(0))
 
