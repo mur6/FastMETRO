@@ -214,14 +214,20 @@ class FastMETRO_Body_Network(nn.Module):
         out["pred_3d_vertices_intermediate"] = pred_3d_vertices_intermediate
         out["pred_3d_vertices_fine"] = pred_3d_vertices_fine
 
-        # (optional) regress smpl parameters
-        if self.args.use_smpl_param_regressor:
-            pred_rotmat, pred_betas = self.smpl_parameter_regressor(
-                pred_3d_vertices_intermediate.clone().detach()
-            )
-            out["pred_rotmat"] = pred_rotmat
-            out["pred_betas"] = pred_betas
-
+        # # (optional) regress smpl parameters
+        # if self.args.use_smpl_param_regressor:
+        #     pred_rotmat, pred_betas = self.smpl_parameter_regressor(
+        #         pred_3d_vertices_intermediate.clone().detach()
+        #     )
+        #     out["pred_rotmat"] = pred_rotmat
+        #     out["pred_betas"] = pred_betas
+        out = (
+            pred_cam,
+            pred_3d_joints,
+            pred_3d_vertices_coarse,
+            pred_3d_vertices_intermediate,
+            pred_3d_vertices_fine,
+        )
         return out
 
 
@@ -398,10 +404,15 @@ class FastMETRO_Hand_Network(nn.Module):
             pred_3d_vertices_coarse
         )  # batch_size X num_vertices(fine) X 3
 
-        out = {}
-        out["pred_cam"] = pred_cam
-        out["pred_3d_joints"] = pred_3d_joints
-        out["pred_3d_vertices_coarse"] = pred_3d_vertices_coarse
-        out["pred_3d_vertices_fine"] = pred_3d_vertices_fine
-
+        # out = {}
+        # out["pred_cam"] = pred_cam
+        # out["pred_3d_joints"] = pred_3d_joints
+        # out["pred_3d_vertices_coarse"] = pred_3d_vertices_coarse
+        # out["pred_3d_vertices_fine"] = pred_3d_vertices_fine
+        out = (
+            pred_cam,
+            pred_3d_joints,
+            pred_3d_vertices_coarse,
+            pred_3d_vertices_fine,
+        )
         return out
