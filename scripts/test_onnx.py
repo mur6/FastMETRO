@@ -4,10 +4,12 @@ import argparse
 import trimesh
 from PIL import Image
 import numpy as np
+from matplotlib import pyplot as plt
 import onnx
 import onnxruntime as ort
 import torch
 from torchvision import transforms
+
 
 from src.modeling._mano import MANO, Mesh
 
@@ -37,6 +39,24 @@ def visualize_mesh(*, mesh):
     scene.show()
 
 
+def _create_point_geom(point, color):
+    geom = trimesh.creation.icosphere(radius=0.0008)
+    if color == "red":
+        color = [202, 2, 2, 255]
+    else:
+        color = [0, 0, 200, 255]
+    geom.visual.face_colors = color
+    geom.apply_translation(point)
+    return geom
+
+
+def visualize_points(*, points):
+    scene = trimesh.Scene()
+    for p in points:
+        scene.add_geometry(_create_point_geom(p, "red"))
+    scene.show()
+
+
 def make_hand_mesh(gt_vertices):
     # gt_vertices = torch.transpose(gt_vertices, 2, 1).squeeze(0)
     print(f"gt_vertices: {gt_vertices.shape}")
@@ -60,7 +80,10 @@ def test3(model_filename, image_file):
 
     img_tensor = transform(image)
     print(img_tensor.shape)
-    # img_tensor = transform(img)
+    # plt.imshow(img_tensor.permute(1, 2, 0))
+    # plt.show()
+    # return
+    # # img_tensor = transform(img)
 
     batch_imgs = torch.unsqueeze(img_tensor, 0).numpy()
     print(batch_imgs.shape)
@@ -74,7 +97,9 @@ def test3(model_filename, image_file):
     print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
     mesh = make_hand_mesh(pred_3d_vertices_fine.squeeze(0))
     print(mesh)
-    visualize_mesh(mesh=mesh)
+    # visualize_mesh(mesh=mesh)
+    # visualize_points(points=pred_3d_joints.squeeze(0))
+    print(pred_3d_joints.squeeze(0))
 
 
 def parse_args():
