@@ -75,7 +75,7 @@ import torch.sparse
 from torch.nn import Module
 
 
-def main():
+def main_1():
     i = [
         [
             0,
@@ -97,4 +97,15 @@ def main():
     print(a)
 
 
-main()
+def main_2():
+    import torch
+
+    a = torch.randn((4, 4))
+    a_sliced = a[0, :]
+    a_row = a[[0], :]  # Select first row
+    a_column = a[:, [0]]  # Select first column
+    print(a_row.shape)
+    print(a_column.shape)
+
+
+main_2()

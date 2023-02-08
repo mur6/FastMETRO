@@ -382,9 +382,10 @@ def my_model_instance(args):
     print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
     print(f"fastmetro:jv_features_1: {jv_features.shape}")
     model = MyModel(args)
-    pred_3d_coordinates = model(cam_features, enc_img_features, jv_features)
+    pred_center, pred_normal_v = model(cam_features, enc_img_features, jv_features)
     print()
-    print(f"pred_3d_coordinates: {pred_3d_coordinates.shape}")
+    print(f"pred_center: {pred_center.shape}")
+    print(f"pred_normal_v: {pred_normal_v.shape}")
 
 
 if __name__ == "__main__":

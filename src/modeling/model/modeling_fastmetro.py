@@ -451,8 +451,9 @@ class MyModel(nn.Module):
             hidden_dim=self.transformer_config_3["model_dim"],
         )
         # estimators
-        self.xyz_regressor = nn.Linear(self.transformer_config_3["model_dim"], 3)
-        # self.xyz_regressor = nn.Linear(self.transformer_config_3["model_dim"], 3)
+        self.ring_center_regressor = nn.Linear(self.transformer_config_3["model_dim"], 3)
+        self.ring_normal_regressor = nn.Linear(self.transformer_config_3["model_dim"], 3)
+        self.radius_regressor = nn.Linear(self.transformer_config_3["model_dim"], 1)
 
     def _do_decode(self, hw, bs, device, enc_img_features, jv_tokens, pos_embed):
         # hw, bs = img_features.shape  # (height * width), batch_size, feature_dim
@@ -500,9 +501,8 @@ class MyModel(nn.Module):
         #     enc_img_features_2, cam_features_2, jv_features_2, pos_enc_3
         # )
         # pred_cam = self.cam_predictor(cam_features_2).view(batch_size, 3)  # batch_size X 3
-        pred_center = self.xyz_regressor(
-            jv_features_final[0].transpose(0, 1)
-        )  # batch_size X (num_joints + num_vertices) X 3
-
+        ring_center = self.ring_center_regressor(jv_features_final[[0], :, :].transpose(0, 1))
+        ring_normal = self.ring_normal_regressor(jv_features_final[[1], :, :].transpose(0, 1))
+        # self.radius_regressor(jv_features_final[3:4].transpose(0, 1))
         # return cam_features, jv_features
-        return pred_center
+        return ring_center.squeeze(1), ring_normal.squeeze(1)
