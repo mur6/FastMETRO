@@ -357,7 +357,7 @@ def original_model_test(args):
     model_dim = 64
     img_features = torch.randn(49, 1, 64)
     cam_token = torch.randn(1, 1, 64)
-    jv_tokens = torch.randn(7, 1, 64)
+    jv_tokens = torch.randn(216, 1, 64)
     pos_enc = torch.randn(49, 1, 64)
     cam_features_1, enc_img_features_1, jv_features_1 = transformer_3(
         img_features, cam_token, jv_tokens, pos_enc
