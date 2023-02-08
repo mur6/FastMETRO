@@ -330,7 +330,7 @@ def model_load_and_inference(args):
     logger.info("=> loading hrnet-v2-w64 model")
     model = FastMETRO_Hand_Network(args, backbone, mesh_sampler)
     print(model.attention_mask)
-    input = torch.rand(1, 3, 224, 224)
+    input = torch.randn(1, 3, 224, 224)
     (
         pred_cam,
         pred_3d_joints,
@@ -339,8 +339,37 @@ def model_load_and_inference(args):
     ) = model(input)
 
 
+def original_model_test(args):
+    num_enc_layers = 3
+    num_dec_layers = 3
+    transformer_config_3 = {
+        "model_dim": 64,
+        "dropout": args.transformer_dropout,
+        "nhead": args.transformer_nhead,
+        "feedforward_dim": 256,
+        "num_enc_layers": num_enc_layers,
+        "num_dec_layers": num_dec_layers,
+        "pos_type": args.pos_type,
+    }
+    print(transformer_config_3)
+    transformer_3 = build_transformer(transformer_config_3)
+
+    model_dim = 64
+    img_features = torch.randn(49, 1, 64)
+    cam_token = torch.randn(1, 1, 64)
+    jv_tokens = torch.randn(7, 1, 64)
+    pos_enc = torch.randn(49, 1, 64)
+    cam_features_1, enc_img_features_1, jv_features_1 = transformer_3(
+        img_features, cam_token, jv_tokens, pos_enc
+    )
+    print(f"3:cam_features_1: {cam_features_1.shape}")
+    print(f"3:enc_img_features_1: {enc_img_features_1.shape}")
+    print(f"3:jv_features_1: {jv_features_1.shape}")
+
+
 if __name__ == "__main__":
     args = parse_args()
     # main(args)
     # test_each_transformer_models(args)
-    model_load_and_inference(args)
+    # model_load_and_inference(args)
+    original_model_test(args)
