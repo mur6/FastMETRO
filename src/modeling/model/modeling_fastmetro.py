@@ -354,10 +354,10 @@ class FastMETRO_Hand_Network(nn.Module):
         )  # 49 X batch_size X 128
 
         # first transformer encoder-decoder
-        print(f"1:img_features: {img_features.shape}")
-        print(f"1:cam_token: {cam_token.shape}")
-        print(f"1:jv_tokens: {jv_tokens.shape}")
-        print(f"1:pos_enc_1: {pos_enc_1.shape}")
+        # print(f"1:img_features: {img_features.shape}")
+        # print(f"1:cam_token: {cam_token.shape}")
+        # print(f"1:jv_tokens: {jv_tokens.shape}")
+        # print(f"1:pos_enc_1: {pos_enc_1.shape}")
         cam_features_1, enc_img_features_1, jv_features_1 = self.transformer_1(
             img_features, cam_token, jv_tokens, pos_enc_1, attention_mask=attention_mask
         )
@@ -372,10 +372,10 @@ class FastMETRO_Hand_Network(nn.Module):
         )  # (num_joints + num_vertices) X batch_size X 128
 
         # second transformer encoder-decoder
-        print(f"2:reduced_enc_img_features_1: {reduced_enc_img_features_1.shape}")
-        print(f"2:reduced_cam_features_1: {reduced_cam_features_1.shape}")
-        print(f"2:reduced_jv_features_1: {reduced_jv_features_1.shape}")
-        print(f"2:pos_enc_2: {pos_enc_2.shape}")
+        # print(f"2:reduced_enc_img_features_1: {reduced_enc_img_features_1.shape}")
+        # print(f"2:reduced_cam_features_1: {reduced_cam_features_1.shape}")
+        # print(f"2:reduced_jv_features_1: {reduced_jv_features_1.shape}")
+        # print(f"2:pos_enc_2: {pos_enc_2.shape}")
         cam_features_2, enc_img_features_2, jv_features_2 = self.transformer_2(
             reduced_enc_img_features_1,
             reduced_cam_features_1,
@@ -503,6 +503,6 @@ class MyModel(nn.Module):
         # pred_cam = self.cam_predictor(cam_features_2).view(batch_size, 3)  # batch_size X 3
         ring_center = self.ring_center_regressor(jv_features_final[[0], :, :].transpose(0, 1))
         ring_normal = self.ring_normal_regressor(jv_features_final[[1], :, :].transpose(0, 1))
-        # self.radius_regressor(jv_features_final[3:4].transpose(0, 1))
+        ring_radius = self.radius_regressor(jv_features_final[[2], :, :].transpose(0, 1))
         # return cam_features, jv_features
-        return ring_center.squeeze(1), ring_normal.squeeze(1)
+        return ring_center.squeeze(1), ring_normal.squeeze(1), ring_radius.squeeze(1)
