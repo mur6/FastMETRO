@@ -247,11 +247,13 @@ def main(args):
         pred_cam,
         pred_3d_joints,
         pred_3d_vertices_coarse,
+        pred_3d_vertices_fine,
     ) = _FastMETRO_Network(input)
     print("##################")
     print(f"pred_cam: {pred_cam.shape}")
     print(f"pred_3d_joints: {pred_3d_joints.shape}")
     print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
+    print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
     # number of parameters
     # overall_params = sum(p.numel() for p in _FastMETRO_Network.parameters() if p.requires_grad)
     # backbone_params = sum(p.numel() for p in backbone.parameters() if p.requires_grad)
