@@ -418,7 +418,7 @@ class FastMETRO_Hand_Network(nn.Module):
 
 
 class MyModel(nn.Module):
-    def __init__(self, args, num_joints=21, num_vertices=195, num_ring_infos=7):
+    def __init__(self, args, num_joints=21, num_vertices=195):
         super().__init__()
         self.args = args
         self.num_joints = num_joints
@@ -456,12 +456,10 @@ class MyModel(nn.Module):
             hidden_dim=self.transformer_config_3["model_dim"],
         )
         # estimators
-        self.xyz_regressor = nn.Linear(self.transformer_config_3["model_dim"], 3)
-        self.cam_predictor = nn.Linear(self.transformer_config_3["model_dim"], 3)
+        # self.xyz_regressor = nn.Linear(self.transformer_config_3["model_dim"], 3)
+        # self.cam_predictor = nn.Linear(self.transformer_config_3["model_dim"], 3)
 
-    def forward(self, images, *, img_features):
-        batch_size = images.size(0)
-
+    def forward(self, cam_features_2, enc_img_features_2, jv_features_2):
         # preparation
         # cam_token = self.cam_token_embed.weight.unsqueeze(1).repeat(
         #     1, batch_size, 1
@@ -479,67 +477,19 @@ class MyModel(nn.Module):
             self.conv_1x1(img_features).flatten(2).permute(2, 0, 1)
         )  # 49 X batch_size X 512
 
-        # positional encodings
-        pos_enc_1 = (
-            self.position_encoding_1(batch_size, h, w, device).flatten(2).permute(2, 0, 1)
-        )  # 49 X batch_size X 512
-        pos_enc_2 = (
-            self.position_encoding_2(batch_size, h, w, device).flatten(2).permute(2, 0, 1)
-        )  # 49 X batch_size X 128
+        # # positional encodings
+        # pos_enc_1 = (
+        #     self.position_encoding_1(batch_size, h, w, device).flatten(2).permute(2, 0, 1)
+        # )  # 49 X batch_size X 512
+        # pos_enc_2 = (
+        #     self.position_encoding_2(batch_size, h, w, device).flatten(2).permute(2, 0, 1)
+        # )  # 49 X batch_size X 128
 
-        # first transformer encoder-decoder
-        print(f"1:img_features: {img_features.shape}")
-        print(f"1:cam_token: {cam_token.shape}")
-        print(f"1:jv_tokens: {jv_tokens.shape}")
-        print(f"1:pos_enc_1: {pos_enc_1.shape}")
-        cam_features_1, enc_img_features_1, jv_features_1 = self.transformer_1(
-            img_features, cam_token, jv_tokens, pos_enc_1, attention_mask=attention_mask
-        )
-
-        # progressive dimensionality reduction
-        reduced_cam_features_1 = self.dim_reduce_enc_cam(cam_features_1)  # 1 X batch_size X 128
-        reduced_enc_img_features_1 = self.dim_reduce_enc_img(
-            enc_img_features_1
-        )  # 49 X batch_size X 128
-        reduced_jv_features_1 = self.dim_reduce_dec(
-            jv_features_1
-        )  # (num_joints + num_vertices) X batch_size X 128
-
-        # second transformer encoder-decoder
-        print(f"2:reduced_enc_img_features_1: {reduced_enc_img_features_1.shape}")
-        print(f"2:reduced_cam_features_1: {reduced_cam_features_1.shape}")
-        print(f"2:reduced_jv_features_1: {reduced_jv_features_1.shape}")
-        print(f"2:pos_enc_2: {pos_enc_2.shape}")
-        cam_features_2, _, jv_features_2 = self.transformer_2(
-            reduced_enc_img_features_1,
-            reduced_cam_features_1,
-            reduced_jv_features_1,
-            pos_enc_2,
-            attention_mask=attention_mask,
-        )
-
-        # estimators
-        pred_cam = self.cam_predictor(cam_features_2).view(batch_size, 3)  # batch_size X 3
-        pred_3d_coordinates = self.xyz_regressor(
-            jv_features_2.transpose(0, 1)
-        )  # batch_size X (num_joints + num_vertices) X 3
-        pred_3d_joints = pred_3d_coordinates[:, : self.num_joints, :]  # batch_size X num_joints X 3
-        pred_3d_vertices_coarse = pred_3d_coordinates[
-            :, self.num_joints :, :
-        ]  # batch_size X num_vertices(coarse) X 3
-        pred_3d_vertices_fine = self.mesh_sampler.upsample(
-            pred_3d_vertices_coarse
-        )  # batch_size X num_vertices(fine) X 3
-
-        # out = {}
-        # out["pred_cam"] = pred_cam
-        # out["pred_3d_joints"] = pred_3d_joints
-        # out["pred_3d_vertices_coarse"] = pred_3d_vertices_coarse
-        # out["pred_3d_vertices_fine"] = pred_3d_vertices_fine
-        out = (
-            pred_cam,
-            pred_3d_joints,
-            pred_3d_vertices_coarse,
-            pred_3d_vertices_fine,
-        )
-        return out
+        # # first transformer encoder-decoder
+        # print(f"1:img_features: {img_features.shape}")
+        # print(f"1:cam_token: {cam_token.shape}")
+        # print(f"1:jv_tokens: {jv_tokens.shape}")
+        # print(f"1:pos_enc_1: {pos_enc_1.shape}")
+        # cam_features_1, enc_img_features_1, jv_features_1 = self.transformer_1(
+        #     img_features, cam_token, jv_tokens, pos_enc_1, attention_mask=attention_mask
+        # )

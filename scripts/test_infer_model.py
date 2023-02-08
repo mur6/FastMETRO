@@ -315,7 +315,7 @@ def test_each_transformer_models(args):
     t = build_transformer(transformer_config_3)
 
 
-def model_load_and_inference(args):
+def get_fastmetro_model(args):
     basicConfig(level=DEBUG)
     logger = getLogger("FastMETRO")
 
@@ -329,20 +329,20 @@ def model_load_and_inference(args):
     backbone = get_cls_net(hrnet_config, pretrained=hrnet_checkpoint)
     logger.info("=> loading hrnet-v2-w64 model")
     model = FastMETRO_Hand_Network(args, backbone, mesh_sampler)
-    print(model.attention_mask)
-    input = torch.randn(1, 3, 224, 224)
-    output_features = False
-    (
-        pred_cam,
-        pred_3d_joints,
-        pred_3d_vertices_coarse,
-        pred_3d_vertices_fine,
-    ) = model(input, output_features=output_features)
-    output_features = True
-    cam_features, enc_img_features, jv_features = model(input, output_features=output_features)
-    print(f"3:cam_features_1: {cam_features.shape}")
-    print(f"3:enc_img_features_1: {enc_img_features.shape}")
-    print(f"3:jv_features_1: {jv_features.shape}")
+    # input = torch.randn(1, 3, 224, 224)
+    # output_features = False
+    # (
+    #     pred_cam,
+    #     pred_3d_joints,
+    #     pred_3d_vertices_coarse,
+    #     pred_3d_vertices_fine,
+    # ) = model(input, output_features=output_features)
+    # output_features = True
+    # cam_features, enc_img_features, jv_features = model(input, output_features=output_features)
+    # print(f"3:cam_features_1: {cam_features.shape}")
+    # print(f"3:enc_img_features_1: {enc_img_features.shape}")
+    # print(f"3:jv_features_1: {jv_features.shape}")
+    return model
 
 
 def original_model_test(args):
@@ -373,10 +373,21 @@ def original_model_test(args):
     print(f"3:jv_features_1: {jv_features_1.shape}")
 
 
+def my_model_instance(args):
+    fastmetro = get_fastmetro_model(args)
+    output_features = True
+    cam_features, enc_img_features, jv_features = model(input, output_features=output_features)
+    print(f"fastmetro:cam_features_1: {cam_features.shape}")
+    print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
+    print(f"fastmetro:jv_features_1: {jv_features.shape}")
+    model = MyModel(args)
+
+
 if __name__ == "__main__":
     args = parse_args()
     # main(args)
     # test_each_transformer_models(args)
-    model_load_and_inference(args)
-    print("########")
-    original_model_test(args)
+    # model_load_and_inference(args)
+    # print("########")
+    # original_model_test(args)
+    my_model_instance(args)
