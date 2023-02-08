@@ -190,7 +190,7 @@ def parse_args():
     return args
 
 
-def main_2(args):
+def main(args):
     print("FastMETRO for 3D Hand Mesh Reconstruction!")
     global logger
     # Setup CUDA, GPU & distributed training
@@ -265,9 +265,7 @@ def main_2(args):
     # _FastMETRO_Network.to(args.device)
 
 
-if __name__ == "__main__":
-    args = parse_args()
-    # main(args)
+def test_each_transformer_models():
     # configurations for the first transformer
     if "FastMETRO-S" in args.model_name:
         num_enc_layers = 1
@@ -301,3 +299,8 @@ if __name__ == "__main__":
         "pos_type": args.pos_type,
     }
     print(transformer_config_2)
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)
