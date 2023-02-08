@@ -376,7 +376,7 @@ def original_model_test(args):
 def my_model_instance(args):
     fastmetro = get_fastmetro_model(args)
     output_features = True
-    cam_features, enc_img_features, jv_features = model(input, output_features=output_features)
+    cam_features, enc_img_features, jv_features = fastmetro(input, output_features=output_features)
     print(f"fastmetro:cam_features_1: {cam_features.shape}")
     print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
     print(f"fastmetro:jv_features_1: {jv_features.shape}")
