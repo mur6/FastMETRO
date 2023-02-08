@@ -19,7 +19,7 @@ from src.modeling._mano import MANO, Mesh
 from src.modeling.hrnet.config import config as hrnet_config
 from src.modeling.hrnet.config import update_config as hrnet_update_config
 from src.modeling.hrnet.hrnet_cls_net_featmaps import get_cls_net
-from src.modeling.model import FastMETRO_Hand_Network
+from src.modeling.model import FastMETRO_Hand_Network, MyModel
 from src.modeling.model.transformer import build_transformer
 
 # from src.utils.comm import get_rank, get_world_size, is_main_process
@@ -339,7 +339,10 @@ def model_load_and_inference(args):
         pred_3d_vertices_fine,
     ) = model(input, output_features=output_features)
     output_features = True
-    model(input, output_features=output_features)
+    cam_features, enc_img_features, jv_features = model(input, output_features=output_features)
+    print(f"3:cam_features_1: {cam_features.shape}")
+    print(f"3:enc_img_features_1: {enc_img_features.shape}")
+    print(f"3:jv_features_1: {jv_features.shape}")
 
 
 def original_model_test(args):
@@ -374,5 +377,6 @@ if __name__ == "__main__":
     args = parse_args()
     # main(args)
     # test_each_transformer_models(args)
-    # model_load_and_inference(args)
+    model_load_and_inference(args)
+    print("########")
     original_model_test(args)
