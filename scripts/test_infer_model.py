@@ -376,16 +376,17 @@ def original_model_test(args):
 def my_model_instance(args):
     fastmetro = get_fastmetro_model(args)
     output_features = True
-    input = torch.randn(1, 3, 224, 224)
+    input = torch.randn(16, 3, 224, 224)
     cam_features, enc_img_features, jv_features = fastmetro(input, output_features=output_features)
     print(f"fastmetro:cam_features_1: {cam_features.shape}")
     print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
     print(f"fastmetro:jv_features_1: {jv_features.shape}")
     model = MyModel(args)
-    pred_center, pred_normal_v = model(cam_features, enc_img_features, jv_features)
+    pred_center, pred_normal_v, ring_radius = model(cam_features, enc_img_features, jv_features)
     print()
     print(f"pred_center: {pred_center.shape}")
     print(f"pred_normal_v: {pred_normal_v.shape}")
+    print(f"ring_radius: {ring_radius.shape}")
 
 
 if __name__ == "__main__":
