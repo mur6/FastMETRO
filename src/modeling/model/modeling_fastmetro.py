@@ -243,9 +243,6 @@ class FastMETRO_Hand_Network(nn.Module):
         else:
             assert False, "The model name is not valid"
 
-        print(f"model_dim_1: {args.model_dim_1}")
-        print(f"model_dim_2: {args.model_dim_2}")
-
         # configurations for the first transformer
         self.transformer_config_1 = {
             "model_dim": args.model_dim_1,
@@ -320,11 +317,8 @@ class FastMETRO_Hand_Network(nn.Module):
             adjacency_indices, adjacency_matrix_value, size=adjacency_matrix_size
         ).to_dense()
         temp_mask_1 = adjacency_matrix == 0
-        print(f"temp_mask_1: {temp_mask_1.shape}")
         temp_mask_2 = torch.cat([zeros_1, temp_mask_1], dim=1)
-        print(f"temp_mask_2: {temp_mask_2.shape}")
         self.attention_mask = torch.cat([zeros_2, temp_mask_2], dim=0)
-        print(f"attention_mask: {self.attention_mask.shape}")
 
     def forward(self, images):
         device = images.device
@@ -334,22 +328,14 @@ class FastMETRO_Hand_Network(nn.Module):
         cam_token = self.cam_token_embed.weight.unsqueeze(1).repeat(
             1, batch_size, 1
         )  # 1 X batch_size X 512
-        jvr_tokens = (
-            torch.cat(
-                [
-                    self.joint_token_embed.weight,
-                    self.vertex_token_embed.weight,
-                    self.ring_infos_token_embed.weight,
-                ],
-                dim=0,
-            )
+        jv_tokens = (
+            torch.cat([self.joint_token_embed.weight, self.vertex_token_embed.weight], dim=0)
             .unsqueeze(1)
             .repeat(1, batch_size, 1)
         )  # (num_joints + num_vertices) X batch_size X 512
         attention_mask = self.attention_mask.to(
             device
         )  # (num_joints + num_vertices) X (num_joints + num_vertices)
-        attention_mask = torch.zeros((280, 280))
 
         # extract image features through a CNN backbone
         img_features = self.backbone(images)  # batch_size X 2048 X 7 X 7
@@ -367,12 +353,8 @@ class FastMETRO_Hand_Network(nn.Module):
         )  # 49 X batch_size X 128
 
         # first transformer encoder-decoder
-        print(f"jvr_tokens: {jvr_tokens.shape}")
-        print(f"pos_enc_1: {pos_enc_1.shape}")
-        print(f"pos_enc_2: {pos_enc_2.shape}")
-        print(f"attention_mask: {attention_mask.shape}")
-        cam_features_1, enc_img_features_1, jvr_features_1 = self.transformer_1(
-            img_features, cam_token, jvr_tokens, pos_enc_1, attention_mask=attention_mask
+        cam_features_1, enc_img_features_1, jv_features_1 = self.transformer_1(
+            img_features, cam_token, jv_tokens, pos_enc_1, attention_mask=attention_mask
         )
 
         # progressive dimensionality reduction
@@ -380,15 +362,15 @@ class FastMETRO_Hand_Network(nn.Module):
         reduced_enc_img_features_1 = self.dim_reduce_enc_img(
             enc_img_features_1
         )  # 49 X batch_size X 128
-        reduced_jvr_features_1 = self.dim_reduce_dec(
-            jvr_features_1
+        reduced_jv_features_1 = self.dim_reduce_dec(
+            jv_features_1
         )  # (num_joints + num_vertices) X batch_size X 128
 
         # second transformer encoder-decoder
-        cam_features_2, _, jvr_features_2 = self.transformer_2(
+        cam_features_2, _, jv_features_2 = self.transformer_2(
             reduced_enc_img_features_1,
             reduced_cam_features_1,
-            reduced_jvr_features_1,
+            reduced_jv_features_1,
             pos_enc_2,
             attention_mask=attention_mask,
         )
@@ -396,22 +378,15 @@ class FastMETRO_Hand_Network(nn.Module):
         # estimators
         pred_cam = self.cam_predictor(cam_features_2).view(batch_size, 3)  # batch_size X 3
         pred_3d_coordinates = self.xyz_regressor(
-            jvr_features_2.transpose(0, 1)
+            jv_features_2.transpose(0, 1)
         )  # batch_size X (num_joints + num_vertices) X 3
-        print(f"pred_3d_coordinates: {pred_3d_coordinates.shape}")
         pred_3d_joints = pred_3d_coordinates[:, : self.num_joints, :]  # batch_size X num_joints X 3
-        print(f"pred_3d_joints: {pred_3d_joints.shape}")
         pred_3d_vertices_coarse = pred_3d_coordinates[
-            :, self.num_joints : (self.num_joints + self.num_vertices), :
+            :, self.num_joints :, :
         ]  # batch_size X num_vertices(coarse) X 3
-        print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
-        ring_infos = pred_3d_coordinates[
-            :, (self.num_joints + self.num_vertices) :, :
-        ]  # batch_size X num_vertices(coarse) X 3
-        print(f"ring_infos: {ring_infos.shape}")
-        # pred_3d_vertices_fine = self.mesh_sampler.upsample(
-        #     pred_3d_vertices_coarse
-        # )  # batch_size X num_vertices(fine) X 3
+        pred_3d_vertices_fine = self.mesh_sampler.upsample(
+            pred_3d_vertices_coarse
+        )  # batch_size X num_vertices(fine) X 3
 
         # out = {}
         # out["pred_cam"] = pred_cam
@@ -422,5 +397,6 @@ class FastMETRO_Hand_Network(nn.Module):
             pred_cam,
             pred_3d_joints,
             pred_3d_vertices_coarse,
+            pred_3d_vertices_fine,
         )
         return out
