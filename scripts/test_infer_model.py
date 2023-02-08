@@ -331,12 +331,15 @@ def model_load_and_inference(args):
     model = FastMETRO_Hand_Network(args, backbone, mesh_sampler)
     print(model.attention_mask)
     input = torch.randn(1, 3, 224, 224)
+    output_features = False
     (
         pred_cam,
         pred_3d_joints,
         pred_3d_vertices_coarse,
         pred_3d_vertices_fine,
-    ) = model(input)
+    ) = model(input, output_features=output_features)
+    output_features = True
+    model(input, output_features=output_features)
 
 
 def original_model_test(args):

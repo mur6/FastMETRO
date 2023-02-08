@@ -320,7 +320,7 @@ class FastMETRO_Hand_Network(nn.Module):
         temp_mask_2 = torch.cat([zeros_1, temp_mask_1], dim=1)
         self.attention_mask = torch.cat([zeros_2, temp_mask_2], dim=0)
 
-    def forward(self, images):
+    def forward(self, images, output_features=True):
         device = images.device
         batch_size = images.size(0)
 
@@ -339,6 +339,141 @@ class FastMETRO_Hand_Network(nn.Module):
 
         # extract image features through a CNN backbone
         img_features = self.backbone(images)  # batch_size X 2048 X 7 X 7
+        _, _, h, w = img_features.shape
+        img_features = (
+            self.conv_1x1(img_features).flatten(2).permute(2, 0, 1)
+        )  # 49 X batch_size X 512
+
+        # positional encodings
+        pos_enc_1 = (
+            self.position_encoding_1(batch_size, h, w, device).flatten(2).permute(2, 0, 1)
+        )  # 49 X batch_size X 512
+        pos_enc_2 = (
+            self.position_encoding_2(batch_size, h, w, device).flatten(2).permute(2, 0, 1)
+        )  # 49 X batch_size X 128
+
+        # first transformer encoder-decoder
+        print(f"1:img_features: {img_features.shape}")
+        print(f"1:cam_token: {cam_token.shape}")
+        print(f"1:jv_tokens: {jv_tokens.shape}")
+        print(f"1:pos_enc_1: {pos_enc_1.shape}")
+        cam_features_1, enc_img_features_1, jv_features_1 = self.transformer_1(
+            img_features, cam_token, jv_tokens, pos_enc_1, attention_mask=attention_mask
+        )
+
+        # progressive dimensionality reduction
+        reduced_cam_features_1 = self.dim_reduce_enc_cam(cam_features_1)  # 1 X batch_size X 128
+        reduced_enc_img_features_1 = self.dim_reduce_enc_img(
+            enc_img_features_1
+        )  # 49 X batch_size X 128
+        reduced_jv_features_1 = self.dim_reduce_dec(
+            jv_features_1
+        )  # (num_joints + num_vertices) X batch_size X 128
+
+        # second transformer encoder-decoder
+        print(f"2:reduced_enc_img_features_1: {reduced_enc_img_features_1.shape}")
+        print(f"2:reduced_cam_features_1: {reduced_cam_features_1.shape}")
+        print(f"2:reduced_jv_features_1: {reduced_jv_features_1.shape}")
+        print(f"2:pos_enc_2: {pos_enc_2.shape}")
+        cam_features_2, enc_img_features_2, jv_features_2 = self.transformer_2(
+            reduced_enc_img_features_1,
+            reduced_cam_features_1,
+            reduced_jv_features_1,
+            pos_enc_2,
+            attention_mask=attention_mask,
+        )
+
+        # estimators
+        pred_cam = self.cam_predictor(cam_features_2).view(batch_size, 3)  # batch_size X 3
+        pred_3d_coordinates = self.xyz_regressor(
+            jv_features_2.transpose(0, 1)
+        )  # batch_size X (num_joints + num_vertices) X 3
+        pred_3d_joints = pred_3d_coordinates[:, : self.num_joints, :]  # batch_size X num_joints X 3
+        pred_3d_vertices_coarse = pred_3d_coordinates[
+            :, self.num_joints :, :
+        ]  # batch_size X num_vertices(coarse) X 3
+        pred_3d_vertices_fine = self.mesh_sampler.upsample(
+            pred_3d_vertices_coarse
+        )  # batch_size X num_vertices(fine) X 3
+
+        if output_features:
+            out = (
+                cam_features_2,
+                enc_img_features_2,
+                jv_features_2,
+            )
+        else:
+            # out = {}
+            # out["pred_cam"] = pred_cam
+            # out["pred_3d_joints"] = pred_3d_joints
+            # out["pred_3d_vertices_coarse"] = pred_3d_vertices_coarse
+            # out["pred_3d_vertices_fine"] = pred_3d_vertices_fine
+            out = (
+                pred_cam,
+                pred_3d_joints,
+                pred_3d_vertices_coarse,
+                pred_3d_vertices_fine,
+            )
+        return out
+
+
+class MyModel(nn.Module):
+    def __init__(self, args, num_joints=21, num_vertices=195, num_ring_infos=7):
+        super().__init__()
+        self.args = args
+        self.num_joints = num_joints
+        self.num_vertices = num_vertices
+        self.num_ring_infos = 7
+        assert "FastMETRO-L" in args.model_name
+        num_enc_layers = 3
+        num_dec_layers = 3
+        # configurations for the first transformer
+        self.transformer_config_3 = {
+            "model_dim": 64,
+            "dropout": args.transformer_dropout,
+            "nhead": args.transformer_nhead,
+            "feedforward_dim": 256,
+            "num_enc_layers": num_enc_layers,
+            "num_dec_layers": num_dec_layers,
+            "pos_type": args.pos_type,
+        }
+
+        # build transformers
+        self.transformer_3 = build_transformer(self.transformer_config_3)
+
+        # dimensionality reduction
+        self.dim_reduce_enc_cam = nn.Linear(self.transformer_config_2["model_dim"], 64)
+        self.dim_reduce_enc_img = nn.Linear(self.transformer_config_2["model_dim"], 64)
+        self.dim_reduce_dec = nn.Linear(self.transformer_config_2["model_dim"], 64)
+
+        # token embeddings
+        self.ring_infos_token_embed = nn.Embedding(
+            self.num_ring_infos, self.transformer_config_1["model_dim"]
+        )
+        # positional encodings
+        self.position_encoding_3 = build_position_encoding(
+            pos_type=self.transformer_config_3["pos_type"],
+            hidden_dim=self.transformer_config_3["model_dim"],
+        )
+        # estimators
+        self.xyz_regressor = nn.Linear(self.transformer_config_3["model_dim"], 3)
+        self.cam_predictor = nn.Linear(self.transformer_config_3["model_dim"], 3)
+
+    def forward(self, images, *, img_features):
+        batch_size = images.size(0)
+
+        # preparation
+        # cam_token = self.cam_token_embed.weight.unsqueeze(1).repeat(
+        #     1, batch_size, 1
+        # )  # 1 X batch_size X 512
+        ring_tokens = (
+            torch.cat([self.joint_token_embed.weight, self.vertex_token_embed.weight], dim=0)
+            .unsqueeze(1)
+            .repeat(1, batch_size, 1)
+        )  # 7 X batch_size X 512
+
+        # extract image features through a CNN backbone
+
         _, _, h, w = img_features.shape
         img_features = (
             self.conv_1x1(img_features).flatten(2).permute(2, 0, 1)
@@ -408,59 +543,3 @@ class FastMETRO_Hand_Network(nn.Module):
             pred_3d_vertices_fine,
         )
         return out
-
-
-class MyModel(nn.Module):
-    def __init__(self, args, num_joints=21, num_vertices=195, num_ring_infos=7):
-        super().__init__()
-        self.args = args
-        self.num_joints = num_joints
-        self.num_vertices = num_vertices
-        self.num_ring_infos = 7
-
-        # the number of transformer layers
-        # if "FastMETRO-S" in args.model_name:
-        #     num_enc_layers = 1
-        #     num_dec_layers = 1
-        # elif "FastMETRO-M" in args.model_name:
-        #     num_enc_layers = 2
-        #     num_dec_layers = 2
-        # elif "FastMETRO-L" in args.model_name:
-        #     num_enc_layers = 3
-        #     num_dec_layers = 3
-        # else:
-        #     assert False, "The model name is not valid"
-        assert "FastMETRO-L" in args.model_name
-        num_enc_layers = 3
-        num_dec_layers = 3
-        # configurations for the first transformer
-        self.transformer_config_3 = {
-            "model_dim": 64,
-            "dropout": args.transformer_dropout,
-            "nhead": args.transformer_nhead,
-            "feedforward_dim": 256,
-            "num_enc_layers": num_enc_layers,
-            "num_dec_layers": num_dec_layers,
-            "pos_type": args.pos_type,
-        }
-
-        # build transformers
-        self.transformer_3 = build_transformer(self.transformer_config_3)
-
-        # dimensionality reduction
-        self.dim_reduce_enc_cam = nn.Linear(self.transformer_config_2["model_dim"], 64)
-        self.dim_reduce_enc_img = nn.Linear(self.transformer_config_2["model_dim"], 64)
-        self.dim_reduce_dec = nn.Linear(self.transformer_config_2["model_dim"], 64)
-
-        # token embeddings
-        self.ring_infos_token_embed = nn.Embedding(
-            self.num_ring_infos, self.transformer_config_1["model_dim"]
-        )
-        # positional encodings
-        self.position_encoding_3 = build_position_encoding(
-            pos_type=self.transformer_config_3["pos_type"],
-            hidden_dim=self.transformer_config_3["model_dim"],
-        )
-        # estimators
-        self.xyz_regressor = nn.Linear(self.transformer_config_3["model_dim"], 3)
-        self.cam_predictor = nn.Linear(self.transformer_config_3["model_dim"], 3)
