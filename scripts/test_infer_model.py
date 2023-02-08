@@ -391,5 +391,5 @@ if __name__ == "__main__":
     # test_each_transformer_models(args)
     # model_load_and_inference(args)
     # print("########")
-    original_model_test(args)
-    # my_model_instance(args)
+    # original_model_test(args)
+    my_model_instance(args)
