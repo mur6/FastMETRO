@@ -460,6 +460,27 @@ class MyModel(nn.Module):
         self.xyz_regressor = nn.Linear(self.transformer_config_3["model_dim"], 3)
         self.cam_predictor = nn.Linear(self.transformer_config_3["model_dim"], 3)
 
+    def _do_decode(self, hw, bs, device, enc_img_features, jv_tokens, pos_embed):
+        # hw, bs = img_features.shape  # (height * width), batch_size, feature_dim
+        mask = torch.zeros(
+            (bs, hw), dtype=torch.bool, device=device
+        )  # batch_size X (height * width)
+        # Transformer Decoder
+        zero_tgt = torch.zeros_like(
+            jv_tokens
+        )  # (num_joints + num_vertices) X batch_size X feature_dim
+        decoder = self.transformer_3.decoder
+        attention_mask = None
+        jv_features = decoder(
+            jv_tokens,
+            enc_img_features,
+            tgt_mask=attention_mask,
+            memory_key_padding_mask=mask,
+            pos=pos_embed,
+            query_pos=zero_tgt,
+        )  # (num_joints + num_vertices) X batch_size X feature_dim
+        return jv_features
+
     def forward(self, cam_features_2, enc_img_features_2, jv_features_2):
         device = cam_features_2.device
         batch_size = cam_features_2.size(1)
@@ -482,9 +503,10 @@ class MyModel(nn.Module):
         # print(f"1:cam_token: {cam_token.shape}")
         # print(f"1:jv_tokens: {jv_tokens.shape}")
         # print(f"1:pos_enc_1: {pos_enc_1.shape}")
-        cam_features, enc_img_features, jv_features = self.transformer_3(
-            enc_img_features_2, cam_features_2, jv_features_2, pos_enc_3
-        )
+        self._do_decode(h * w, batch_size, device, enc_img_features_2, jv_tokens, pos_enc_3)
+        # cam_features, enc_img_features, jv_features = self.transformer_3(
+        #     enc_img_features_2, cam_features_2, jv_features_2, pos_enc_3
+        # )
         # pred_cam = self.cam_predictor(cam_features_2).view(batch_size, 3)  # batch_size X 3
         pred_3d_coordinates = self.xyz_regressor(
             jv_features.transpose(0, 1)
