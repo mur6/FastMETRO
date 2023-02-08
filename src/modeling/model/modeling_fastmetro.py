@@ -212,7 +212,7 @@ class FastMETRO_Hand_Network(nn.Module):
     """FastMETRO for 3D hand mesh reconstruction from a single RGB image"""
 
     def __init__(
-        self, args, backbone, mesh_sampler, num_joints=21, num_vertices=195, num_ring_infos=64
+        self, args, backbone, mesh_sampler, num_joints=21, num_vertices=195, num_ring_infos=7
     ):
         """
         Parameters:

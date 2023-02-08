@@ -20,6 +20,7 @@ from src.modeling.hrnet.config import config as hrnet_config
 from src.modeling.hrnet.config import update_config as hrnet_update_config
 from src.modeling.hrnet.hrnet_cls_net_featmaps import get_cls_net
 from src.modeling.model import FastMETRO_Hand_Network
+from src.modeling.model.transformer import build_transformer
 
 # from src.utils.comm import get_rank, get_world_size, is_main_process
 # from src.utils.geometric_layers import orthographic_projection
@@ -267,7 +268,7 @@ def main(args):
     # _FastMETRO_Network.to(args.device)
 
 
-def test_each_transformer_models():
+def test_each_transformer_models(args):
     # configurations for the first transformer
     if "FastMETRO-S" in args.model_name:
         num_enc_layers = 1
@@ -301,8 +302,38 @@ def test_each_transformer_models():
         "pos_type": args.pos_type,
     }
     print(transformer_config_2)
+    transformer_config_3 = {
+        "model_dim": 64,
+        "dropout": args.transformer_dropout,
+        "nhead": args.transformer_nhead,
+        "feedforward_dim": 256,
+        "num_enc_layers": num_enc_layers,
+        "num_dec_layers": num_dec_layers,
+        "pos_type": args.pos_type,
+    }
+    print(transformer_config_3)
+    t = build_transformer(transformer_config_3)
+
+
+def only_model_load(args):
+    basicConfig(level=DEBUG)
+    logger = getLogger("FastMETRO")
+
+    # Mesh and MANO utils
+    mano_model = MANO().to(args.device)
+    mano_model.layer = mano_model.layer.to(args.device)
+    mesh_sampler = Mesh()
+    hrnet_yaml = "models/hrnet/cls_hrnet_w64_sgd_lr5e-2_wd1e-4_bs32_x100.yaml"
+    hrnet_checkpoint = "models/hrnet/hrnetv2_w64_imagenet_pretrained.pth"
+    hrnet_update_config(hrnet_config, hrnet_yaml)
+    backbone = get_cls_net(hrnet_config, pretrained=hrnet_checkpoint)
+    logger.info("=> loading hrnet-v2-w64 model")
+    model = FastMETRO_Hand_Network(args, backbone, mesh_sampler)
+    print(model.attention_mask)
 
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args)
+    # main(args)
+    test_each_transformer_models(args)
+    # only_model_load(args)
