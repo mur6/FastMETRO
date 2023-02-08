@@ -441,29 +441,35 @@ class MyModel(nn.Module):
         # build transformers
         self.transformer_3 = build_transformer(self.transformer_config_3)
 
-        # dimensionality reduction
-        self.dim_reduce_enc_cam = nn.Linear(self.transformer_config_2["model_dim"], 64)
-        self.dim_reduce_enc_img = nn.Linear(self.transformer_config_2["model_dim"], 64)
-        self.dim_reduce_dec = nn.Linear(self.transformer_config_2["model_dim"], 64)
+        # # dimensionality reduction
+        # self.dim_reduce_enc_cam = nn.Linear(self.transformer_config_2["model_dim"], 64)
+        # self.dim_reduce_enc_img = nn.Linear(self.transformer_config_2["model_dim"], 64)
+        # self.dim_reduce_dec = nn.Linear(self.transformer_config_2["model_dim"], 64)
 
-        # token embeddings
-        self.ring_infos_token_embed = nn.Embedding(
-            self.num_ring_infos, self.transformer_config_1["model_dim"]
-        )
-        # positional encodings
-        self.position_encoding_3 = build_position_encoding(
-            pos_type=self.transformer_config_3["pos_type"],
-            hidden_dim=self.transformer_config_3["model_dim"],
-        )
+        # # token embeddings
+        # self.ring_infos_token_embed = nn.Embedding(
+        #     self.num_ring_infos, self.transformer_config_1["model_dim"]
+        # )
+        # # positional encodings
+        # self.position_encoding_3 = build_position_encoding(
+        #     pos_type=self.transformer_config_3["pos_type"],
+        #     hidden_dim=self.transformer_config_3["model_dim"],
+        # )
         # estimators
         # self.xyz_regressor = nn.Linear(self.transformer_config_3["model_dim"], 3)
         # self.cam_predictor = nn.Linear(self.transformer_config_3["model_dim"], 3)
 
     def forward(self, cam_features_2, enc_img_features_2, jv_features_2):
+        # device = images.device
+        batch_size = cam_features_2.size(1)
+        # fastmetro:cam_features_3: torch.Size([1, 1, 128])
+        # fastmetro:enc_img_features_3: torch.Size([49, 1, 128])
+        # fastmetro:jv_features_3: torch.Size([216, 1, 128])
         # preparation
         # cam_token = self.cam_token_embed.weight.unsqueeze(1).repeat(
         #     1, batch_size, 1
         # )  # 1 X batch_size X 512
+
         ring_tokens = (
             torch.cat([self.joint_token_embed.weight, self.vertex_token_embed.weight], dim=0)
             .unsqueeze(1)
@@ -475,7 +481,7 @@ class MyModel(nn.Module):
         _, _, h, w = img_features.shape
         img_features = (
             self.conv_1x1(img_features).flatten(2).permute(2, 0, 1)
-        )  # 49 X batch_size X 512
+        )  # 49 X batch_size X 128
 
         # # positional encodings
         # pos_enc_1 = (
