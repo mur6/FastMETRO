@@ -19,7 +19,7 @@ from src.modeling._mano import MANO, Mesh
 from src.modeling.hrnet.config import config as hrnet_config
 from src.modeling.hrnet.config import update_config as hrnet_update_config
 from src.modeling.hrnet.hrnet_cls_net_featmaps import get_cls_net
-from src.modeling.model import FastMETRO_Hand_Network as FastMETRO_Network
+from src.modeling.model import FastMETRO_Hand_Network
 
 # from src.utils.comm import get_rank, get_world_size, is_main_process
 # from src.utils.geometric_layers import orthographic_projection
@@ -190,7 +190,7 @@ def parse_args():
     return args
 
 
-def main(args):
+def main_2(args):
     print("FastMETRO for 3D Hand Mesh Reconstruction!")
     global logger
     # Setup CUDA, GPU & distributed training
@@ -241,7 +241,17 @@ def main(args):
     else:
         assert False, "The CNN backbone name is not valid"
 
-    _FastMETRO_Network = FastMETRO_Network(args, backbone, mesh_sampler)
+    _FastMETRO_Network = FastMETRO_Hand_Network(args, backbone, mesh_sampler)
+    input = torch.rand(1, 3, 224, 224)
+    (
+        pred_cam,
+        pred_3d_joints,
+        pred_3d_vertices_coarse,
+    ) = _FastMETRO_Network(input)
+    print("##################")
+    print(f"pred_cam: {pred_cam.shape}")
+    print(f"pred_3d_joints: {pred_3d_joints.shape}")
+    print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
     # number of parameters
     # overall_params = sum(p.numel() for p in _FastMETRO_Network.parameters() if p.requires_grad)
     # backbone_params = sum(p.numel() for p in backbone.parameters() if p.requires_grad)
@@ -257,4 +267,37 @@ def main(args):
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args)
+    # main(args)
+    # configurations for the first transformer
+    if "FastMETRO-S" in args.model_name:
+        num_enc_layers = 1
+        num_dec_layers = 1
+    elif "FastMETRO-M" in args.model_name:
+        num_enc_layers = 2
+        num_dec_layers = 2
+    elif "FastMETRO-L" in args.model_name:
+        num_enc_layers = 3
+        num_dec_layers = 3
+
+    transformer_config_1 = {
+        "model_dim": args.model_dim_1,
+        "dropout": args.transformer_dropout,
+        "nhead": args.transformer_nhead,
+        "feedforward_dim": args.feedforward_dim_1,
+        "num_enc_layers": num_enc_layers,
+        "num_dec_layers": num_dec_layers,
+        "pos_type": args.pos_type,
+    }
+    print(transformer_config_1)
+
+    # configurations for the second transformer
+    transformer_config_2 = {
+        "model_dim": args.model_dim_2,
+        "dropout": args.transformer_dropout,
+        "nhead": args.transformer_nhead,
+        "feedforward_dim": args.feedforward_dim_2,
+        "num_enc_layers": num_enc_layers,
+        "num_dec_layers": num_dec_layers,
+        "pos_type": args.pos_type,
+    }
+    print(transformer_config_2)
