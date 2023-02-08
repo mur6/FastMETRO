@@ -442,15 +442,10 @@ class MyModel(nn.Module):
         # build transformers
         self.transformer_3 = build_transformer(self.transformer_config_3)
 
-        # # dimensionality reduction
-        # self.dim_reduce_enc_cam = nn.Linear(self.transformer_config_2["model_dim"], 64)
-        # self.dim_reduce_enc_img = nn.Linear(self.transformer_config_2["model_dim"], 64)
-        # self.dim_reduce_dec = nn.Linear(self.transformer_config_2["model_dim"], 64)
-
         # # token embeddings
-        # self.ring_infos_token_embed = nn.Embedding(
-        #     self.num_ring_infos, self.transformer_config_1["model_dim"]
-        # )
+        self.ring_token_embed = nn.Embedding(
+            self.num_ring_infos, self.transformer_config_1["model_dim"]
+        )
         # # positional encodings
         self.position_encoding_3 = build_position_encoding(
             pos_type=self.transformer_config_3["pos_type"],
@@ -458,7 +453,6 @@ class MyModel(nn.Module):
         )
         # estimators
         self.xyz_regressor = nn.Linear(self.transformer_config_3["model_dim"], 3)
-        self.cam_predictor = nn.Linear(self.transformer_config_3["model_dim"], 3)
 
     def _do_decode(self, hw, bs, device, enc_img_features, jv_tokens, pos_embed):
         # hw, bs = img_features.shape  # (height * width), batch_size, feature_dim
@@ -503,13 +497,15 @@ class MyModel(nn.Module):
         # print(f"1:cam_token: {cam_token.shape}")
         # print(f"1:jv_tokens: {jv_tokens.shape}")
         # print(f"1:pos_enc_1: {pos_enc_1.shape}")
-        self._do_decode(h * w, batch_size, device, enc_img_features_2, jv_tokens, pos_enc_3)
+        jv_features_final = self._do_decode(
+            h * w, batch_size, device, enc_img_features_2, jv_features_2, pos_enc_3
+        )
         # cam_features, enc_img_features, jv_features = self.transformer_3(
         #     enc_img_features_2, cam_features_2, jv_features_2, pos_enc_3
         # )
         # pred_cam = self.cam_predictor(cam_features_2).view(batch_size, 3)  # batch_size X 3
         pred_3d_coordinates = self.xyz_regressor(
-            jv_features.transpose(0, 1)
+            jv_features_final.transpose(0, 1)
         )  # batch_size X (num_joints + num_vertices) X 3
 
         # return cam_features, jv_features
