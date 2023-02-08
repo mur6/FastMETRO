@@ -353,6 +353,10 @@ class FastMETRO_Hand_Network(nn.Module):
         )  # 49 X batch_size X 128
 
         # first transformer encoder-decoder
+        print(f"1:img_features: {img_features.shape}")
+        print(f"1:cam_token: {cam_token.shape}")
+        print(f"1:jv_tokens: {jv_tokens.shape}")
+        print(f"1:pos_enc_1: {pos_enc_1.shape}")
         cam_features_1, enc_img_features_1, jv_features_1 = self.transformer_1(
             img_features, cam_token, jv_tokens, pos_enc_1, attention_mask=attention_mask
         )
@@ -367,6 +371,10 @@ class FastMETRO_Hand_Network(nn.Module):
         )  # (num_joints + num_vertices) X batch_size X 128
 
         # second transformer encoder-decoder
+        print(f"2:reduced_enc_img_features_1: {reduced_enc_img_features_1.shape}")
+        print(f"2:reduced_cam_features_1: {reduced_cam_features_1.shape}")
+        print(f"2:reduced_jv_features_1: {reduced_jv_features_1.shape}")
+        print(f"2:pos_enc_2: {pos_enc_2.shape}")
         cam_features_2, _, jv_features_2 = self.transformer_2(
             reduced_enc_img_features_1,
             reduced_cam_features_1,

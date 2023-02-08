@@ -315,7 +315,7 @@ def test_each_transformer_models(args):
     t = build_transformer(transformer_config_3)
 
 
-def only_model_load(args):
+def model_load_and_inference(args):
     basicConfig(level=DEBUG)
     logger = getLogger("FastMETRO")
 
@@ -330,10 +330,17 @@ def only_model_load(args):
     logger.info("=> loading hrnet-v2-w64 model")
     model = FastMETRO_Hand_Network(args, backbone, mesh_sampler)
     print(model.attention_mask)
+    input = torch.rand(1, 3, 224, 224)
+    (
+        pred_cam,
+        pred_3d_joints,
+        pred_3d_vertices_coarse,
+        pred_3d_vertices_fine,
+    ) = model(input)
 
 
 if __name__ == "__main__":
     args = parse_args()
     # main(args)
-    test_each_transformer_models(args)
-    # only_model_load(args)
+    # test_each_transformer_models(args)
+    model_load_and_inference(args)
