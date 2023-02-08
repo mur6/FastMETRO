@@ -340,6 +340,7 @@ class FastMETRO_Hand_Network(nn.Module):
         # extract image features through a CNN backbone
         img_features = self.backbone(images)  # batch_size X 2048 X 7 X 7
         _, _, h, w = img_features.shape
+        print(f"0:img_features: h={h} w={w}")
         img_features = (
             self.conv_1x1(img_features).flatten(2).permute(2, 0, 1)
         )  # 49 X batch_size X 512
@@ -429,10 +430,10 @@ class MyModel(nn.Module):
         num_dec_layers = 3
         # configurations for the first transformer
         self.transformer_config_3 = {
-            "model_dim": 64,
+            "model_dim": 128,
             "dropout": args.transformer_dropout,
             "nhead": args.transformer_nhead,
-            "feedforward_dim": 256,
+            "feedforward_dim": 512,
             "num_enc_layers": num_enc_layers,
             "num_dec_layers": num_dec_layers,
             "pos_type": args.pos_type,
@@ -451,16 +452,16 @@ class MyModel(nn.Module):
         #     self.num_ring_infos, self.transformer_config_1["model_dim"]
         # )
         # # positional encodings
-        # self.position_encoding_3 = build_position_encoding(
-        #     pos_type=self.transformer_config_3["pos_type"],
-        #     hidden_dim=self.transformer_config_3["model_dim"],
-        # )
+        self.position_encoding_3 = build_position_encoding(
+            pos_type=self.transformer_config_3["pos_type"],
+            hidden_dim=self.transformer_config_3["model_dim"],
+        )
         # estimators
         # self.xyz_regressor = nn.Linear(self.transformer_config_3["model_dim"], 3)
         # self.cam_predictor = nn.Linear(self.transformer_config_3["model_dim"], 3)
 
     def forward(self, cam_features_2, enc_img_features_2, jv_features_2):
-        # device = images.device
+        device = cam_features_2.device
         batch_size = cam_features_2.size(1)
         # fastmetro:cam_features_3: torch.Size([1, 1, 128])
         # fastmetro:enc_img_features_3: torch.Size([49, 1, 128])
@@ -470,32 +471,18 @@ class MyModel(nn.Module):
         #     1, batch_size, 1
         # )  # 1 X batch_size X 512
 
-        ring_tokens = (
-            torch.cat([self.joint_token_embed.weight, self.vertex_token_embed.weight], dim=0)
-            .unsqueeze(1)
-            .repeat(1, batch_size, 1)
-        )  # 7 X batch_size X 512
-
-        # extract image features through a CNN backbone
-
-        _, _, h, w = img_features.shape
-        img_features = (
-            self.conv_1x1(img_features).flatten(2).permute(2, 0, 1)
+        h, w = 7, 7
+        # positional encodings
+        pos_enc_3 = (
+            self.position_encoding_3(batch_size, h, w, device).flatten(2).permute(2, 0, 1)
         )  # 49 X batch_size X 128
-
-        # # positional encodings
-        # pos_enc_1 = (
-        #     self.position_encoding_1(batch_size, h, w, device).flatten(2).permute(2, 0, 1)
-        # )  # 49 X batch_size X 512
-        # pos_enc_2 = (
-        #     self.position_encoding_2(batch_size, h, w, device).flatten(2).permute(2, 0, 1)
-        # )  # 49 X batch_size X 128
 
         # # first transformer encoder-decoder
         # print(f"1:img_features: {img_features.shape}")
         # print(f"1:cam_token: {cam_token.shape}")
         # print(f"1:jv_tokens: {jv_tokens.shape}")
         # print(f"1:pos_enc_1: {pos_enc_1.shape}")
-        # cam_features_1, enc_img_features_1, jv_features_1 = self.transformer_1(
-        #     img_features, cam_token, jv_tokens, pos_enc_1, attention_mask=attention_mask
-        # )
+        cam_features, enc_img_features, jv_features = self.transformer_3(
+            enc_img_features_2, cam_features_2, jv_features_2, pos_enc_3
+        )
+        return cam_features, jv_features
