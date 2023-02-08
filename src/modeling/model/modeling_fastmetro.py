@@ -431,80 +431,36 @@ class MyModel(nn.Module):
         # else:
         #     assert False, "The model name is not valid"
         assert "FastMETRO-L" in args.model_name
-
+        num_enc_layers = 3
+        num_dec_layers = 3
         # configurations for the first transformer
-        self.transformer_config_1 = {
-            "model_dim": args.model_dim_1,
+        self.transformer_config_3 = {
+            "model_dim": 64,
             "dropout": args.transformer_dropout,
             "nhead": args.transformer_nhead,
-            "feedforward_dim": args.feedforward_dim_1,
+            "feedforward_dim": 256,
             "num_enc_layers": num_enc_layers,
             "num_dec_layers": num_dec_layers,
             "pos_type": args.pos_type,
         }
-        # configurations for the second transformer
-        self.transformer_config_2 = {
-            "model_dim": args.model_dim_2,
-            "dropout": args.transformer_dropout,
-            "nhead": args.transformer_nhead,
-            "feedforward_dim": args.feedforward_dim_2,
-            "num_enc_layers": num_enc_layers,
-            "num_dec_layers": num_dec_layers,
-            "pos_type": args.pos_type,
-        }
+
         # build transformers
-        self.transformer_1 = build_transformer(self.transformer_config_1)
-        self.transformer_2 = build_transformer(self.transformer_config_2)
+        self.transformer_3 = build_transformer(self.transformer_config_3)
+
         # dimensionality reduction
-        self.dim_reduce_enc_cam = nn.Linear(
-            self.transformer_config_1["model_dim"], self.transformer_config_2["model_dim"]
-        )
-        self.dim_reduce_enc_img = nn.Linear(
-            self.transformer_config_1["model_dim"], self.transformer_config_2["model_dim"]
-        )
-        self.dim_reduce_dec = nn.Linear(
-            self.transformer_config_1["model_dim"], self.transformer_config_2["model_dim"]
-        )
+        self.dim_reduce_enc_cam = nn.Linear(self.transformer_config_2["model_dim"], 64)
+        self.dim_reduce_enc_img = nn.Linear(self.transformer_config_2["model_dim"], 64)
+        self.dim_reduce_dec = nn.Linear(self.transformer_config_2["model_dim"], 64)
 
         # token embeddings
-        self.cam_token_embed = nn.Embedding(1, self.transformer_config_1["model_dim"])
-        self.joint_token_embed = nn.Embedding(
-            self.num_joints, self.transformer_config_1["model_dim"]
-        )
-        self.vertex_token_embed = nn.Embedding(
-            self.num_vertices, self.transformer_config_1["model_dim"]
-        )
         self.ring_infos_token_embed = nn.Embedding(
             self.num_ring_infos, self.transformer_config_1["model_dim"]
         )
         # positional encodings
-        self.position_encoding_1 = build_position_encoding(
-            pos_type=self.transformer_config_1["pos_type"],
-            hidden_dim=self.transformer_config_1["model_dim"],
-        )
-        self.position_encoding_2 = build_position_encoding(
-            pos_type=self.transformer_config_2["pos_type"],
-            hidden_dim=self.transformer_config_2["model_dim"],
+        self.position_encoding_3 = build_position_encoding(
+            pos_type=self.transformer_config_3["pos_type"],
+            hidden_dim=self.transformer_config_3["model_dim"],
         )
         # estimators
-        self.xyz_regressor = nn.Linear(self.transformer_config_2["model_dim"], 3)
-        self.cam_predictor = nn.Linear(self.transformer_config_2["model_dim"], 3)
-
-        # 1x1 Convolution
-        self.conv_1x1 = nn.Conv2d(
-            args.conv_1x1_dim, self.transformer_config_1["model_dim"], kernel_size=1
-        )
-
-        # attention mask [TODO]
-        zeros_1 = torch.tensor(np.zeros((num_vertices, num_joints)).astype(bool))
-        zeros_2 = torch.tensor(np.zeros((num_joints, (num_joints + num_vertices))).astype(bool))
-        # / attention mask [TODO]
-        adjacency_indices = torch.load("./src/modeling/data/mano_195_adjmat_indices.pt")
-        adjacency_matrix_value = torch.load("./src/modeling/data/mano_195_adjmat_values.pt")
-        adjacency_matrix_size = torch.load("./src/modeling/data/mano_195_adjmat_size.pt")
-        adjacency_matrix = torch.sparse_coo_tensor(
-            adjacency_indices, adjacency_matrix_value, size=adjacency_matrix_size
-        ).to_dense()
-        temp_mask_1 = adjacency_matrix == 0
-        temp_mask_2 = torch.cat([zeros_1, temp_mask_1], dim=1)
-        self.attention_mask = torch.cat([zeros_2, temp_mask_2], dim=0)
+        self.xyz_regressor = nn.Linear(self.transformer_config_3["model_dim"], 3)
+        self.cam_predictor = nn.Linear(self.transformer_config_3["model_dim"], 3)
