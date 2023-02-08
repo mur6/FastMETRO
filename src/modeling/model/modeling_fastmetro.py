@@ -440,11 +440,10 @@ class MyModel(nn.Module):
         }
 
         # build transformers
-        self.transformer_3 = build_transformer(self.transformer_config_3)
-
-        # # token embeddings
+        self.transformer_3_decoder = build_transformer(self.transformer_config_3).decoder
+        # token embeddings
         self.ring_token_embed = nn.Embedding(
-            self.num_ring_infos, self.transformer_config_1["model_dim"]
+            self.num_ring_infos, self.transformer_config_3["model_dim"]
         )
         # # positional encodings
         self.position_encoding_3 = build_position_encoding(
@@ -453,6 +452,7 @@ class MyModel(nn.Module):
         )
         # estimators
         self.xyz_regressor = nn.Linear(self.transformer_config_3["model_dim"], 3)
+        # self.xyz_regressor = nn.Linear(self.transformer_config_3["model_dim"], 3)
 
     def _do_decode(self, hw, bs, device, enc_img_features, jv_tokens, pos_embed):
         # hw, bs = img_features.shape  # (height * width), batch_size, feature_dim
@@ -463,7 +463,7 @@ class MyModel(nn.Module):
         zero_tgt = torch.zeros_like(
             jv_tokens
         )  # (num_joints + num_vertices) X batch_size X feature_dim
-        decoder = self.transformer_3.decoder
+        decoder = self.transformer_3_decoder
         attention_mask = None
         jv_features = decoder(
             jv_tokens,
@@ -481,32 +481,28 @@ class MyModel(nn.Module):
         # fastmetro:cam_features_3: torch.Size([1, 1, 128])
         # fastmetro:enc_img_features_3: torch.Size([49, 1, 128])
         # fastmetro:jv_features_3: torch.Size([216, 1, 128])
-        # preparation
-        # cam_token = self.cam_token_embed.weight.unsqueeze(1).repeat(
-        #     1, batch_size, 1
-        # )  # 1 X batch_size X 512
-
         h, w = 7, 7
         # positional encodings
         pos_enc_3 = (
             self.position_encoding_3(batch_size, h, w, device).flatten(2).permute(2, 0, 1)
         )  # 49 X batch_size X 128
-
-        # # first transformer encoder-decoder
-        # print(f"1:img_features: {img_features.shape}")
-        # print(f"1:cam_token: {cam_token.shape}")
-        # print(f"1:jv_tokens: {jv_tokens.shape}")
-        # print(f"1:pos_enc_1: {pos_enc_1.shape}")
+        # print(f"forward:[prev]jv_features_2: {jv_features_2.shape}")
+        # print(f"forward:[prev]ring_token_embed.weight: {self.ring_token_embed.weight.shape}")
+        r_tokens = self.ring_token_embed.weight.unsqueeze(1).repeat(1, batch_size, 1)
+        # print(f"forward:r_tokens: {r_tokens.shape}")
+        jvr_tokens = torch.cat([jv_features_2, r_tokens], dim=0)
+        # print(f"forward:jvr_tokens: {jvr_tokens.shape}")
         jv_features_final = self._do_decode(
             h * w, batch_size, device, enc_img_features_2, jv_features_2, pos_enc_3
         )
+        print(f"jv_features_final: {jv_features_final.shape}")
         # cam_features, enc_img_features, jv_features = self.transformer_3(
         #     enc_img_features_2, cam_features_2, jv_features_2, pos_enc_3
         # )
         # pred_cam = self.cam_predictor(cam_features_2).view(batch_size, 3)  # batch_size X 3
-        pred_3d_coordinates = self.xyz_regressor(
-            jv_features_final.transpose(0, 1)
+        pred_center = self.xyz_regressor(
+            jv_features_final[0].transpose(0, 1)
         )  # batch_size X (num_joints + num_vertices) X 3
 
         # return cam_features, jv_features
-        return pred_3d_coordinates
+        return pred_center
