@@ -320,7 +320,7 @@ class FastMETRO_Hand_Network(nn.Module):
         temp_mask_2 = torch.cat([zeros_1, temp_mask_1], dim=1)
         self.attention_mask = torch.cat([zeros_2, temp_mask_2], dim=0)
 
-    def forward(self, images, output_features=True):
+    def forward(self, images, *, output_features=False):
         device = images.device
         batch_size = images.size(0)
 
