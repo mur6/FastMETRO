@@ -64,7 +64,7 @@ def ring_finger_point_func(gt_3d_joints, *, num):
     return gt_3d_joints[ring_point]
 
 
-def convert(mano_model_wrapper, *, pose, betas):
+def calc_ring(mano_model_wrapper, *, pose, betas):
     gt_vertices, gt_3d_joints = mano_model_wrapper.get_jv(
         pose=pose, betas=betas, adjust_func=_adjust_vertices
     )

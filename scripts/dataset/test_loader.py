@@ -26,7 +26,7 @@ from src.modeling.model import FastMETRO_Hand_Network, MyModel
 from src.modeling.model.transformer import build_transformer
 from src.handinfo.parser import train_parse_args
 
-from src.handinfo.ring.helper import convert
+from src.handinfo.ring.helper import calc_ring
 
 # from src.utils.comm import get_rank, get_world_size, is_main_process
 # from src.utils.geometric_layers import orthographic_projection
@@ -278,9 +278,8 @@ def convert_test(args):
         joints_3d = annotations["joints_3d"][:, 0:3]
         # assert joints_3d.shape == (21, 3)
         print(f"{i}, pose: {pose.shape}")
-        res = convert(
-            mano_model_wrapper,
-        )
+        res = calc_ring(mano_model_wrapper, pose, betas)
+        print(res)
         if i > 10:
             break
     # keys = [
