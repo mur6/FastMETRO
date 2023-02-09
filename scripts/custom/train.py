@@ -17,7 +17,7 @@ from torch_geometric.utils import scatter
 from src.handinfo.data import load_data_for_geometric, get_mano_faces
 from src.handinfo.losses import on_circle_loss
 
-# from src.model.transformer import ClassificationNet, SegmentationNet
+from src.modeling.model import FastMETRO_Hand_Network, MyModel
 
 
 def save_checkpoint(model, epoch, iteration=None):
