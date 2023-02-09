@@ -88,15 +88,3 @@ def calc_ring(mano_model_wrapper, *, pose, betas):
     #     **calc_result
     # )
     return calc_result
-
-
-# pose = anno["pose"]
-# assert pose.shape == (48,)
-# betas = anno["betas"]
-# assert betas.shape == (10,)
-# joints_2d = anno["joints_2d"][:, 0:2]
-# assert joints_2d.shape == (21, 2)
-# joints_3d = anno["joints_3d"][:, 0:3]
-# assert joints_3d.shape == (21, 3)
-# # print(mano_pose.shape, trans.shape, betas.shape, joints_2d.shape, joints_3d.shape)
-# yield MetaInfo(pose, betas, joints_2d, joints_3d)
