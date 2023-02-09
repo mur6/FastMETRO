@@ -35,32 +35,6 @@ from src.handinfo.ring.helper import iter_converted_batches, save_to_file
 #  --val_yaml "../orig-MeshGraphormer/freihand/test.yaml" \
 #  --num_workers 0 --per_gpu_train_batch_size 1024
 
-# def data_load_test(args):
-#     print(
-#         args.distributed,
-#     )
-#     val_dataloader = make_hand_data_loader(
-#         args,
-#         args.val_yaml,
-#         args.distributed,
-#         is_train=False,
-#         scale_factor=args.img_scale_factor,
-#     )
-#     train_dataloader = make_hand_data_loader(
-#         args,
-#         args.train_yaml,
-#         args.distributed,
-#         is_train=True,
-#         scale_factor=args.img_scale_factor,
-#     )
-#     # train_datasize = len(train_dataset)
-#     # test_datasize = len(test_dataset)
-#     # print(f"train_datasize={train_datasize} test_datasize={test_datasize}")
-#     for i, (img_keys, images, annotations) in enumerate(train_dataloader):
-#         print(f"{i}, {images.shape}")
-#         if i > 10:
-#             break
-
 
 class ManoWrapper:
     def __init__(self, *, mano_model):

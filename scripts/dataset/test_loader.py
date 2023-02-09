@@ -1,7 +1,6 @@
-import os
 import argparse
 import itertools
-import os.path
+
 from functools import partial
 from collections import defaultdict
 from pathlib import Path
@@ -96,46 +95,45 @@ def _make_data_loader(args, *, yaml_file, is_train, batch_size):
     return data_loader
 
 
-def main(args):
-    mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
-    is_train = False
+def main(args, *, data_dir, is_train=False):
+    # mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
+
     if is_train:
         label = "train"
-        yaml_file = args.train_yaml
+        f = data_dir.glob(f"{label}_ring_infos_*.npz")
+        print(f)
     else:
         label = "test"
-        yaml_file = args.val_yaml
-    train_dataloader = _make_data_loader(
-        args,
-        yaml_file=yaml_file,
-        is_train=is_train,
-        batch_size=args.per_gpu_train_batch_size,
-    )
 
-    save_unit = 5000
+    # train_dataloader = _make_data_loader(
+    #     args,
+    #     yaml_file=yaml_file,
+    #     is_train=is_train,
+    #     batch_size=args.per_gpu_train_batch_size,
+    # )
 
-    def _iter():
-        for d_list in iter_converted_batches(mano_model_wrapper, train_dataloader):
-            yield from d_list
+    # def _iter():
+    #     for d_list in iter_converted_batches(mano_model_wrapper, train_dataloader):
+    #         yield from d_list
 
-    count = 0
-    lis = []
-    for i, d in enumerate(_iter()):
-        lis.append(d)
-        if (i + 1) % save_unit == 0:
-            print(lis[0]["img_key"], lis[-1]["img_key"])
-            save_to_file(f"data/{label}_ring_infos_{count:03}", lis)
-            count += 1
-            # processed_count = (cnt + 1) * args.per_gpu_train_batch_size
-            lis = []
-            print(f"processing... {i}")
-    else:
-        save_to_file(f"data/{label}_ring_infos_{count:03}", lis)
+    # count = 0
+    # lis = []
+    # for i, d in enumerate(_iter()):
+    #     lis.append(d)
+    #     if (i + 1) % save_unit == 0:
+    #         print(lis[0]["img_key"], lis[-1]["img_key"])
+    #         save_to_file(f"data/{label}_ring_infos_{count:03}", lis)
+    #         count += 1
+    #         # processed_count = (cnt + 1) * args.per_gpu_train_batch_size
+    #         lis = []
+    #         print(f"processing... {i}")
+    # else:
+    #     save_to_file(f"data/{label}_ring_infos_{count:03}", lis)
 
 
 if __name__ == "__main__":
     args = train_parse_args()
-    main(args)
+    main(args, data_dir=Path("./data"))
     # test_each_transformer_models(args)
     # model_load_and_inference(args)
     print("########")
