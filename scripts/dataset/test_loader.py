@@ -232,34 +232,20 @@ def data_load_test(args):
             break
 
 
-def make_hand_mesh(mano_model, gt_vertices):
-    mano_faces = mano_model.layer.th_faces
-    # mesh objects can be created from existing faces and vertex data
-    return trimesh.Trimesh(vertices=gt_vertices, faces=mano_faces)
-
-
-def convert_pose_betas(mano_model, *, pose, betas):
-    pose = pose.unsqueeze(0)
-    betas = betas.unsqueeze(0)
-    gt_vertices, gt_3d_joints = mano_model.layer(pose, betas)
-    return gt_vertices, gt_3d_joints
-
-
 class ManoWrapper:
-    a = 0
+    def __init__(self, mano_model):
+        self.mano_model = mano_model
 
-    def __init__(
-        self,
-    ):
-        self.a = 0
-        self.b = 0
+    def get_trimesh(self, gt_vertices):
+        mano_faces = self.mano_model.layer.th_faces
+        # mesh objects can be created from existing faces and vertex data
+        return trimesh.Trimesh(vertices=gt_vertices, faces=mano_faces)
 
-    def sum(self):
-        return self.a + self.b
-
-    def set(self, a, b):
-        self.a = a
-        self.b = b
+    def get_jv(self, *, pose, betas):
+        pose = pose.unsqueeze(0)
+        betas = betas.unsqueeze(0)
+        gt_vertices, gt_3d_joints = self.mano_model.layer(pose, betas)
+        return gt_vertices, gt_3d_joints
 
 
 def convert_test(args):
@@ -279,8 +265,7 @@ def convert_test(args):
     )
 
     mano_model = MANO().to("cpu")
-    hand_mesh_maker = partial(make_hand_mesh, mano_model)
-    pose_betas_converter = partial(convert_pose_betas, mano_model)
+
     for i, (img_keys, images, annotations) in enumerate(train_dataloader):
         pose = annotations["pose"]
         # assert pose.shape == (48,)
