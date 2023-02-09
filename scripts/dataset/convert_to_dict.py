@@ -7,52 +7,13 @@ from collections import defaultdict
 from pathlib import Path
 from logging import DEBUG, INFO, basicConfig, getLogger, debug, error, exception, info, warning
 
-import trimesh
 import numpy as np
-import torch
-import torchvision.models as models
-from torch.nn import functional as F
-from torchvision.utils import make_grid
-from torch.utils.data import DataLoader
 
-
-# def data_load_test(args):
-#     print(
-#         args.distributed,
-#     )
-#     val_dataloader = make_hand_data_loader(
-#         args,
-#         args.val_yaml,
-#         args.distributed,
-#         is_train=False,
-#         scale_factor=args.img_scale_factor,
-#     )
-#     train_dataloader = make_hand_data_loader(
-#         args,
-#         args.train_yaml,
-#         args.distributed,
-#         is_train=True,
-#         scale_factor=args.img_scale_factor,
-#     )
-#     # train_datasize = len(train_dataset)
-#     # test_datasize = len(test_dataset)
-#     # print(f"train_datasize={train_datasize} test_datasize={test_datasize}")
-#     for i, (img_keys, images, annotations) in enumerate(train_dataloader):
-#         print(f"{i}, {images.shape}")
-#         if i > 10:
-#             break
-
-# def _make_data_loader(args, *, yaml_file, is_train, batch_size):
-#     scale_factor = 1
-#     dataset = build_hand_dataset(yaml_file, args, is_train=is_train, scale_factor=scale_factor)
-#     label = "train" if is_train else "test"
-#     datasize = len(dataset)
-#     print(f"{label}_datasize={datasize}")
-#     if is_train:
-#         data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-#     else:
-#         data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-#     return data_loader
+# ------------------------------------------------------------
+# Usage:
+#  PYTHONPATH=. python scripts/dataset/convert_to_dict.py --data_dir data/ --is_train --output_pickle_file ring_info_train.pkl
+#  PYTHONPATH=. python scripts/dataset/convert_to_dict.py --data_dir data/ --output_pickle_file ring_info_val.pkl
+# ------------------------------------------------------------
 
 
 def get_file_list(is_train, data_dir):
