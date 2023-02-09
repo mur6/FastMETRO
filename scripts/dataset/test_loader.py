@@ -13,11 +13,11 @@ import torch
 import torchvision.models as models
 from torch.nn import functional as F
 from torchvision.utils import make_grid
-
+from torch.utils.data import DataLoader
 from manopth.manolayer import ManoLayer
 
 import src.modeling.data.config as cfg
-from src.datasets.build import make_hand_data_loader
+from src.datasets.build import build_hand_dataset
 from src.modeling._mano import MANO, Mesh
 from src.modeling.hrnet.config import config as hrnet_config
 from src.modeling.hrnet.config import update_config as hrnet_update_config
@@ -83,30 +83,48 @@ class ManoWrapper:
 #     )
 
 
+def _make_data_loader(args, *, yaml_file, is_train, batch_size):
+    scale_factor = 1
+    dataset = build_hand_dataset(yaml_file, args, is_train=is_train, scale_factor=scale_factor)
+    label = "train" if is_train else "test"
+    datasize = len(dataset)
+    print(f"{label}_datasize={datasize}")
+    if is_train:
+        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    else:
+        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    return data_loader
+
+
 def main(args):
     mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
-    train_dataloader = make_hand_data_loader(
+    is_train = False
+    if is_train:
+        label = "train"
+        yaml_file = args.train_yaml
+    else:
+        label = "test"
+        yaml_file = args.val_yaml
+    train_dataloader = _make_data_loader(
         args,
-        args.train_yaml,
-        args.distributed,
-        is_train=True,
-        scale_factor=args.img_scale_factor,
+        yaml_file=yaml_file,
+        is_train=is_train,
+        batch_size=args.per_gpu_train_batch_size,
     )
 
-    save_unit = 10000
+    save_unit = 5000
 
     def _iter():
         for d_list in iter_converted_batches(mano_model_wrapper, train_dataloader):
             yield from d_list
 
-    # for cnt in itertools.count():
     count = 0
     lis = []
     for i, d in enumerate(_iter()):
         lis.append(d)
         if (i + 1) % save_unit == 0:
             print(lis[0]["img_key"], lis[-1]["img_key"])
-            save_to_file(f"data/train_ring_infos_{count:03}", lis)
+            save_to_file(f"data/{label}_ring_infos_{count:03}", lis)
             count += 1
             # processed_count = (cnt + 1) * args.per_gpu_train_batch_size
             lis = []
