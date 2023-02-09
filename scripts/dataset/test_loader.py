@@ -279,8 +279,8 @@ def convert_test(args):
         # # assert joints_3d.shape == (21, 3)
         print(f"{i}, pose: {pose.shape} betas:{betas.shape}")
         res = calc_ring(mano_model_wrapper, pose=pose, betas=betas)
-        print(res["perimeter"])
-        print(res["vert_3d"])
+        # print(res["perimeter"])
+        print(res)
         if i > 10:
             break
     # keys = [
