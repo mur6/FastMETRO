@@ -87,7 +87,7 @@ class ManoWrapper:
 # print(f"processing... {count}")
 
 
-def convert_test(args):
+def main(args):
     mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
     train_dataloader = make_hand_data_loader(
         args,
@@ -96,22 +96,23 @@ def convert_test(args):
         is_train=True,
         scale_factor=args.img_scale_factor,
     )
-    it = iter_converted_batches(mano_model_wrapper, train_dataloader)
 
-    def iter_output_items():
-        for d_list in it:
+    def _iter():
+        for d_list in iter_converted_batches(mano_model_wrapper, train_dataloader)
             yield from d_list
 
+    for i, d in enumerate(_iter())
+        print(i, d.keys())
 
-"data/train_ring_infos"
+    # save_to_file("data/train_ring_infos", ffddfsdfdf)
 
 
 if __name__ == "__main__":
     args = train_parse_args()
-    # main(args)
+    main(args)
     # test_each_transformer_models(args)
     # model_load_and_inference(args)
     print("########")
     # original_model_test(args)
     # data_load_test(args)
-    convert_test(args)
+    #convert_test(args)
