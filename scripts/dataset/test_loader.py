@@ -1,14 +1,22 @@
 import os
+import argparse
+import itertools
+import os.path
+from functools import partial
+from collections import defaultdict
+from pathlib import Path
 from logging import DEBUG, INFO, basicConfig, getLogger, debug, error, exception, info, warning
 
+import trimesh
 import numpy as np
 import torch
 import torchvision.models as models
 from torch.nn import functional as F
 from torchvision.utils import make_grid
 
-import src.modeling.data.config as cfg
+from manopth.manolayer import ManoLayer
 
+import src.modeling.data.config as cfg
 from src.datasets.build import make_hand_data_loader
 from src.modeling._mano import MANO, Mesh
 from src.modeling.hrnet.config import config as hrnet_config
@@ -17,6 +25,8 @@ from src.modeling.hrnet.hrnet_cls_net_featmaps import get_cls_net
 from src.modeling.model import FastMETRO_Hand_Network, MyModel
 from src.modeling.model.transformer import build_transformer
 from src.handinfo.parser import train_parse_args
+
+# from src.handinfo.ring.helper import iter_output_data
 
 # from src.utils.comm import get_rank, get_world_size, is_main_process
 # from src.utils.geometric_layers import orthographic_projection
@@ -222,6 +232,90 @@ def data_load_test(args):
             break
 
 
+def make_hand_mesh(mano_model, gt_vertices):
+    mano_faces = mano_model.layer.th_faces
+    # mesh objects can be created from existing faces and vertex data
+    return trimesh.Trimesh(vertices=gt_vertices, faces=mano_faces)
+
+
+def convert_pose_betas(mano_model, *, pose, betas):
+    pose = pose.unsqueeze(0)
+    betas = betas.unsqueeze(0)
+    gt_vertices, gt_3d_joints = mano_model.layer(pose, betas)
+    return gt_vertices, gt_3d_joints
+
+
+class ManoWrapper:
+    a = 0
+
+    def __init__(
+        self,
+    ):
+        self.a = 0
+        self.b = 0
+
+    def sum(self):
+        return self.a + self.b
+
+    def set(self, a, b):
+        self.a = a
+        self.b = b
+
+
+def convert_test(args):
+    val_dataloader = make_hand_data_loader(
+        args,
+        args.val_yaml,
+        args.distributed,
+        is_train=False,
+        scale_factor=args.img_scale_factor,
+    )
+    train_dataloader = make_hand_data_loader(
+        args,
+        args.train_yaml,
+        args.distributed,
+        is_train=True,
+        scale_factor=args.img_scale_factor,
+    )
+
+    mano_model = MANO().to("cpu")
+    hand_mesh_maker = partial(make_hand_mesh, mano_model)
+    pose_betas_converter = partial(convert_pose_betas, mano_model)
+    for i, (img_keys, images, annotations) in enumerate(train_dataloader):
+        pose = annotations["pose"]
+        # assert pose.shape == (48,)
+        betas = annotations["betas"]
+        # assert betas.shape == (10,)
+        joints_2d = annotations["joints_2d"][:, 0:2]
+        # assert joints_2d.shape == (21, 2)
+        joints_3d = annotations["joints_3d"][:, 0:3]
+        # assert joints_3d.shape == (21, 3)
+        print(f"{i}, pose: {pose.shape}")
+
+        if i > 10:
+            break
+    # keys = [
+    #     "betas",
+    #     "pose",
+    #     "gt_3d_joints",
+    #     "gt_vertices",
+    #     "perimeter",
+    #     "vert_2d",
+    #     "vert_3d",
+    #     "center_points",
+    #     "center_points_3d",
+    #     "pca_mean_",
+    #     "pca_components_",
+    # ]
+    # output_dict = defaultdict(list)
+    # for item in iter_output_data(
+    #     hand_mesh_maker, pose_betas_converter, itertools.islice(dataset, num)
+    # ):
+    #     for key in keys:
+    #         output_dict[key].append(item[key])
+    # print(output_dict)
+
+
 if __name__ == "__main__":
     args = train_parse_args()
     # main(args)
@@ -229,4 +323,5 @@ if __name__ == "__main__":
     # model_load_and_inference(args)
     print("########")
     # original_model_test(args)
-    data_load_test(args)
+    # data_load_test(args)
+    convert_test(args)
