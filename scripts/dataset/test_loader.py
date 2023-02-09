@@ -244,10 +244,10 @@ class ManoWrapper:
             gt_vertices, gt_3d_joints = adjust_func(gt_vertices, gt_3d_joints)
         return gt_vertices, gt_3d_joints
 
-    def get_trimesh(self, gt_vertices):
+    def get_trimesh_list(self, gt_vertices):
         mano_faces = self.mano_model.layer.th_faces
         # mesh objects can be created from existing faces and vertex data
-        return trimesh.Trimesh(vertices=gt_vertices, faces=mano_faces)
+        return [trimesh.Trimesh(vertices=gt_vert, faces=mano_faces) for gt_vert in gt_vertices]
 
 
 def convert_test(args):
@@ -279,7 +279,8 @@ def convert_test(args):
         # # assert joints_3d.shape == (21, 3)
         print(f"{i}, pose: {pose.shape} betas:{betas.shape}")
         res = calc_ring(mano_model_wrapper, pose=pose, betas=betas)
-        # print(res)
+        print(res["perimeter"])
+        print(res["vert_3d"])
         if i > 10:
             break
     # keys = [

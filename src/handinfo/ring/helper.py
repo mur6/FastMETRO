@@ -31,7 +31,8 @@ def _adjust_vertices(gt_vertices, gt_3d_joints):
     gt_vertices = gt_vertices - gt_3d_root[:, None, :]
     # gt_vertices_sub = gt_vertices_sub - gt_3d_root[:, None, :]
     gt_3d_joints = gt_3d_joints - gt_3d_root[:, None, :]
-    return gt_vertices.squeeze(0), gt_3d_joints.squeeze(0)
+    # gt_vertices.squeeze(0), gt_3d_joints.squeeze(0)
+    return gt_vertices, gt_3d_joints
 
 
 MANO_JOINTS_NAME = (
@@ -61,18 +62,23 @@ MANO_JOINTS_NAME = (
 
 def ring_finger_point_func(gt_3d_joints, *, num):
     ring_point = MANO_JOINTS_NAME.index(f"Ring_{num}")
-    return gt_3d_joints[ring_point]
+    return gt_3d_joints[:, ring_point, :]
 
 
 def calc_ring(mano_model_wrapper, *, pose, betas):
+    print(f"pose: {pose.shape}")
+    print(f"betas: {betas.shape}")
     gt_vertices, gt_3d_joints = mano_model_wrapper.get_jv(
         pose=pose, betas=betas, adjust_func=_adjust_vertices
     )
+    print(f"gt_vertices: {gt_vertices.shape}")
+    print(f"gt_3d_joints: {gt_3d_joints.shape}")
     ring1 = ring_finger_point_func(gt_3d_joints, num=1)
+    print(f"ring1: {ring1.shape}")
     ring2 = ring_finger_point_func(gt_3d_joints, num=2)
-    mesh = mano_model_wrapper.get_trimesh(gt_vertices)
+    hand_meshes = mano_model_wrapper.get_trimesh_list(gt_vertices)
     calc_result = calc_perimeter_and_center_points(
-        mesh=mesh, ring1=ring1, ring2=ring2, round_perimeter=True
+        hand_meshes=hand_meshes, ring1=ring1, ring2=ring2, round_perimeter=True
     )
     # d = dict(
     #     betas=betas.numpy(),

@@ -96,17 +96,18 @@ def _round_perimeter(perimeter):
     return perimeter
 
 
-def _calc_perimeter_and_center_points(*, mesh, ring1, ring2, round_perimeter=True):
-    ring_contact_part_mesh = _calc_ring_contact_part_mesh(
-        hand_mesh=mesh, ring1_point=ring1, ring2_point=ring2
-    )
-    ring_points_info = calc_ring_perimeter(ring_contact_part_mesh)
-    if round_perimeter:
-        perimeter = _round_perimeter(ring_points_info.perimeter)
-        return dataclasses.replace(ring_points_info, perimeter=perimeter)
-    else:
-        return ring_points_info
+def _calc_perimeter_and_center_points(*, hand_meshes, ring1, ring2, round_perimeter=True):
+    for mesh in hand_meshes:
+        ring_contact_part_mesh = _calc_ring_contact_part_mesh(
+            hand_mesh=mesh, ring1_point=ring1, ring2_point=ring2
+        )
+        ring_points_info = calc_ring_perimeter(ring_contact_part_mesh)
+        if round_perimeter:
+            perimeter = _round_perimeter(ring_points_info.perimeter)
+            ring_points_info = dataclasses.replace(ring_points_info, perimeter=perimeter)
+        ret = dataclasses.asdict(ring_points_info)
+        yield ret
 
 
 def calc_perimeter_and_center_points(**kwargs):
-    return dataclasses.asdict(_calc_perimeter_and_center_points(**kwargs))
+    return list(_calc_perimeter_and_center_points(**kwargs))
