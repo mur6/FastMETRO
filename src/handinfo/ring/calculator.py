@@ -1,7 +1,8 @@
-from collections import namedtuple
-from pathlib import Path
 import dataclasses
 from dataclasses import dataclass
+from collections import namedtuple
+from pathlib import Path
+import math
 
 import trimesh
 import matplotlib.pyplot as plt
@@ -50,7 +51,9 @@ def _calc_ring_contact_part_mesh(*, hand_mesh, ring1_point, ring2_point):
 # RingPointsInfo = namedtuple("RingPointsInfo", "perimeter vert_2d vert_3d center_points center_points_3d")
 @dataclass(frozen=True)
 class RingPointsInfo:
-    perimeter: float
+    perimeter: np.ndarray
+    radius: np.ndarray
+    # p = 2πr
     vert_2d: np.ndarray
     vert_3d: np.ndarray
     center_points: np.ndarray
@@ -59,7 +62,13 @@ class RingPointsInfo:
     pca_components_: np.ndarray
 
 
-def calc_ring_perimeter(ring_contact_part_mesh):
+def _round_and_conv_np(perimeter):
+    perimeter = round(perimeter, 6)
+    perimeter = np.array(perimeter)
+    return perimeter
+
+
+def _calc_ring_perimeter(ring_contact_part_mesh):
     v = ring_contact_part_mesh.vertices[ring_contact_part_mesh.faces]
     # メッシュを構成する三角形の重心部分を求める
     center_points = np.mean(v, axis=1)
@@ -78,9 +87,12 @@ def calc_ring_perimeter(ring_contact_part_mesh):
     hull = ConvexHull(vert_2d)
     vertices = hull.vertices.tolist() + [hull.vertices[0]]
     perimeter = np.sum([euclidean(x, y) for x, y in zip(vert_2d[vertices], vert_2d[vertices][1:])])
+    perimeter = _round_and_conv_np(perimeter)
+    radius = perimeter / (2.0 * math.pi)
     center_points_3d = pca.inverse_transform(vert_2d[vertices])
     return RingPointsInfo(
-        perimeter,
+        perimeter=perimeter,
+        radius=radius,
         vert_2d=vert_2d,
         vert_3d=vert_3d,
         center_points=np.array(center_points),
@@ -90,21 +102,12 @@ def calc_ring_perimeter(ring_contact_part_mesh):
     )
 
 
-def _round_perimeter(perimeter):
-    perimeter = round(perimeter, 6)
-    perimeter = np.array(perimeter)
-    return perimeter
-
-
-def _calc_perimeter_and_center_points(*, hand_meshes, ring1s, ring2s, round_perimeter=True):
+def _calc_perimeter_and_center_points(*, hand_meshes, ring1s, ring2s):
     for mesh, ring1_point, ring2_point in zip(hand_meshes, ring1s, ring2s):
         ring_contact_part_mesh = _calc_ring_contact_part_mesh(
             hand_mesh=mesh, ring1_point=ring1_point, ring2_point=ring2_point
         )
-        ring_points_info = calc_ring_perimeter(ring_contact_part_mesh)
-        if round_perimeter:
-            perimeter = _round_perimeter(ring_points_info.perimeter)
-            ring_points_info = dataclasses.replace(ring_points_info, perimeter=perimeter)
+        ring_points_info = _calc_ring_perimeter(ring_contact_part_mesh)
         ret = dataclasses.asdict(ring_points_info)
         yield ret
 
