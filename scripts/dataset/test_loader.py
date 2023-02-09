@@ -250,6 +250,29 @@ class ManoWrapper:
         return [trimesh.Trimesh(vertices=gt_vert, faces=mano_faces) for gt_vert in gt_vertices]
 
 
+def conv_to_dict(output_item_list):
+    keys = (
+        "perimeter",
+        "radius",
+        "vert_2d",
+        "vert_3d",
+        "center_points",
+        "center_points_3d",
+        "pca_mean_",
+        "pca_components_",
+        "img_keys",
+    )
+    output_dict = defaultdict(list)
+    for item in output_item_list:
+        print(item)
+        for key in keys:
+            output_dict[key].append(item[key])
+    for key in keys:
+        value = output_dict[key]
+        output_dict[key] = np.array(value)
+    return output_dict
+
+
 def convert_test(args):
     val_dataloader = make_hand_data_loader(
         args,
@@ -268,6 +291,15 @@ def convert_test(args):
 
     mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
 
+    def append_im_key(img_keys, d_list):
+        def _iter():
+            for im_key, d in zip(img_keys, d_list):
+                d["img_keys"] = im_key
+                yield d
+
+        return list(_iter())
+
+    output_list = []
     for i, (img_keys, images, annotations) in enumerate(train_dataloader):
         pose = annotations["pose"]
         assert pose.shape[1] == 48
@@ -278,29 +310,15 @@ def convert_test(args):
         # joints_3d = annotations["joints_3d"][:, 0:3]
         # # assert joints_3d.shape == (21, 3)
         # print(f"{i}, pose: {pose.shape} betas:{betas.shape}")
-        res = calc_ring(mano_model_wrapper, pose=pose, betas=betas)
+        d_list = calc_ring(mano_model_wrapper, pose=pose, betas=betas)
         # print(res[0]["perimeter"])
-        print(img_keys, i)
-        if i > 10000:
+        output_list += append_im_key(img_keys, d_list)
+        count = (i + 1) * args.per_gpu_train_batch_size
+        print("processing... {count}")
+        if count > 100:
             break
-    # keys = [
-    #     "betas",
-    #     "pose",
-    #     "gt_3d_joints",
-    #     "gt_vertices",
-    #     "perimeter",
-    #     "vert_2d",
-    #     "vert_3d",
-    #     "center_points",
-    #     "center_points_3d",
-    #     "pca_mean_",
-    #     "pca_components_",
-    # ]
-    # output_dict = defaultdict(list)
-
-    #     for key in keys:
-    #         output_dict[key].append(item[key])
-    # print(output_dict)
+    output_dict = conv_to_dict(output_list)
+    np.savez("data/train_ring_infos", **output_dict)
 
 
 if __name__ == "__main__":
