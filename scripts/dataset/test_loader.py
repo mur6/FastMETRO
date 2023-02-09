@@ -270,16 +270,16 @@ def convert_test(args):
 
     for i, (img_keys, images, annotations) in enumerate(train_dataloader):
         pose = annotations["pose"]
-        # assert pose.shape == (48,)
+        assert pose.shape[1] == 48
         betas = annotations["betas"]
-        # assert betas.shape == (10,)
-        joints_2d = annotations["joints_2d"][:, 0:2]
-        # assert joints_2d.shape == (21, 2)
-        joints_3d = annotations["joints_3d"][:, 0:3]
-        # assert joints_3d.shape == (21, 3)
-        print(f"{i}, pose: {pose.shape}")
-        res = calc_ring(mano_model_wrapper, pose, betas)
-        print(res)
+        assert betas.shape[1] == 10
+        # joints_2d = annotations["joints_2d"][:, 0:2]
+        # # assert joints_2d.shape == (21, 2)
+        # joints_3d = annotations["joints_3d"][:, 0:3]
+        # # assert joints_3d.shape == (21, 3)
+        print(f"{i}, pose: {pose.shape} betas:{betas.shape}")
+        res = calc_ring(mano_model_wrapper, pose=pose, betas=betas)
+        # print(res)
         if i > 10:
             break
     # keys = [

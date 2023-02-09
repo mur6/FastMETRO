@@ -74,6 +74,7 @@ def calc_ring(mano_model_wrapper, *, pose, betas):
     calc_result = calc_perimeter_and_center_points(
         mesh=mesh, ring1=ring1, ring2=ring2, round_perimeter=True
     )
+    print(f"calc_result: {calc_result}")
     # d = dict(
     #     betas=betas.numpy(),
     #     pose=pose.numpy(),
@@ -81,7 +82,7 @@ def calc_ring(mano_model_wrapper, *, pose, betas):
     #     gt_vertices=gt_vertices.numpy(),
     #     **calc_result
     # )
-    yield calc_result
+    return calc_result
 
 
 # pose = anno["pose"]
