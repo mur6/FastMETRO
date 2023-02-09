@@ -85,6 +85,12 @@ def _calc_ring_perimeter(ring_contact_part_mesh):
     # ConvexHullで均してから外周を測る
     hull = ConvexHull(vert_2d)
     vertices = hull.vertices.tolist() + [hull.vertices[0]]
+
+    # fix vert_3d
+    if vert_3d.shape[0] > 20:
+        vert_3d = vert_3d[:20, :]
+    assert vert_3d.shape == (20, 3)
+
     perimeter = np.sum([euclidean(x, y) for x, y in zip(vert_2d[vertices], vert_2d[vertices][1:])])
     perimeter = _round_and_conv_np(perimeter)
     radius = perimeter / (2.0 * math.pi)
