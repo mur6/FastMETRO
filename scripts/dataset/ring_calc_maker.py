@@ -102,9 +102,14 @@ def _make_data_loader(args, *, yaml_file, is_train, batch_size):
     return data_loader
 
 
-def main(args):
+def main(
+    args,
+    *,
+    save_unit=5000,
+    is_train=True,
+):
     mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
-    is_train = False
+
     if is_train:
         label = "train"
         yaml_file = args.train_yaml
@@ -117,8 +122,6 @@ def main(args):
         is_train=is_train,
         batch_size=args.per_gpu_train_batch_size,
     )
-
-    save_unit = 5000
 
     def _iter():
         for d_list in iter_converted_batches(mano_model_wrapper, train_dataloader):
@@ -141,10 +144,6 @@ def main(args):
 
 if __name__ == "__main__":
     args = train_parse_args()
-    main(args)
-    # test_each_transformer_models(args)
-    # model_load_and_inference(args)
     print("########")
-    # original_model_test(args)
-    # data_load_test(args)
-    # convert_test(args)
+    main(args)
+    print("########")
