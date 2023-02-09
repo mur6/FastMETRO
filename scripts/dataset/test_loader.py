@@ -196,6 +196,9 @@ def my_model_instance(args):
 
 
 def data_load_test(args):
+    print(
+        args.distributed,
+    )
     val_dataloader = make_hand_data_loader(
         args,
         args.val_yaml,
@@ -217,6 +220,7 @@ def data_load_test(args):
         print(f"{i}, {images.shape}")
         if i > 10:
             break
+
 
 if __name__ == "__main__":
     args = train_parse_args()
