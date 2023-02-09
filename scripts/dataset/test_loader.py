@@ -213,7 +213,10 @@ def data_load_test(args):
     # train_datasize = len(train_dataset)
     # test_datasize = len(test_dataset)
     # print(f"train_datasize={train_datasize} test_datasize={test_datasize}")
-
+    for i, (img_keys, images, annotations) in enumerate(train_dataloader):
+        print(f"{i}, {images.shape}")
+        if i > 10:
+            break
 
 if __name__ == "__main__":
     args = train_parse_args()
