@@ -16,9 +16,6 @@ from torchvision.utils import make_grid
 from torch.utils.data import DataLoader
 
 
-from src.datasets.build import build_hand_dataset
-
-
 # def data_load_test(args):
 #     print(
 #         args.distributed,
@@ -45,45 +42,17 @@ from src.datasets.build import build_hand_dataset
 #         if i > 10:
 #             break
 
-
-class ManoWrapper:
-    def __init__(self, *, mano_model):
-        self.mano_model = mano_model
-
-    def get_jv(self, *, pose, betas, adjust_func=None):
-        # pose = pose.unsqueeze(0)
-        # betas = betas.unsqueeze(0)
-        gt_vertices, gt_3d_joints = self.mano_model.layer(pose, betas)
-        if adjust_func is not None:
-            gt_vertices, gt_3d_joints = adjust_func(gt_vertices, gt_3d_joints)
-        return gt_vertices, gt_3d_joints
-
-    def get_trimesh_list(self, gt_vertices):
-        mano_faces = self.mano_model.layer.th_faces
-        # mesh objects can be created from existing faces and vertex data
-        return [trimesh.Trimesh(vertices=gt_vert, faces=mano_faces) for gt_vert in gt_vertices]
-
-
-#    val_dataloader = make_hand_data_loader(
-#         args,
-#         args.val_yaml,
-#         args.distributed,
-#         is_train=False,
-#         scale_factor=args.img_scale_factor,
-#     )
-
-
-def _make_data_loader(args, *, yaml_file, is_train, batch_size):
-    scale_factor = 1
-    dataset = build_hand_dataset(yaml_file, args, is_train=is_train, scale_factor=scale_factor)
-    label = "train" if is_train else "test"
-    datasize = len(dataset)
-    print(f"{label}_datasize={datasize}")
-    if is_train:
-        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-    else:
-        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-    return data_loader
+# def _make_data_loader(args, *, yaml_file, is_train, batch_size):
+#     scale_factor = 1
+#     dataset = build_hand_dataset(yaml_file, args, is_train=is_train, scale_factor=scale_factor)
+#     label = "train" if is_train else "test"
+#     datasize = len(dataset)
+#     print(f"{label}_datasize={datasize}")
+#     if is_train:
+#         data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+#     else:
+#         data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+#     return data_loader
 
 
 def get_file_list(is_train, data_dir):
@@ -94,30 +63,32 @@ def get_file_list(is_train, data_dir):
     return list(data_dir.glob(f"{label}_ring_infos_*.npz"))
 
 
-def main(*, is_train, data_dir, output_pickle_file):
-    dsfa = get_file_list(is_train, data_dir)
-    # mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
+KEYS = (
+    "perimeter",
+    "radius",
+    # "vert_2d",
+    "vert_3d",
+    # "center_points",
+    # "center_points_3d",
+    "pca_mean_",
+    "pca_components_",
+    "img_key",
+)
 
-    keys = (
-        "perimeter",
-        "radius",
-        # "vert_2d",
-        "vert_3d",
-        # "center_points",
-        # "center_points_3d",
-        "pca_mean_",
-        "pca_components_",
-        "img_key",
-    )
+
+def _conv(d_list):
     inputs = defaultdict(list)
+    for d in d_list:
+        for key in KEYS:
+            values = d[key]
+            # r = dict(d)
+            inputs[key].extend(values.tolist())
+    return inputs
 
-            for key in keys:
-                values = d[key]
-                # r = dict(d)
-                inputs[key].extend(values.tolist())
-                # print(values)
-    d = {}
 
+def main(*, is_train, data_dir, output_pickle_file):
+    d_list = [np.load(f) for f in get_file_list(is_train, data_dir)]
+    inputs = _conv(d_list)
 
     for img_key, perimeter, radius, vert_3d, pca_mean, pca_components in zip(
         inputs["img_key"],
@@ -138,30 +109,6 @@ def main(*, is_train, data_dir, output_pickle_file):
     # p =
     with Path("ring_info_train.pkl").open(mode="wb") as fh:
         pickle.dump(d, fh)
-    # train_dataloader = _make_data_loader(
-    #     args,
-    #     yaml_file=yaml_file,
-    #     is_train=is_train,
-    #     batch_size=args.per_gpu_train_batch_size,
-    # )
-
-    # def _iter():
-    #     for d_list in iter_converted_batches(mano_model_wrapper, train_dataloader):
-    #         yield from d_list
-
-    # count = 0
-    # lis = []
-    # for i, d in enumerate(_iter()):
-    #     lis.append(d)
-    #     if (i + 1) % save_unit == 0:
-    #         print(lis[0]["img_key"], lis[-1]["img_key"])
-    #         save_to_file(f"data/{label}_ring_infos_{count:03}", lis)
-    #         count += 1
-    #         # processed_count = (cnt + 1) * args.per_gpu_train_batch_size
-    #         lis = []
-    #         print(f"processing... {i}")
-    # else:
-    #     save_to_file(f"data/{label}_ring_infos_{count:03}", lis)
 
 
 def parse_args():
@@ -208,4 +155,3 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
     main(is_train=args.is_train, data_dir=args.data_dir, output_pickle_file=args.output_pickle_file)
-
