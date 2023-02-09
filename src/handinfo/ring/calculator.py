@@ -96,10 +96,11 @@ def _round_perimeter(perimeter):
     return perimeter
 
 
-def _calc_perimeter_and_center_points(*, hand_meshes, ring1, ring2, round_perimeter=True):
-    for mesh in hand_meshes:
+def _calc_perimeter_and_center_points(*, hand_meshes, ring1s, ring2s, round_perimeter=True):
+    for mesh, ring1_point, ring2_point in zip(hand_meshes, ring1s, ring2s):
+        print(mesh)
         ring_contact_part_mesh = _calc_ring_contact_part_mesh(
-            hand_mesh=mesh, ring1_point=ring1, ring2_point=ring2
+            hand_mesh=mesh, ring1_point=ring1_point, ring2_point=ring2_point
         )
         ring_points_info = calc_ring_perimeter(ring_contact_part_mesh)
         if round_perimeter:
