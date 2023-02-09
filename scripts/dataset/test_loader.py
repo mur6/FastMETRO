@@ -1,6 +1,7 @@
 import argparse
 import itertools
-
+import json
+import pickle
 from functools import partial
 from collections import defaultdict
 from pathlib import Path
@@ -95,16 +96,57 @@ def _make_data_loader(args, *, yaml_file, is_train, batch_size):
     return data_loader
 
 
-def main(args, *, data_dir, is_train=False):
+def main(args, *, data_dir, is_train=True):
     # mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
 
+    keys = (
+        "perimeter",
+        "radius",
+        # "vert_2d",
+        "vert_3d",
+        # "center_points",
+        # "center_points_3d",
+        "pca_mean_",
+        "pca_components_",
+        "img_key",
+    )
+    inputs = defaultdict(list)
     if is_train:
         label = "train"
-        f = data_dir.glob(f"{label}_ring_infos_*.npz")
-        print(f)
+        for f in data_dir.glob(f"{label}_ring_infos_*.npz"):
+            d = np.load(f)
+            for key in keys:
+                values = d[key]
+                # r = dict(d)
+                inputs[key].extend(values.tolist())
+                # print(values)
     else:
         label = "test"
+    # for v in inputs["pca_mean_"]:
+    #     print(v)
+    d = {}
+    # key_list = inputs["img_key"]
+    # rad_list = inputs["radius"]
 
+    for img_key, perimeter, radius, vert_3d, pca_mean, pca_components in zip(
+        inputs["img_key"],
+        inputs["perimeter"],
+        inputs["radius"],
+        inputs["vert_3d"],
+        inputs["pca_mean_"],
+        inputs["pca_components_"],
+    ):
+        d[img_key] = {
+            "perimeter": perimeter,
+            "radius": radius,
+            "vert_3d": vert_3d,
+            "pca_mean": pca_mean,
+            "pca_components": pca_components,
+        }
+    # print(len(d))
+    # p =
+    with Path("ring_info_train.pkl").open(mode="wb") as fh:
+        pickle.dump(d, fh)
     # train_dataloader = _make_data_loader(
     #     args,
     #     yaml_file=yaml_file,

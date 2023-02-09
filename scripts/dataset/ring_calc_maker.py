@@ -29,11 +29,13 @@ from src.handinfo.parser import train_parse_args
 from src.handinfo.ring.helper import iter_converted_batches, save_to_file
 
 
+# ------------------------------------------------------------
 # Usage:
 #  PYTHONPATH=. python scripts/dataset/ring_calc_maker.py \
 #  --train_yaml "../orig-MeshGraphormer/freihand/train.yaml" \
 #  --val_yaml "../orig-MeshGraphormer/freihand/test.yaml" \
 #  --num_workers 0 --per_gpu_train_batch_size 1024
+# ------------------------------------------------------------
 
 
 class ManoWrapper:
@@ -52,15 +54,6 @@ class ManoWrapper:
         mano_faces = self.mano_model.layer.th_faces
         # mesh objects can be created from existing faces and vertex data
         return [trimesh.Trimesh(vertices=gt_vert, faces=mano_faces) for gt_vert in gt_vertices]
-
-
-#    val_dataloader = make_hand_data_loader(
-#         args,
-#         args.val_yaml,
-#         args.distributed,
-#         is_train=False,
-#         scale_factor=args.img_scale_factor,
-#     )
 
 
 def _make_data_loader(args, *, yaml_file, is_train, batch_size):
