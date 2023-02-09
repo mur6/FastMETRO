@@ -86,7 +86,16 @@ def _make_data_loader(args, *, yaml_file, is_train, batch_size):
     return data_loader
 
 
-def main(args, *, data_dir, is_train=True):
+def get_file_list(is_train, data_dir):
+    if is_train:
+        label = "train"
+    else:
+        label = "test"
+    return list(data_dir.glob(f"{label}_ring_infos_*.npz"))
+
+
+def main(*, is_train, data_dir, output_pickle_file):
+    dsfa = get_file_list(is_train, data_dir)
     # mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
 
     keys = (
@@ -101,22 +110,14 @@ def main(args, *, data_dir, is_train=True):
         "img_key",
     )
     inputs = defaultdict(list)
-    if is_train:
-        label = "train"
-        for f in data_dir.glob(f"{label}_ring_infos_*.npz"):
-            d = np.load(f)
+
             for key in keys:
                 values = d[key]
                 # r = dict(d)
                 inputs[key].extend(values.tolist())
                 # print(values)
-    else:
-        label = "test"
-    # for v in inputs["pca_mean_"]:
-    #     print(v)
     d = {}
-    # key_list = inputs["img_key"]
-    # rad_list = inputs["radius"]
+
 
     for img_key, perimeter, radius, vert_3d, pca_mean, pca_components in zip(
         inputs["img_key"],
@@ -172,61 +173,13 @@ def parse_args():
         required=True,
     )
     parser.add_argument(
-        "--train_yaml",
-        default="freihand/train.yaml",
-        type=str,
-        required=False,
-        help="Yaml file with all data for training.",
+        "--output_pickle_file",
+        type=Path,
+        required=True,
     )
-    parser.add_argument(
-        "--val_yaml",
-        default="freihand/test.yaml",
-        type=str,
-        required=False,
-        help="Yaml file with all data for validation.",
-    )
-    parser.add_argument("--num_workers", default=4, type=int, help="Workers in dataloader.")
+    # parser.add_argument("--saving_epochs", default=20, type=int)
+    # parser.add_argument("--resume_epoch", default=0, type=int)
 
-    #########################################################
-    # Loading/Saving checkpoints
-    #########################################################
-    parser.add_argument(
-        "--output_dir",
-        default="output/",
-        type=str,
-        required=False,
-        help="The output directory to save checkpoint and test results.",
-    )
-    parser.add_argument("--saving_epochs", default=20, type=int)
-    parser.add_argument("--resume_epoch", default=0, type=int)
-    #########################################################
-    # Training parameters
-    #########################################################
-    parser.add_argument(
-        "--per_gpu_train_batch_size",
-        default=16,
-        type=int,
-        help="Batch size per GPU/CPU for training.",
-    )
-    parser.add_argument(
-        "--per_gpu_eval_batch_size",
-        default=16,
-        type=int,
-        help="Batch size per GPU/CPU for evaluation.",
-    )
-    parser.add_argument("--lr", "--learning_rate", default=1e-4, type=float, help="The initial lr.")
-    parser.add_argument("--lr_backbone", default=1e-4, type=float)
-    parser.add_argument("--lr_drop", default=200, type=int)
-    parser.add_argument("--weight_decay", default=1e-4, type=float)
-    parser.add_argument(
-        "--clip_max_norm", default=0.3, type=float, help="gradient clipping maximal norm"
-    )
-    parser.add_argument(
-        "--num_train_epochs",
-        default=200,
-        type=int,
-        help="Total number of training epochs to perform.",
-    )
     # # Loss coefficients
     # parser.add_argument("--joints_2d_loss_weight", default=100.0, type=float)
     # parser.add_argument("--vertices_3d_loss_weight", default=100.0, type=float)
@@ -254,5 +207,5 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    # main(args, data_dir=Path("./data"))
-    print(args.is_train)
+    main(is_train=args.is_train, data_dir=args.data_dir, output_pickle_file=args.output_pickle_file)
+
