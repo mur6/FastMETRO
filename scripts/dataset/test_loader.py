@@ -129,6 +129,8 @@ def main(args):
             # processed_count = (cnt + 1) * args.per_gpu_train_batch_size
             lis = []
             print(f"processing... {i}")
+    else:
+        save_to_file(f"data/{label}_ring_infos_{count:03}", lis)
 
 
 if __name__ == "__main__":
