@@ -9,7 +9,7 @@ from torchvision.utils import make_grid
 
 import src.modeling.data.config as cfg
 
-# from src.datasets.build import make_hand_data_loader
+from src.datasets.build import make_hand_data_loader
 from src.modeling._mano import MANO, Mesh
 from src.modeling.hrnet.config import config as hrnet_config
 from src.modeling.hrnet.config import update_config as hrnet_update_config
@@ -179,34 +179,6 @@ def get_fastmetro_model(args):
     return model
 
 
-def original_model_test(args):
-    num_enc_layers = 3
-    num_dec_layers = 3
-    transformer_config_3 = {
-        "model_dim": 64,
-        "dropout": args.transformer_dropout,
-        "nhead": args.transformer_nhead,
-        "feedforward_dim": 256,
-        "num_enc_layers": num_enc_layers,
-        "num_dec_layers": num_dec_layers,
-        "pos_type": args.pos_type,
-    }
-    print(transformer_config_3)
-    transformer_3 = build_transformer(transformer_config_3)
-
-    model_dim = 64
-    img_features = torch.randn(49, 1, 64)
-    cam_token = torch.randn(1, 1, 64)
-    jv_tokens = torch.randn(216, 1, 64)
-    pos_enc = torch.randn(49, 1, 64)
-    cam_features_1, enc_img_features_1, jv_features_1 = transformer_3(
-        img_features, cam_token, jv_tokens, pos_enc
-    )
-    print(f"3:cam_features_1: {cam_features_1.shape}")
-    print(f"3:enc_img_features_1: {enc_img_features_1.shape}")
-    print(f"3:jv_features_1: {jv_features_1.shape}")
-
-
 def my_model_instance(args):
     fastmetro = get_fastmetro_model(args)
     output_features = True
@@ -223,6 +195,23 @@ def my_model_instance(args):
     print(f"ring_radius: {ring_radius.shape}")
 
 
+def data_load_test(args):
+    val_dataloader = make_hand_data_loader(
+        args,
+        args.val_yaml,
+        args.distributed,
+        is_train=False,
+        scale_factor=args.img_scale_factor,
+    )
+    train_dataloader = make_hand_data_loader(
+        args,
+        args.train_yaml,
+        args.distributed,
+        is_train=True,
+        scale_factor=args.img_scale_factor,
+    )
+
+
 if __name__ == "__main__":
     args = train_parse_args()
     # main(args)
@@ -230,4 +219,4 @@ if __name__ == "__main__":
     # model_load_and_inference(args)
     print("########")
     # original_model_test(args)
-    my_model_instance(args)
+    data_load_test(args)

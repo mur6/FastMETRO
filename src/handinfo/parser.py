@@ -1,3 +1,4 @@
+import os
 import argparse
 
 
@@ -160,4 +161,6 @@ def train_parse_args():
     )
 
     args = parser.parse_args()
+    args.num_gpus = int(os.environ["WORLD_SIZE"]) if "WORLD_SIZE" in os.environ else 1
+    args.distributed = args.num_gpus > 1
     return args
