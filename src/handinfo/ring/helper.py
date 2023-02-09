@@ -66,14 +66,14 @@ def ring_finger_point_func(gt_3d_joints, *, num):
 
 
 def calc_ring(mano_model_wrapper, *, pose, betas):
-    print(f"pose: {pose.shape}")
-    print(f"betas: {betas.shape}")
+    # print(f"pose: {pose.shape}")
+    # print(f"betas: {betas.shape}")
     gt_vertices, gt_3d_joints = mano_model_wrapper.get_jv(
         pose=pose, betas=betas, adjust_func=_adjust_vertices
     )
-    print(f"gt_vertices: {gt_vertices.shape}")
-    print(f"gt_3d_joints: {gt_3d_joints.shape}")
-    print()
+    # print(f"gt_vertices: {gt_vertices.shape}")
+    # print(f"gt_3d_joints: {gt_3d_joints.shape}")
+    # print()
     ring1s = ring_finger_point_func(gt_3d_joints, num=1)
     ring2s = ring_finger_point_func(gt_3d_joints, num=2)
     hand_meshes = mano_model_wrapper.get_trimesh_list(gt_vertices)

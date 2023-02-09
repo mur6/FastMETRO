@@ -277,11 +277,11 @@ def convert_test(args):
         # # assert joints_2d.shape == (21, 2)
         # joints_3d = annotations["joints_3d"][:, 0:3]
         # # assert joints_3d.shape == (21, 3)
-        print(f"{i}, pose: {pose.shape} betas:{betas.shape}")
+        # print(f"{i}, pose: {pose.shape} betas:{betas.shape}")
         res = calc_ring(mano_model_wrapper, pose=pose, betas=betas)
-        # print(res["perimeter"])
-        # print(res)
-        if i > 10:
+        # print(res[0]["perimeter"])
+        print(img_keys, i)
+        if i > 10000:
             break
     # keys = [
     #     "betas",
