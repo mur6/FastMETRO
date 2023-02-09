@@ -137,7 +137,8 @@ def make_hand_data_loader(
         start_iter = 0
 
     sampler = make_data_sampler(dataset, shuffle, is_distributed)
-    batch_sampler = make_batch_data_sampler(sampler, images_per_gpu, num_iters, start_iter)
+    # batch_sampler = make_batch_data_sampler(sampler, images_per_gpu, num_iters, start_iter)
+    batch_sampler = torch.utils.data.sampler.SequentialSampler(dataset)
     data_loader = torch.utils.data.DataLoader(
         dataset,
         num_workers=args.num_workers,

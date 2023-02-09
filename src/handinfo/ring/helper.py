@@ -88,3 +88,55 @@ def calc_ring(mano_model_wrapper, *, pose, betas):
     #     **calc_result
     # )
     return calc_result
+
+
+def _append_im_key(img_keys, d_list):
+    def _iter():
+        for im_key, d in zip(img_keys, d_list):
+            d["img_keys"] = im_key
+            yield d
+
+    return list(_iter())
+
+
+def iter_converted_batches(mano_model_wrapper, dataloader):
+    for _, (img_keys, images, annotations) in enumerate(dataloader):
+        pose = annotations["pose"]
+        assert pose.shape[1] == 48
+        betas = annotations["betas"]
+        assert betas.shape[1] == 10
+        # joints_2d = annotations["joints_2d"][:, 0:2]
+        # # assert joints_2d.shape == (21, 2)
+        # joints_3d = annotations["joints_3d"][:, 0:3]
+        # # assert joints_3d.shape == (21, 3)
+        # print(f"{i}, pose: {pose.shape} betas:{betas.shape}")
+        d_list = calc_ring(mano_model_wrapper, pose=pose, betas=betas)
+        d_list = _append_im_key(img_keys, d_list)
+        # print(res[0]["perimeter"])
+        yield d_list
+
+
+def save_to_file(filename, output_item_list):
+    def conv_to_dict(output_item_list):
+        keys = (
+            "perimeter",
+            "radius",
+            # "vert_2d",
+            "vert_3d",
+            # "center_points",
+            # "center_points_3d",
+            "pca_mean_",
+            "pca_components_",
+            "img_keys",
+        )
+        output_dict = defaultdict(list)
+        for item in output_item_list:
+            for key in keys:
+                output_dict[key].append(item[key])
+        for key in keys:
+            value = output_dict[key]
+            output_dict[key] = np.array(value)
+        return output_dict
+
+    output_dict = conv_to_dict(output_item_list)
+    np.savez(filename, **output_dict)
