@@ -1,11 +1,6 @@
-import argparse
-import datetime
-import json
 import os
 from logging import DEBUG, INFO, basicConfig, getLogger, debug, error, exception, info, warning
-import time
 
-import cv2
 import numpy as np
 import torch
 import torchvision.models as models
@@ -21,6 +16,7 @@ from src.modeling.hrnet.config import update_config as hrnet_update_config
 from src.modeling.hrnet.hrnet_cls_net_featmaps import get_cls_net
 from src.modeling.model import FastMETRO_Hand_Network, MyModel
 from src.modeling.model.transformer import build_transformer
+
 
 # from src.utils.comm import get_rank, get_world_size, is_main_process
 # from src.utils.geometric_layers import orthographic_projection

@@ -1,7 +1,7 @@
 import argparse
 
 
-def parse_args():
+def train_parse_args():
     parser = argparse.ArgumentParser()
     #########################################################
     # Data related arguments
