@@ -280,7 +280,7 @@ def convert_test(args):
         print(f"{i}, pose: {pose.shape} betas:{betas.shape}")
         res = calc_ring(mano_model_wrapper, pose=pose, betas=betas)
         # print(res["perimeter"])
-        print(res)
+        # print(res)
         if i > 10:
             break
     # keys = [

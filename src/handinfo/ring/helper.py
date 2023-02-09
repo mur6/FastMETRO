@@ -73,8 +73,8 @@ def calc_ring(mano_model_wrapper, *, pose, betas):
     )
     print(f"gt_vertices: {gt_vertices.shape}")
     print(f"gt_3d_joints: {gt_3d_joints.shape}")
+    print()
     ring1s = ring_finger_point_func(gt_3d_joints, num=1)
-    print(f"ring1s: {ring1s.shape}")
     ring2s = ring_finger_point_func(gt_3d_joints, num=2)
     hand_meshes = mano_model_wrapper.get_trimesh_list(gt_vertices)
     calc_result = calc_perimeter_and_center_points(
