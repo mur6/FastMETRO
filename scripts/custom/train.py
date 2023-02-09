@@ -1,4 +1,3 @@
-fds
 from pathlib import Path
 import argparse
 
@@ -32,17 +31,6 @@ def save_checkpoint(model, epoch, iteration=None):
     torch.save(model_to_save.state_dict(), checkpoint_dir / "state_dict.bin")
     print(f"Save checkpoint to {checkpoint_dir}")
     return checkpoint_dir
-
-
-transform = T.Compose(
-    [
-        # T.RandomJitter(0.01),
-        T.RandomRotate(15, axis=0),
-        T.RandomRotate(15, axis=1),
-        T.RandomRotate(15, axis=2),
-    ]
-)
-pre_transform = T.NormalizeScale()
 
 
 def train(model, device, train_loader, train_datasize, bs_faces, optimizer):
