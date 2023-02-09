@@ -210,6 +210,9 @@ def data_load_test(args):
         is_train=True,
         scale_factor=args.img_scale_factor,
     )
+    # train_datasize = len(train_dataset)
+    # test_datasize = len(test_dataset)
+    # print(f"train_datasize={train_datasize} test_datasize={test_datasize}")
 
 
 if __name__ == "__main__":
