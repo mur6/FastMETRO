@@ -254,17 +254,16 @@ def conv_to_dict(output_item_list):
     keys = (
         "perimeter",
         "radius",
-        "vert_2d",
+        # "vert_2d",
         "vert_3d",
-        "center_points",
-        "center_points_3d",
+        # "center_points",
+        # "center_points_3d",
         "pca_mean_",
         "pca_components_",
         "img_keys",
     )
     output_dict = defaultdict(list)
     for item in output_item_list:
-        print(item)
         for key in keys:
             output_dict[key].append(item[key])
     for key in keys:
@@ -314,8 +313,8 @@ def convert_test(args):
         # print(res[0]["perimeter"])
         output_list += append_im_key(img_keys, d_list)
         count = (i + 1) * args.per_gpu_train_batch_size
-        print("processing... {count}")
-        if count > 100:
+        print(f"processing... {count}")
+        if count > 10000:
             break
     output_dict = conv_to_dict(output_list)
     np.savez("data/train_ring_infos", **output_dict)

@@ -89,7 +89,8 @@ def _calc_ring_perimeter(ring_contact_part_mesh):
     # fix vert_3d
     if vert_3d.shape[0] > 20:
         vert_3d = vert_3d[:20, :]
-    assert vert_3d.shape == (20, 3)
+    # print(vert_3d.shape)
+    assert vert_3d.shape == (20, 3), vert_3d.shape
 
     perimeter = np.sum([euclidean(x, y) for x, y in zip(vert_2d[vertices], vert_2d[vertices][1:])])
     perimeter = _round_and_conv_np(perimeter)
