@@ -76,7 +76,7 @@ KEYS = (
 )
 
 
-def _conv(d_list):
+def _conv1(d_list):
     inputs = defaultdict(list)
     for d in d_list:
         for key in KEYS:
@@ -86,10 +86,8 @@ def _conv(d_list):
     return inputs
 
 
-def main(*, is_train, data_dir, output_pickle_file):
-    d_list = [np.load(f) for f in get_file_list(is_train, data_dir)]
-    inputs = _conv(d_list)
-
+def _conv2(inputs):
+    d = {}
     for img_key, perimeter, radius, vert_3d, pca_mean, pca_components in zip(
         inputs["img_key"],
         inputs["perimeter"],
@@ -105,9 +103,14 @@ def main(*, is_train, data_dir, output_pickle_file):
             "pca_mean": pca_mean,
             "pca_components": pca_components,
         }
-    # print(len(d))
-    # p =
-    with Path("ring_info_train.pkl").open(mode="wb") as fh:
+    return d
+
+
+def main(*, is_train, data_dir, output_pickle_file):
+    d_list = [np.load(f) for f in get_file_list(is_train, data_dir)]
+    inputs = _conv1(d_list)
+    d = _conv2(inputs)
+    with output_pickle_file.open(mode="wb") as fh:
         pickle.dump(d, fh)
 
 
@@ -124,25 +127,6 @@ def parse_args():
         type=Path,
         required=True,
     )
-    # parser.add_argument("--saving_epochs", default=20, type=int)
-    # parser.add_argument("--resume_epoch", default=0, type=int)
-
-    # # Loss coefficients
-    # parser.add_argument("--joints_2d_loss_weight", default=100.0, type=float)
-    # parser.add_argument("--vertices_3d_loss_weight", default=100.0, type=float)
-    # parser.add_argument("--edge_normal_loss_weight", default=100.0, type=float)
-    # parser.add_argument("--joints_3d_loss_weight", default=1000.0, type=float)
-    # parser.add_argument("--vertices_fine_loss_weight", default=0.50, type=float)
-    # parser.add_argument("--vertices_coarse_loss_weight", default=0.50, type=float)
-    # parser.add_argument("--edge_gt_loss_weight", default=1.0, type=float)
-    # parser.add_argument("--normal_loss_weight", default=0.1, type=float)
-    # # Model parameters
-    # parser.add_argument(
-    #     "--model_name",
-    #     default="FastMETRO-L",
-    #     type=str,
-    #     help="Transformer architecture: FastMETRO-S, FastMETRO-M, FastMETRO-L",
-    # )
     parser.add_argument(
         "--is_train",
         default=False,
