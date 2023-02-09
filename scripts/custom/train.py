@@ -40,23 +40,10 @@ def train(model, device, train_loader, train_datasize, bs_faces, optimizer):
 
     for data in train_loader:
         data = data.to(device)
-        # print(f"data.x: {data.x.shape}")
-        # print(f"data.pos: {data.pos.shape}")
         optimizer.zero_grad()
         output = model(data.x, data.pos, data.batch)
-        # print(f"data.y: {data.y.shape}")
-        # print(f"output: {output.shape}")
-
         batch_size = output.shape[0]
-        # print(f"verts: {verts.shape}")
-        # print(f"faces: {faces.shape}")
-
-        # .view(batch_size, 1538, 3)
-        # print(f"bs_faces: {bs_faces.shape}")
         gt_y = data.y.view(batch_size, -1).float().contiguous()
-        # loss = all_loss(output, gt_y, data, bs_faces)
-        # loss = F.mse_loss(output, gt_y)
-        # loss = cyclic_shift_loss(output, gt_y)
         loss = on_circle_loss(output, data)
         loss.backward()
         optimizer.step()
@@ -70,19 +57,12 @@ def test(model, device, test_loader, test_datasize, bs_faces):
     model.eval()
 
     current_loss = 0.0
-    # correct = 0
     for data in test_loader:
         data = data.to(device)
         with torch.no_grad():
             output = model(data.x, data.pos, data.batch)
-            # print(f"output: {output.shape}")
         batch_size = output.shape[0]
-        # b = data.y.view(batch_size, -1).float()
-        # correct += pred.eq(b).sum().item()
         gt_y = data.y.view(batch_size, -1).float().contiguous()
-        # loss = all_loss(output, gt_y, data, bs_faces)
-        # loss = F.mse_loss(output, gt_y)
-        # loss = cyclic_shift_loss(output, gt_y)
         loss = on_circle_loss(output, data)
         current_loss += loss.item() * output.size(0)
     epoch_loss = current_loss / test_datasize
@@ -117,56 +97,19 @@ def main(resume_dir, input_filename, batch_size, args):
         else:
             raise Exception(f"{resume_dir} is not valid directory.")
     else:
-        model = ClassificationNet(
-            in_channels=3,
-            out_channels=7,
-            dim_model=[32, 64, 128, 256, 512],
-        ).to(device)
+        model = MyModel().to(device)
     print(f"model: {model.__class__.__name__}")
 
-    # model = SegmentationNet(
-    #     in_channels=3,
-    #     out_channels=3,
-    #     dim_model=[32, 64, 128, 256, 512],
-    # ).to(device)
     model.eval()
 
     gamma = float(args.gamma)
     print(f"gamma: {gamma}")
 
-    if False:
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-        # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
-        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
-    if False:
-        optimizer = torch.optim.AdamW(model.parameters(), lr=0.002)
-        # scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
-        scheduler = CosineLRScheduler(
-            optimizer,
-            t_initial=40,
-            cycle_limit=11,
-            cycle_decay=0.8,
-            lr_min=0.0001,
-            warmup_t=20,
-            warmup_lr_init=5e-5,
-            warmup_prefix=True,
-        )
-    if False:
-        optimizer = torch.optim.AdamW(model.parameters(), lr=0.00025)
-        # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=gamma)
-        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
-        # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=15, eta_min=0.0001)
     if True:
         optimizer = torch.optim.RAdam(model.parameters(), lr=5e-5)
         # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=gamma)
         # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=20, eta_min=1e-05)
-    ####### test:
-    # for d in train_loader:
-    #     print(d.x.shape)
-    #     output = model(d.x, d.pos, d.batch)
-    #     print(output.shape)
-    #     break
 
     faces = get_mano_faces()
     bs_faces = faces.repeat(batch_size, 1).view(batch_size, 1538, 3)
@@ -178,10 +121,6 @@ def main(resume_dir, input_filename, batch_size, args):
             save_checkpoint(model, epoch)
         scheduler.step(epoch)
         print(f"lr: {scheduler.get_last_lr()}")
-        # train(model, device, train_loader, optimizer)
-        # iou = test(model, device, test_loader)
-        # print(f'Epoch: {epoch:03d}, Test IoU: {iou:.4f}')
-        # scheduler.step()
 
 
 def parse_args():
