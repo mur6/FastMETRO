@@ -26,7 +26,7 @@ from src.modeling.model import FastMETRO_Hand_Network, MyModel
 from src.modeling.model.transformer import build_transformer
 from src.handinfo.parser import train_parse_args
 
-# from src.handinfo.ring.helper import iter_output_data
+from src.handinfo.ring.helper import convert
 
 # from src.utils.comm import get_rank, get_world_size, is_main_process
 # from src.utils.geometric_layers import orthographic_projection
@@ -233,19 +233,21 @@ def data_load_test(args):
 
 
 class ManoWrapper:
-    def __init__(self, mano_model):
+    def __init__(self, *, mano_model):
         self.mano_model = mano_model
+
+    def get_jv(self, *, pose, betas, adjust_func=None):
+        pose = pose.unsqueeze(0)
+        betas = betas.unsqueeze(0)
+        gt_vertices, gt_3d_joints = self.mano_model.layer(pose, betas)
+        if adjust_func is not None:
+            gt_vertices, gt_3d_joints = adjust_func(gt_vertices, gt_3d_joints)
+        return gt_vertices, gt_3d_joints
 
     def get_trimesh(self, gt_vertices):
         mano_faces = self.mano_model.layer.th_faces
         # mesh objects can be created from existing faces and vertex data
         return trimesh.Trimesh(vertices=gt_vertices, faces=mano_faces)
-
-    def get_jv(self, *, pose, betas):
-        pose = pose.unsqueeze(0)
-        betas = betas.unsqueeze(0)
-        gt_vertices, gt_3d_joints = self.mano_model.layer(pose, betas)
-        return gt_vertices, gt_3d_joints
 
 
 def convert_test(args):
@@ -264,7 +266,7 @@ def convert_test(args):
         scale_factor=args.img_scale_factor,
     )
 
-    mano_model = MANO().to("cpu")
+    mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
 
     for i, (img_keys, images, annotations) in enumerate(train_dataloader):
         pose = annotations["pose"]
@@ -276,7 +278,9 @@ def convert_test(args):
         joints_3d = annotations["joints_3d"][:, 0:3]
         # assert joints_3d.shape == (21, 3)
         print(f"{i}, pose: {pose.shape}")
-
+        res = convert(
+            mano_model_wrapper,
+        )
         if i > 10:
             break
     # keys = [
@@ -293,9 +297,7 @@ def convert_test(args):
     #     "pca_components_",
     # ]
     # output_dict = defaultdict(list)
-    # for item in iter_output_data(
-    #     hand_mesh_maker, pose_betas_converter, itertools.islice(dataset, num)
-    # ):
+
     #     for key in keys:
     #         output_dict[key].append(item[key])
     # print(output_dict)

@@ -21,7 +21,6 @@ from scipy.spatial.distance import euclidean
 from sklearn.decomposition import PCA
 
 
-
 def _calc_ring_contact_part_mesh(*, hand_mesh, ring1_point, ring2_point):
     # カットしたい平面の起点と法線ベクトルを求める
     plane_normal = ring2_point - ring1_point
@@ -34,9 +33,7 @@ def _calc_ring_contact_part_mesh(*, hand_mesh, ring1_point, ring2_point):
     new_triangles = trimesh.Trimesh(hand_mesh.vertices, hand_mesh.faces[face_index])
     # 起点と最も近い面(三角形)を求める
     center_points = np.average(new_triangles.vertices[new_triangles.faces], axis=1)
-    distances = numpy.linalg.norm(
-        center_points - np.expand_dims(plane_origin, 0), axis=1
-    )
+    distances = numpy.linalg.norm(center_points - np.expand_dims(plane_origin, 0), axis=1)
     triangle_id = np.argmin(distances)
     # print(f"closest triangle_id: {triangle_id}")
     # 上記の三角形を含む、連なったグループを求める
@@ -80,9 +77,7 @@ def calc_ring_perimeter(ring_contact_part_mesh):
     # ConvexHullで均してから外周を測る
     hull = ConvexHull(vert_2d)
     vertices = hull.vertices.tolist() + [hull.vertices[0]]
-    perimeter = np.sum(
-        [euclidean(x, y) for x, y in zip(vert_2d[vertices], vert_2d[vertices][1:])]
-    )
+    perimeter = np.sum([euclidean(x, y) for x, y in zip(vert_2d[vertices], vert_2d[vertices][1:])])
     center_points_3d = pca.inverse_transform(vert_2d[vertices])
     return RingPointsInfo(
         perimeter,
@@ -92,7 +87,7 @@ def calc_ring_perimeter(ring_contact_part_mesh):
         center_points_3d=center_points_3d,
         pca_mean_=pca.mean_,
         pca_components_=pca.components_,
-        )
+    )
 
 
 def _round_perimeter(perimeter):
@@ -101,7 +96,7 @@ def _round_perimeter(perimeter):
     return perimeter
 
 
-def _calc_perimeter_and_center_points(mesh, *, ring1, ring2, round_perimeter=True):
+def _calc_perimeter_and_center_points(*, mesh, ring1, ring2, round_perimeter=True):
     ring_contact_part_mesh = _calc_ring_contact_part_mesh(
         hand_mesh=mesh, ring1_point=ring1, ring2_point=ring2
     )
@@ -113,7 +108,5 @@ def _calc_perimeter_and_center_points(mesh, *, ring1, ring2, round_perimeter=Tru
         return ring_points_info
 
 
-def calc_perimeter_and_center_points(mesh, **kwargs):
-    return dataclasses.asdict(
-        _calc_perimeter_and_center_points(mesh, **kwargs)
-    )
+def calc_perimeter_and_center_points(**kwargs):
+    return dataclasses.asdict(_calc_perimeter_and_center_points(**kwargs))
