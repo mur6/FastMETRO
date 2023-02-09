@@ -237,8 +237,8 @@ class ManoWrapper:
         self.mano_model = mano_model
 
     def get_jv(self, *, pose, betas, adjust_func=None):
-        pose = pose.unsqueeze(0)
-        betas = betas.unsqueeze(0)
+        # pose = pose.unsqueeze(0)
+        # betas = betas.unsqueeze(0)
         gt_vertices, gt_3d_joints = self.mano_model.layer(pose, betas)
         if adjust_func is not None:
             gt_vertices, gt_3d_joints = adjust_func(gt_vertices, gt_3d_joints)
