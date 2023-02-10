@@ -90,7 +90,7 @@ def main(args):
 def main_2(resume_dir, input_filename, batch_size, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    train_loader, test_loader = make_hand_data_loader(
+    train_loader, test_loader, datasize = make_hand_data_loader(
         args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir
     )
 
@@ -116,8 +116,8 @@ def main_2(resume_dir, input_filename, batch_size, args):
     bs_faces = faces.repeat(batch_size, 1).view(batch_size, 1538, 3)
 
     for epoch in range(1, 1000 + 1):
-        train(model, device, train_loader, train_datasize, bs_faces, optimizer)
-        test(model, device, test_loader, test_datasize, bs_faces)
+        train(model, device, train_loader, datasize, optimizer)
+        test(model, device, test_loader, datasize)
         if epoch % 5 == 0:
             save_checkpoint(model, epoch)
         scheduler.step(epoch)
