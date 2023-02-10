@@ -73,7 +73,7 @@ def parse_args():
         parser.add_argument("--batch_size", type=int, default=32)
         parser.add_argument("--gamma", type=Decimal, default=Decimal("0.85"))
         parser.add_argument(
-            "--resume_dir",
+            "--mymodel_resume_dir",
             type=Path,
         )
 
@@ -81,20 +81,24 @@ def parse_args():
     return args
 
 
-def main_2(resume_dir, input_filename, batch_size, args):
+def get_my_model(mymodel_resume_dir, device):
+    print(f"My modele resume_dir: {mymodel_resume_dir}")
+    if mymodel_resume_dir:
+        model = load_model_from_dir(mymodel_resume_dir)
+    else:
+        model = MyModel().to(device)
+    print(f"My model loaded: {model.__class__.__name__}")
+    return model
+
+
+def main_2(args, batch_size):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loader, test_loader, datasize = make_hand_data_loader(
         args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir
     )
 
-    print(f"resume_dir: {resume_dir}")
-    if resume_dir:
-        model = load_model_from_dir(resume_dir)
-    else:
-        model = MyModel().to(device)
-    print(f"model: {model.__class__.__name__}")
-
+    model = get_my_model(args.mymodel_resume_dir, device=device)
     model.eval()
 
     gamma = float(args.gamma)
