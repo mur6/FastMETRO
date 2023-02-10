@@ -47,13 +47,12 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
             gt_verts_3d = gt_verts_3d.cuda()
             gt_pca_mean = gt_pca_mean.cuda()
             gt_normal_v = gt_normal_v.cuda()
-
-        print(f"gt_radius: {gt_radius.dtype}")
-        print(f"gt_verts_3d: {gt_verts_3d.dtype}")
-        print(f"gt_pca_mean: {gt_pca_mean.dtype}")
-        print(f"gt_normal_v: {gt_normal_v.dtype}")
+        # print(f"gt_radius: {gt_radius.dtype}")
+        # print(f"gt_verts_3d: {gt_verts_3d.dtype}")
+        # print(f"gt_pca_mean: {gt_pca_mean.dtype}")
+        # print(f"gt_normal_v: {gt_normal_v.dtype}")
         batch_size = images.shape[0]
-        print(f"batch_size: {batch_size}")
+        # print(f"batch_size: {batch_size}")
         cam_features, enc_img_features, jv_features = fastmetro_model(images, output_features=True)
         # print(f"fastmetro:cam_features_1: {cam_features.shape}")
         # print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
@@ -61,10 +60,10 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
         pred_pca_mean, pred_normal_v, pred_radius = model(
             cam_features, enc_img_features, jv_features
         )
-        print(f"mymodel:pred_pca_mean: {pred_pca_mean.shape}")
-        print(f"mymodel:pred_normal_v: {pred_normal_v.shape}")
-        print(f"mymodel:pred_radius: {pred_radius.shape}")
-        print()
+        # print(f"mymodel:pred_pca_mean: {pred_pca_mean.shape}")
+        # print(f"mymodel:pred_normal_v: {pred_normal_v.shape}")
+        # print(f"mymodel:pred_radius: {pred_radius.shape}")
+        # print()
         optimizer.zero_grad()
         # gt_y = data.y.view(batch_size, -1).float().contiguous()
         loss = on_circle_loss(
