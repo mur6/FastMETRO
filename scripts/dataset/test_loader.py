@@ -115,12 +115,13 @@ class MergedDataset(torch.utils.data.Dataset):
         return min(len(self.handmesh_dataset), len(self.img_keys_dict))
 
     def __getitem__(self, idx):
-        data = self.handmesh_dataset[idx]
-        # if len(self.dataset1) > idx and len(self.dataset2) > idx:
-        #     return (self.dataset1[idx], self.dataset2[idx])
-        # else:
-        #     raise IndexError("Index out of range")
-        return data
+        img_keys, images, annotations = self.handmesh_dataset[idx]
+        d = self.img_keys_dict.get(img_keys)
+        if d:
+            annotations.update(d)
+            return img_keys, images, annotations
+        else:
+            raise IndexError("Index out of range")
 
 
 def parse_args():
@@ -167,8 +168,8 @@ def main(args, *, pickle_filepath, is_train=True):
         pickle_filepath=pickle_filepath, handmesh_dataset=handmesh_dataset, is_train=is_train
     )
     print(f"dataset: {len(dataset)}")
-    d = dataset[0]
-    print(d)
+    img_keys, images, annotations = dataset[0]
+    print(img_keys)
 
 
 if __name__ == "__main__":
