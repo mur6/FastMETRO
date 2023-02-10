@@ -2,9 +2,9 @@ from decimal import Decimal
 from pathlib import Path
 
 import torch
-import torch.nn.functional as F
-from torch.nn import Linear as Lin
 
+# import torch.nn.functional as F
+# from torch.nn import Linear as Lin
 # from timm.scheduler import CosineLRScheduler
 
 from src.handinfo.utils import load_model_from_dir, save_checkpoint
