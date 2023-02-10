@@ -49,21 +49,17 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
             gt_normal_v = gt_normal_v.cuda()
         batch_size = images.shape[0]
         print(f"batch_size: {batch_size}")
-        # (
-        #     pred_cam,
-        #     pred_3d_joints,
-        #     pred_3d_vertices_coarse,
-        #     pred_3d_vertices_fine,
-        # ) = fastmetro_model(images)
         cam_features, enc_img_features, jv_features = fastmetro_model(images, output_features=True)
-        print(f"fastmetro:cam_features_1: {cam_features.shape}")
-        print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
-        print(f"fastmetro:jv_features_1: {jv_features.shape}")
-        pred_center, pred_normal_v, ring_radius = model(cam_features, enc_img_features, jv_features)
-        print(f"mymodel:pred_center: {pred_center.shape}")
-        print(f"mymodel:pred_normal_v: {pred_normal_v.shape}")
-        print(f"mymodel:ring_radius: {ring_radius.shape}")
-        print()
+        # print(f"fastmetro:cam_features_1: {cam_features.shape}")
+        # print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
+        # print(f"fastmetro:jv_features_1: {jv_features.shape}")
+        pred_pca_mean, pred_normal_v, pred_radius = model(
+            cam_features, enc_img_features, jv_features
+        )
+        # print(f"mymodel:pred_center: {pred_center.shape}")
+        # print(f"mymodel:pred_normal_v: {pred_normal_v.shape}")
+        # print(f"mymodel:ring_radius: {ring_radius.shape}")
+        # print()
         optimizer.zero_grad()
         # gt_y = data.y.view(batch_size, -1).float().contiguous()
         loss = on_circle_loss(
