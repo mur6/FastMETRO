@@ -95,19 +95,18 @@ def _make_data_loader(args, *, yaml_file, is_train, batch_size):
         data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     return data_loader
 
+
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, pickle_filepath, is_train):
-        self.path = root_path
-        self.mean = mean
-        self.std = std
-        self.transform = transform
-        self.images = []
-        self.masks = []
+        self.pickle_filepath = pickle_filepath
 
+        # self.std = std
+        # self.transform = transform
+        # self.images = []
+        # self.masks = []
 
-
-        self.masks.sort()
-        self.images.sort()
+        # self.masks.sort()
+        # self.images.sort()
 
     def __len__(self):
         return len(self.images)
@@ -118,6 +117,7 @@ class CustomDataset(torch.utils.data.Dataset):
 
         return image, mask
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     # parser.add_argument(
@@ -127,21 +127,35 @@ def parse_args():
     #     required=True,
     # )
     parser.add_argument(
-        "--output_pickle_file",
+        "--train_yaml",
+        default="freihand/train.yaml",
+        type=str,
+        required=False,
+        help="Yaml file with all data for training.",
+    )
+    parser.add_argument(
+        "--val_yaml",
+        default="freihand/test.yaml",
+        type=str,
+        required=False,
+        help="Yaml file with all data for validation.",
+    )
+    parser.add_argument(
+        "--pickle_filepath",
         type=Path,
         required=True,
     )
-    parser.add_argument(
-        "--is_train",
-        default=False,
-        action="store_true",
-    )
+    # parser.add_argument(
+    #     "--is_train",
+    #     default=False,
+    #     action="store_true",
+    # )
     args = parser.parse_args()
     return args
 
 
-def test_my_dataset():
-
+def test_my_dataset(pickle_filepath):
+    dataset = CustomDataset(pickle_filepath=pickle_filepath)
 
 
 def main(args, *, data_dir, is_train=True):
@@ -150,9 +164,9 @@ def main(args, *, data_dir, is_train=True):
 
 
 if __name__ == "__main__":
-    args = train_parse_args()
+    args = parse_args()
     # main(args, )
-    test_each_transformer_models(args)
+    test_my_dataset(args.pickle_filepath)
     # model_load_and_inference(args)
     print("########")
     # original_model_test(args)
