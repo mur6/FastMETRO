@@ -34,6 +34,9 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
     for _, (img_keys, images, annotations) in enumerate(train_loader):
         if False:
             images = images.cuda(args.device)  # batch_size X 3 X 224 X 224
+        batch_size = images.shape[0]
+        print(f"images: {images.shape}")
+        print(f"batch_size: {batch_size}")
         # (
         #     pred_cam,
         #     pred_3d_joints,
@@ -44,11 +47,10 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
         print(f"fastmetro:cam_features_1: {cam_features.shape}")
         print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
         print(f"fastmetro:jv_features_1: {jv_features.shape}")
-        model = MyModel(args)
         pred_center, pred_normal_v, ring_radius = model(cam_features, enc_img_features, jv_features)
-        print(f"pred_center: {pred_center.shape}")
-        print(f"pred_normal_v: {pred_normal_v.shape}")
-        print(f"ring_radius: {ring_radius.shape}")
+        print(f"mymodel:pred_center: {pred_center.shape}")
+        print(f"mymodel:pred_normal_v: {pred_normal_v.shape}")
+        print(f"mymodel:ring_radius: {ring_radius.shape}")
         print()
         break
     # for data in train_loader:
@@ -71,11 +73,20 @@ def test(args, fastmetro_model, model, test_loader, datasize):
     model.eval()
 
     current_loss = 0.0
-    for data in test_loader:
-        data = data.to(args.device)
+    for img_keys, images, annotations in test_loader:
+        if False:
+            images = images.cuda(args.device)  # batch_size X 3 X 224 X 224
+        batch_size = images.shape[0]
+        print(f"images: {images.shape}")
+        print(f"batch_size: {batch_size.shape}")
         with torch.no_grad():
-            output = model(data.x, data.pos, data.batch)
-        batch_size = output.shape[0]
+            cam_features, enc_img_features, jv_features = fastmetro_model(
+                images, output_features=True
+            )
+            pred_center, pred_normal_v, ring_radius = model(
+                cam_features, enc_img_features, jv_features
+            )
+
         gt_y = data.y.view(batch_size, -1).float().contiguous()
         loss = on_circle_loss(output, data)
         current_loss += loss.item() * output.size(0)
