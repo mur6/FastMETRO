@@ -162,9 +162,6 @@ def main(args):
     model = get_my_model(args.mymodel_resume_dir, device=device)
     # model.eval()
 
-    gamma = float(args.gamma)
-    print(f"gamma: {gamma}")
-
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
 
@@ -173,7 +170,6 @@ def main(args):
 
     for epoch in range(1, 1000 + 1):
         train(args, fastmetro_model, model, train_loader, datasize, optimizer)
-        # args, fastmetro_model, model, test_loader, datasize
         test(args, fastmetro_model, model, test_loader, datasize)
         if epoch % 5 == 0:
             save_checkpoint(model, epoch)
