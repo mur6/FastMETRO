@@ -33,7 +33,7 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
     current_loss = 0.0
     for _, (img_keys, images, annotations) in enumerate(train_loader):
         gt_radius = annotations["radius"]
-        verts_3d = annotations["vert_3d"]
+        gt_verts_3d = annotations["vert_3d"]
         gt_pca_mean = annotations["pca_mean"]
         gt_normal_v = annotations["normal_v"]
         # print(f"images: {images.shape}")
@@ -44,7 +44,7 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
         if torch.cuda.is_available():
             images = images.cuda()
             gt_radius = gt_radius.cuda()
-            verts_3d = verts_3d.cuda()
+            gt_verts_3d = gt_verts_3d.cuda()
             gt_pca_mean = gt_pca_mean.cuda()
             gt_normal_v = gt_normal_v.cuda()
         batch_size = images.shape[0]
@@ -66,7 +66,15 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
         print()
         optimizer.zero_grad()
         # gt_y = data.y.view(batch_size, -1).float().contiguous()
-        loss = on_circle_loss(output, data)
+        loss = on_circle_loss(
+            pred_pca_mean,
+            pred_normal_v,
+            pred_radius,
+            gt_verts_3d,
+            gt_pca_mean,
+            gt_normal_v,
+            gt_radius,
+        )
         loss.backward()
         optimizer.step()
         losses.append(loss.item())  # 損失値の蓄積
@@ -82,13 +90,13 @@ def test(args, fastmetro_model, model, test_loader, datasize):
     current_loss = 0.0
     for _, images, annotations in test_loader:
         gt_radius = annotations["radius"]
-        verts_3d = annotations["vert_3d"]
+        gt_verts_3d = annotations["vert_3d"]
         gt_pca_mean = annotations["pca_mean"]
         gt_normal_v = annotations["normal_v"]
         if torch.cuda.is_available():
             images = images.cuda(args.device)
             gt_radius = gt_radius.cuda()
-            verts_3d = verts_3d.cuda()
+            gt_verts_3d = gt_verts_3d.cuda()
             gt_pca_mean = gt_pca_mean.cuda()
             gt_normal_v = gt_normal_v.cuda()
 
@@ -104,7 +112,13 @@ def test(args, fastmetro_model, model, test_loader, datasize):
             )
         # gt_y = data.y.view(batch_size, -1).float().contiguous()
         loss = on_circle_loss(
-            pred_pca_mean, pred_normal_v, pred_radius, verts_3d, gt_pca_mean, gt_normal_v, gt_radius
+            pred_pca_mean,
+            pred_normal_v,
+            pred_radius,
+            gt_verts_3d,
+            gt_pca_mean,
+            gt_normal_v,
+            gt_radius,
         )
         current_loss += loss.item() * batch_size
     epoch_loss = current_loss / datasize["test"]
