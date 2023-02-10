@@ -522,4 +522,8 @@ class MyModel(nn.Module):
         radius_features = radius_features.contiguous().view(-1, in_features)
         ring_radius = self.radius_regressor(radius_features)
         ###################
-        return ring_center.squeeze(1), ring_normal.squeeze(1), ring_radius.squeeze(1)
+        return (
+            ring_center.squeeze(1).float(),
+            ring_normal.squeeze(1).float(),
+            ring_radius.squeeze(1).float(),
+        )

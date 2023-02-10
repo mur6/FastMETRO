@@ -32,7 +32,7 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
     losses = []
     current_loss = 0.0
     for _, (img_keys, images, annotations) in enumerate(train_loader):
-        gt_radius = annotations["radius"]
+        gt_radius = annotations["radius"].float()
         gt_verts_3d = annotations["vert_3d"]
         gt_pca_mean = annotations["pca_mean"]
         gt_normal_v = annotations["normal_v"]
@@ -47,6 +47,11 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
             gt_verts_3d = gt_verts_3d.cuda()
             gt_pca_mean = gt_pca_mean.cuda()
             gt_normal_v = gt_normal_v.cuda()
+
+        print(f"gt_radius: {gt_radius.dtype}")
+        print(f"gt_verts_3d: {gt_verts_3d.dtype}")
+        print(f"gt_pca_mean: {gt_pca_mean.dtype}")
+        print(f"gt_normal_v: {gt_normal_v.dtype}")
         batch_size = images.shape[0]
         print(f"batch_size: {batch_size}")
         cam_features, enc_img_features, jv_features = fastmetro_model(images, output_features=True)
@@ -56,10 +61,10 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
         pred_pca_mean, pred_normal_v, pred_radius = model(
             cam_features, enc_img_features, jv_features
         )
-        # print(f"mymodel:pred_center: {pred_center.shape}")
-        # print(f"mymodel:pred_normal_v: {pred_normal_v.shape}")
-        # print(f"mymodel:ring_radius: {ring_radius.shape}")
-        # print()
+        print(f"mymodel:pred_pca_mean: {pred_pca_mean.shape}")
+        print(f"mymodel:pred_normal_v: {pred_normal_v.shape}")
+        print(f"mymodel:pred_radius: {pred_radius.shape}")
+        print()
         optimizer.zero_grad()
         # gt_y = data.y.view(batch_size, -1).float().contiguous()
         loss = on_circle_loss(
@@ -97,8 +102,7 @@ def test(args, fastmetro_model, model, test_loader, datasize):
             gt_normal_v = gt_normal_v.cuda()
 
         batch_size = images.shape[0]
-        print(f"images: {images.shape}")
-        print(f"batch_size: {batch_size}")
+        # print(f"batch_size: {batch_size}")
         with torch.no_grad():
             cam_features, enc_img_features, jv_features = fastmetro_model(
                 images, output_features=True
