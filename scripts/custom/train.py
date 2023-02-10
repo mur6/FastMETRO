@@ -165,11 +165,8 @@ def main(args):
     gamma = float(args.gamma)
     print(f"gamma: {gamma}")
 
-    if True:
-        optimizer = torch.optim.RAdam(model.parameters(), lr=5e-5)
-        # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=gamma)
-        # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=20, eta_min=1e-05)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
 
     # faces = get_mano_faces()
     fastmetro_model = get_fastmetro_model(args, force_from_checkpoint=True)
@@ -180,8 +177,8 @@ def main(args):
         test(args, fastmetro_model, model, test_loader, datasize)
         if epoch % 5 == 0:
             save_checkpoint(model, epoch)
-        scheduler.step(epoch)
-        print(f"lr: {scheduler.get_last_lr()[0]}")
+        lr_scheduler.step(epoch)
+        print(f"lr: {lr_scheduler.get_last_lr()[0]}")
 
 
 if __name__ == "__main__":
