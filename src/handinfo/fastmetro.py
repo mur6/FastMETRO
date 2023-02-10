@@ -38,15 +38,16 @@ def load_fastmetro(args, *, mesh_sampler):
 
 
 def get_fastmetro_model(args, force_checkpoint=True):
-    logger.info("Inference: Loading from checkpoint {}".format(args.resume_checkpoint))
+    resume_checkpoint = args.fastmetro_resume_checkpoint
+    logger.info("Inference: Loading from checkpoint {}".format(resume_checkpoint))
     if (
-        (args.resume_checkpoint != None)
-        and (args.resume_checkpoint != "None")
-        and ("state_dict" not in args.resume_checkpoint)
+        (resume_checkpoint != None)
+        and (resume_checkpoint != "None")
+        and ("state_dict" not in resume_checkpoint)
     ):
         # if only run eval, load checkpoint
-        logger.info("Evaluation: Loading from checkpoint {}".format(args.resume_checkpoint))
-        _FastMETRO_Network = torch.load(args.resume_checkpoint)
+        logger.info("Evaluation: Loading from checkpoint {}".format(resume_checkpoint))
+        _FastMETRO_Network = torch.load(resume_checkpoint)
     else:
         if force_checkpoint:
             raise RuntimeError(
