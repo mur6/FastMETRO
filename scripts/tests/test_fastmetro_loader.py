@@ -61,7 +61,18 @@ def main(args):
     # Mesh and MANO utils
     # mano_model = MANO().to(args.device)
     # mano_model.layer = mano_model.layer.to(args.device)
-    _FastMETRO_Network = load_fastmetro(args, mesh_sampler=Mesh())
+
+    logger.info("Inference: Loading from checkpoint {}".format(args.resume_checkpoint))
+    if (
+        (args.resume_checkpoint != None)
+        and (args.resume_checkpoint != "None")
+        and ("state_dict" not in args.resume_checkpoint)
+    ):
+        # if only run eval, load checkpoint
+        logger.info("Evaluation: Loading from checkpoint {}".format(args.resume_checkpoint))
+        _FastMETRO_Network = torch.load(args.resume_checkpoint)
+    else:
+        _FastMETRO_Network = load_fastmetro(args, mesh_sampler=Mesh())
 
     input = torch.rand(1, 3, 224, 224)
     (
