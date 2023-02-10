@@ -1,21 +1,12 @@
 from decimal import Decimal
 from pathlib import Path
-import argparse
 
 import torch
 import torch.nn.functional as F
 from torch.nn import Linear as Lin
 
-from timm.scheduler import CosineLRScheduler
+# from timm.scheduler import CosineLRScheduler
 
-# from torch_cluster import fps, knn_graph
-# import torch_geometric.transforms as T
-# from torch_geometric.datasets import ModelNet
-# from torch_geometric.loader import DataLoader
-# from torch_geometric.nn import MLP, PointConv, fps, global_max_pool, radius
-# from torch_geometric.utils import scatter
-
-# from src.handinfo.data.olddata import get_mano_faces
 from src.handinfo.utils import load_model_from_dir, save_checkpoint
 from src.handinfo.losses import on_circle_loss
 from src.handinfo.parser import train_parse_args
@@ -77,7 +68,7 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
         )
         loss.backward()
         optimizer.step()
-        losses.append(loss.item())  # 損失値の蓄積
+        losses.append(loss.item())
         current_loss += loss.item() * batch_size
     epoch_loss = current_loss / datasize["train"]
     print(f"Train Loss: {epoch_loss:.6f}")
@@ -132,7 +123,7 @@ def parse_args():
             required=True,
         )
         parser.add_argument("--batch_size", type=int, default=32)
-        parser.add_argument("--gamma", type=Decimal, default=Decimal("0.85"))
+        # parser.add_argument("--gamma", type=Decimal, default=Decimal("0.85"))
         parser.add_argument(
             "--mymodel_resume_dir",
             type=Path,
