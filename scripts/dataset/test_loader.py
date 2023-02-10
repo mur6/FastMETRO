@@ -124,38 +124,19 @@ class MergedDataset(torch.utils.data.Dataset):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser()
-    # parser.add_argument(
-    #     "--data_dir",
-    #     # default="./data",
-    #     type=Path,
-    #     required=True,
-    # )
-    parser.add_argument(
-        "--train_yaml",
-        default="freihand/train.yaml",
-        type=str,
-        required=False,
-        help="Yaml file with all data for training.",
-    )
-    parser.add_argument(
-        "--val_yaml",
-        default="freihand/test.yaml",
-        type=str,
-        required=False,
-        help="Yaml file with all data for validation.",
-    )
-    parser.add_argument(
-        "--pickle_filepath",
-        type=Path,
-        required=True,
-    )
-    # parser.add_argument(
-    #     "--is_train",
-    #     default=False,
-    #     action="store_true",
-    # )
-    args = parser.parse_args()
+    def parser_hook(parser):
+        parser.add_argument(
+            "--pickle_filepath",
+            type=Path,
+            required=True,
+        )
+        # parser.add_argument(
+        #     "--is_train",
+        #     default=False,
+        #     action="store_true",
+        # )
+
+    args = train_parse_args(parser_hook=parser_hook)
     return args
 
 
