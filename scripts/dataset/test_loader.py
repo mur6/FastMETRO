@@ -186,6 +186,8 @@ def main(args, *, pickle_filepath, is_train=True):
         pickle_filepath=pickle_filepath, handmesh_dataset=handmesh_dataset, is_train=is_train
     )
     print(f"dataset: {len(dataset)}")
+    d = dataset[0]
+    print(d)
 
 
 if __name__ == "__main__":

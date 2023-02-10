@@ -2,7 +2,7 @@ import os
 import argparse
 
 
-def train_parse_args():
+def train_parse_args(parser_hook=None):
     parser = argparse.ArgumentParser()
     #########################################################
     # Data related arguments
@@ -159,7 +159,8 @@ def train_parse_args():
         default=False,
         action="store_true",
     )
-
+    if parser_hook is not None:
+        parser_hook(parser)
     args = parser.parse_args()
     args.num_gpus = int(os.environ["WORLD_SIZE"]) if "WORLD_SIZE" in os.environ else 1
     args.distributed = args.num_gpus > 1
