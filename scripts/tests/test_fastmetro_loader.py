@@ -1,7 +1,5 @@
 from logging import DEBUG, INFO, basicConfig, getLogger, debug, error, exception, info, warning
-import collections
 
-import numpy as np
 import torch
 
 from src.handinfo.parser import train_parse_args
