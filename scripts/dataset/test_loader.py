@@ -99,7 +99,7 @@ def _make_data_loader(args, *, yaml_file, is_train, batch_size):
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, pickle_filepath, *, is_train=True):
         self.pickle_filepath = pickle_filepath
-        self.d = pickle.load(pickle_filepath.open())
+        self.d = pickle.load(pickle_filepath.open("rb"))
         # self.std = std
         # self.transform = transform
         # self.images = []
