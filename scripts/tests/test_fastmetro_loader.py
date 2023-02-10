@@ -26,7 +26,7 @@ def main(args):
     # Mesh and MANO utils
     # mano_model = MANO().to(args.device)
     # mano_model.layer = mano_model.layer.to(args.device)
-    model = get_fastmetro_model(args, force_checkpoint=True)
+    model = get_fastmetro_model(args, force_from_checkpoint=True)
     input = torch.rand(1, 3, 224, 224)
     (
         pred_cam,

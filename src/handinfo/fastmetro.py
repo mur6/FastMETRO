@@ -40,11 +40,11 @@ def load_fastmetro_and_backbone(args, *, mesh_sampler):
 def _Backup_get_fastmetro_model(args, force_checkpoint=True):
     resume_checkpoint = args.fastmetro_resume_checkpoint
     logger.info("Inference: Loading from checkpoint {}".format(resume_checkpoint))
-    if (
-        (resume_checkpoint != None)
-        and (resume_checkpoint != "None")
-        and ("state_dict" not in str(resume_checkpoint))
-    ):
+    # if (
+    #     (resume_checkpoint != None)
+    #     and (resume_checkpoint != "None")
+    #     and ("state_dict" not in str(resume_checkpoint))
+    # ):
     if resume_checkpoint is not None:
         # if only run eval, load checkpoint
         logger.info("Evaluation: Loading from checkpoint {}".format(resume_checkpoint))
@@ -80,16 +80,14 @@ def get_fastmetro_model(args, force_from_checkpoint=True):
     transformer_params = overall_params - backbone_params
     logger.info("Number of CNN Backbone learnable parameters: {}".format(backbone_params))
     logger.info(
-        "Number of Transformer Encoder-Decoder learnable parameters: {}".format(
-            transformer_params
-        )
+        "Number of Transformer Encoder-Decoder learnable parameters: {}".format(transformer_params)
     )
     logger.info("Number of Overall learnable parameters: {}".format(overall_params))
 
     if (resume_checkpoint != None) and (resume_checkpoint != "None"):
-        logger.info("Loading state dict from checkpoint {}".format(args.resume_checkpoint))
+        logger.info("Loading state dict from checkpoint {}".format(resume_checkpoint))
         cpu_device = torch.device("cpu")
-        state_dict = torch.load(args.resume_checkpoint, map_location=cpu_device)
+        state_dict = torch.load(resume_checkpoint, map_location=cpu_device)
         _FastMETRO_Network.load_state_dict(state_dict, strict=False)
         del state_dict
     elif force_from_checkpoint:
