@@ -49,7 +49,9 @@ def get_fastmetro_model(args, force_checkpoint=True):
         _FastMETRO_Network = torch.load(args.resume_checkpoint)
     else:
         if force_checkpoint:
-            raise RuntimeError("")
+            raise RuntimeError(
+                "To load a model from a checkpoint, specify the directory of FastMETRO Network ckpt."
+            )
         else:
             _FastMETRO_Network = load_fastmetro(args, mesh_sampler=Mesh())
     return _FastMETRO_Network
