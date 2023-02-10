@@ -81,12 +81,6 @@ def parse_args():
     return args
 
 
-def main(args):
-    train_dataset, test_loader = make_hand_data_loader(
-        args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir
-    )
-
-
 def main_2(resume_dir, input_filename, batch_size, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
