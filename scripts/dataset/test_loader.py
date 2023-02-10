@@ -106,18 +106,21 @@ class CustomDataset(torch.utils.data.Dataset):
 
 
 class MergedDataset(torch.utils.data.Dataset):
-    def __init__(self, pickle_filepath, *, is_train=True):
+    def __init__(self, *, pickle_filepath, handmesh_dataset, is_train):
         self.pickle_filepath = pickle_filepath
-        self.d = pickle.load(pickle_filepath.open("rb"))
+        self.handmesh_dataset = handmesh_dataset
+        self.img_keys_dict = pickle.load(pickle_filepath.open("rb"))
 
     def __len__(self):
-        return min(len(self.dataset1), len(self.dataset2))
+        return min(len(self.handmesh_dataset), len(self.img_keys_dict))
 
     def __getitem__(self, idx):
-        if len(self.dataset1) > idx and len(self.dataset2) > idx:
-            return (self.dataset1[idx], self.dataset2[idx])
-        else:
-            raise IndexError("Index out of range")
+        data = self.handmesh_dataset[idx]
+        # if len(self.dataset1) > idx and len(self.dataset2) > idx:
+        #     return (self.dataset1[idx], self.dataset2[idx])
+        # else:
+        #     raise IndexError("Index out of range")
+        return data
 
 
 def parse_args():
@@ -163,21 +166,25 @@ def test_my_dataset(pickle_filepath):
 
 def create_dataset(args, *, yaml_file, is_train):
     scale_factor = 1
-    dataset = build_hand_dataset(yaml_file, args, is_train=is_train, scale_factor=scale_factor)
+    handmesh_dataset = build_hand_dataset(
+        yaml_file, args, is_train=is_train, scale_factor=scale_factor
+    )
     label = "train" if is_train else "test"
-    print(f"{label}_datasize={len(dataset)}")
+    print(f"{label}_datasize={len(handmesh_dataset)}")
     # if is_train:
     #     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     # else:
     #     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     # return data_loader
-    return dataset
+    return handmesh_dataset
 
 
 def main(args, *, pickle_filepath, is_train=True):
     # mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
-    dataset = create_dataset(args, yaml_file=args.train_yaml, is_train=is_train)
-    # ataset = CustomDataset(pickle_filepath=pickle_filepath)
+    handmesh_dataset = create_dataset(args, yaml_file=args.train_yaml, is_train=is_train)
+    dataset = MergedDataset(
+        pickle_filepath=pickle_filepath, handmesh_dataset=handmesh_dataset, is_train=is_train
+    )
     print(f"dataset: {len(dataset)}")
 
 
