@@ -165,14 +165,13 @@ def create_dataset(args, *, yaml_file, is_train):
     scale_factor = 1
     dataset = build_hand_dataset(yaml_file, args, is_train=is_train, scale_factor=scale_factor)
     label = "train" if is_train else "test"
-    datasize = len(dataset)
-    print(f"{label}_datasize={datasize}")
+    print(f"{label}_datasize={len(dataset)}")
     # if is_train:
     #     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     # else:
     #     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     # return data_loader
-    return datasize
+    return dataset
 
 
 def main(args, *, pickle_filepath, is_train=True):
