@@ -15,6 +15,7 @@ from torch_geometric.nn import MLP, PointConv, fps, global_max_pool, radius
 from torch_geometric.utils import scatter
 
 from src.handinfo.data import load_data_for_geometric, get_mano_faces
+from src.handinfo.utils import load_model_from_dir
 from src.handinfo.losses import on_circle_loss
 
 from src.modeling.model import FastMETRO_Hand_Network, MyModel
@@ -69,33 +70,14 @@ def test(model, device, test_loader, test_datasize, bs_faces):
     print(f"Validation Loss: {epoch_loss:.6f}")
 
 
-def main(resume_dir, input_filename, batch_size, args):
+def main_2(resume_dir, input_filename, batch_size, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    train_dataset, test_dataset = load_data_for_geometric(
-        input_filename, transform=transform, pre_transform=None, device=device
-    )
-    train_datasize = len(train_dataset)
-    test_datasize = len(test_dataset)
-    print(f"train_datasize={train_datasize} test_datasize={test_datasize}")
-
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=True)
+    train_dataset, test_dataset = load_data_for_geometric(args)
 
     print(f"resume_dir: {resume_dir}")
     if resume_dir:
-        if (resume_dir / "model.bin").exists() and (resume_dir / "state_dict.bin").exists():
-            if torch.cuda.is_available():
-                model = torch.load(resume_dir / "model.bin")
-                state_dict = torch.load(resume_dir / "state_dict.bin")
-            else:
-                model = torch.load(resume_dir / "model.bin", map_location=torch.device("cpu"))
-                state_dict = torch.load(
-                    resume_dir / "state_dict.bin", map_location=torch.device("cpu")
-                )
-            model.load_state_dict(state_dict)
-        else:
-            raise Exception(f"{resume_dir} is not valid directory.")
+        model = load_model_from_dir(resume_dir)
     else:
         model = MyModel().to(device)
     print(f"model: {model.__class__.__name__}")

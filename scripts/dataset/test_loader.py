@@ -26,8 +26,9 @@ from src.modeling.model import FastMETRO_Hand_Network, MyModel
 from src.modeling.model.transformer import build_transformer
 from src.handinfo.parser import train_parse_args
 
-from src.handinfo.ring.helper import iter_converted_batches, save_to_file
-
+# from src.handinfo.data import get_mano_faces
+from src.handinfo.data.tools import make_hand_data_loader
+from src.handinfo.utils import load_model_from_dir
 
 # def data_load_test(args):
 #     print(
@@ -74,35 +75,10 @@ class ManoWrapper:
         return [trimesh.Trimesh(vertices=gt_vert, faces=mano_faces) for gt_vert in gt_vertices]
 
 
-class MergedDataset(torch.utils.data.Dataset):
-    def __init__(self, *, pickle_filepath, handmesh_dataset, is_train):
-        self.pickle_filepath = pickle_filepath
-        self.handmesh_dataset = handmesh_dataset
-        self.img_keys_dict = pickle.load(pickle_filepath.open("rb"))
-        self.is_train = is_train
-
-    def __len__(self):
-        # return min(len(self.handmesh_dataset), len(self.img_keys_dict))
-        # return len(self.handmesh_dataset)
-        if self.is_train:
-            return 49147
-        else:
-            return len(self.img_keys_dict)
-
-    def __getitem__(self, idx):
-        img_keys, images, annotations = self.handmesh_dataset[idx]
-        d = self.img_keys_dict.get(img_keys)
-        if d:
-            annotations.update(d)
-            return img_keys, images, annotations
-        else:
-            raise IndexError("Index out of range")
-
-
 def parse_args():
     def parser_hook(parser):
         parser.add_argument(
-            "--pickle_filepath",
+            "--ring_info_pkl_rootdir",
             type=Path,
             required=True,
         )
@@ -116,46 +92,16 @@ def parse_args():
     return args
 
 
-def test_my_dataset(pickle_filepath):
-    dataset = CustomDataset(pickle_filepath=pickle_filepath)
-    print(f"dataset: {len(dataset)}")
-
-
-def create_dataset(args, *, is_train):
-    scale_factor = 1
-    if is_train:
-        label = "train"
-        yaml_file = args.train_yaml
-    else:
-        label = "test"
-        yaml_file = args.val_yaml
-    handmesh_dataset = build_hand_dataset(
-        yaml_file, args, is_train=is_train, scale_factor=scale_factor
-    )
-
-    print(f"{label}_datasize={len(handmesh_dataset)}")
-    # if is_train:
-    #     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-    # else:
-    #     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-    # return data_loader
-    return handmesh_dataset
-
-
-def main(args, *, pickle_filepath, is_train=False):
-    # mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
-    handmesh_dataset = create_dataset(args, is_train=is_train)
-    dataset = MergedDataset(
-        pickle_filepath=pickle_filepath, handmesh_dataset=handmesh_dataset, is_train=is_train
-    )
-    print(f"dataset: {len(dataset)}")
+def main(args):
+    a, b = make_hand_data_loader(args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir)
+    # print(f"dataset: {len(dataset)}")
     # for i, (img_keys, images, annotations) in enumerate(dataset):
     #     print(i, img_keys)
 
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args, pickle_filepath=args.pickle_filepath)
+    main(args)
     # test_my_dataset(args.pickle_filepath)
     # model_load_and_inference(args)
     print("########")
