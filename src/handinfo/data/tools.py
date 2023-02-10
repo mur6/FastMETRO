@@ -52,8 +52,6 @@ def create_dataset(args, *, is_train):
 
 
 def make_hand_data_loader(args, *, ring_info_pkl_rootdir, batch_size=32):
-    # is_train = args.is_train
-
     def make_dataset(pickle_filepath, *, is_train):
         handmesh_dataset = create_dataset(args, is_train=is_train)
         return MergedDataset(
