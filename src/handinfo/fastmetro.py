@@ -97,36 +97,3 @@ def get_fastmetro_model(args, force_from_checkpoint=True):
 
     _FastMETRO_Network.to(args.device)
     return _FastMETRO_Network
-
-
-# def main(args):
-#     setup_logger()
-#     print("FastMETRO for 3D Hand Mesh Reconstruction!")
-#     # # Setup CUDA, GPU & distributed training
-#     # args.num_gpus = int(os.environ["WORLD_SIZE"]) if "WORLD_SIZE" in os.environ else 1
-#     # args.distributed = args.num_gpus > 1
-#     # args.device = torch.device(args.device)
-
-#     # Mesh and MANO utils
-#     # mano_model = MANO().to(args.device)
-#     # mano_model.layer = mano_model.layer.to(args.device)
-
-#     logger.info("Inference: Loading from checkpoint {}".format(args.resume_checkpoint))
-#     if (
-#         (args.resume_checkpoint != None)
-#         and (args.resume_checkpoint != "None")
-#         and ("state_dict" not in args.resume_checkpoint)
-#     ):
-#         # if only run eval, load checkpoint
-#         logger.info("Evaluation: Loading from checkpoint {}".format(args.resume_checkpoint))
-#         _FastMETRO_Network = torch.load(args.resume_checkpoint)
-#     else:
-#         _FastMETRO_Network = load_fastmetro(args, mesh_sampler=Mesh())
-
-#     input = torch.rand(1, 3, 224, 224)
-#     (
-#         pred_cam,
-#         pred_3d_joints,
-#         pred_3d_vertices_coarse,
-#         pred_3d_vertices_fine,
-#     ) = _FastMETRO_Network(input)
