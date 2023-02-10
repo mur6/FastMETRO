@@ -26,15 +26,30 @@ from src.handinfo.data.tools import make_hand_data_loader
 from src.modeling.model import MyModel
 
 
-def train(args, fastmetro_model, model, train_loader, train_datasize, optimizer):
+def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
     fastmetro_model.eval()
     model.train()
     losses = []
     current_loss = 0.0
     for _, (img_keys, images, annotations) in enumerate(train_loader):
-        images = images.cuda(args.device)  # batch_size X 3 X 224 X 224
-        out = fastmetro_model(images)
-        print(out)
+        if False:
+            images = images.cuda(args.device)  # batch_size X 3 X 224 X 224
+        # (
+        #     pred_cam,
+        #     pred_3d_joints,
+        #     pred_3d_vertices_coarse,
+        #     pred_3d_vertices_fine,
+        # ) = fastmetro_model(images)
+        cam_features, enc_img_features, jv_features = fastmetro_model(images, output_features=True)
+        print(f"fastmetro:cam_features_1: {cam_features.shape}")
+        print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
+        print(f"fastmetro:jv_features_1: {jv_features.shape}")
+        model = MyModel(args)
+        pred_center, pred_normal_v, ring_radius = model(cam_features, enc_img_features, jv_features)
+        print(f"pred_center: {pred_center.shape}")
+        print(f"pred_normal_v: {pred_normal_v.shape}")
+        print(f"ring_radius: {ring_radius.shape}")
+        print()
         break
     # for data in train_loader:
     #     data = data.to(device)
@@ -47,24 +62,24 @@ def train(args, fastmetro_model, model, train_loader, train_datasize, optimizer)
     #     optimizer.step()
     #     losses.append(loss.item())  # 損失値の蓄積
     #     current_loss += loss.item() * output.size(0)
-    # epoch_loss = current_loss / train_datasize
+    # epoch_loss = current_loss / datasize["train"]
     # print(f"Train Loss: {epoch_loss:.6f}")
 
 
-def test(fastmetro_model, model, device, test_loader, test_datasize):
+def test(args, fastmetro_model, model, test_loader, datasize):
     fastmetro_model.eval()
     model.eval()
 
     current_loss = 0.0
     for data in test_loader:
-        data = data.to(device)
+        data = data.to(args.device)
         with torch.no_grad():
             output = model(data.x, data.pos, data.batch)
         batch_size = output.shape[0]
         gt_y = data.y.view(batch_size, -1).float().contiguous()
         loss = on_circle_loss(output, data)
         current_loss += loss.item() * output.size(0)
-    epoch_loss = current_loss / test_datasize
+    epoch_loss = current_loss / datasize["test"]
     print(f"Validation Loss: {epoch_loss:.6f}")
 
 
@@ -91,7 +106,7 @@ def get_my_model(mymodel_resume_dir, device):
     if mymodel_resume_dir:
         model = load_model_from_dir(mymodel_resume_dir)
     else:
-        model = MyModel().to(device)
+        model = MyModel(args).to(device)
     print(f"My model loaded: {model.__class__.__name__}")
     return model
 
@@ -145,8 +160,11 @@ def main(args):
     fastmetro_model = get_fastmetro_model(args, force_from_checkpoint=True)
 
     for epoch in range(1, 1000 + 1):
-        train(fastmetro_model, model, device, train_loader, datasize, optimizer)
-        test(fastmetro_model, model, device, test_loader, datasize)
+        # args, fastmetro_model, model, train_loader, train_datasize, optimizer
+        # args, fastmetro_model, model, train_loader, datasize, optimizer
+        train(args, fastmetro_model, model, train_loader, datasize, optimizer)
+        # args, fastmetro_model, model, test_loader, datasize
+        test(args, fastmetro_model, model, test_loader, datasize)
         if epoch % 5 == 0:
             save_checkpoint(model, epoch)
         scheduler.step(epoch)
