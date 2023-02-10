@@ -36,13 +36,17 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
         verts_3d = annotations["vert_3d"]
         gt_pca_mean = annotations["pca_mean"]
         gt_normal_v = annotations["normal_v"]
-        print(f"images: {images.shape}")
-        print(f"gt_radius: {gt_radius.shape}")
-        print(f"verts_3d: {verts_3d.shape}")
-        print(f"gt_pca_mean: {gt_pca_mean.shape}")
-        print(f"gt_normal_v: {gt_normal_v.shape}")
+        # print(f"images: {images.shape}")
+        # print(f"gt_radius: {gt_radius.shape}")
+        # print(f"verts_3d: {verts_3d.shape}")
+        # print(f"gt_pca_mean: {gt_pca_mean.shape}")
+        # print(f"gt_normal_v: {gt_normal_v.shape}")
         if torch.cuda.is_available():
-            images = images.cuda(args.device)  # batch_size X 3 X 224 X 224
+            images = images.cuda()
+            gt_radius = gt_radius.cuda()
+            verts_3d = verts_3d.cuda()
+            gt_pca_mean = gt_pca_mean.cuda()
+            gt_normal_v = gt_normal_v.cuda()
         batch_size = images.shape[0]
         print(f"batch_size: {batch_size}")
         # (
@@ -60,20 +64,15 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
         print(f"mymodel:pred_normal_v: {pred_normal_v.shape}")
         print(f"mymodel:ring_radius: {ring_radius.shape}")
         print()
-        break
-    # for data in train_loader:
-    #     data = data.to(device)
-    #     optimizer.zero_grad()
-    #     output = model(data.x, data.pos, data.batch)
-    #     batch_size = output.shape[0]
-    #     gt_y = data.y.view(batch_size, -1).float().contiguous()
-    #     loss = on_circle_loss(output, data)
-    #     loss.backward()
-    #     optimizer.step()
-    #     losses.append(loss.item())  # 損失値の蓄積
-    #     current_loss += loss.item() * output.size(0)
-    # epoch_loss = current_loss / datasize["train"]
-    # print(f"Train Loss: {epoch_loss:.6f}")
+        optimizer.zero_grad()
+        # gt_y = data.y.view(batch_size, -1).float().contiguous()
+        loss = on_circle_loss(output, data)
+        loss.backward()
+        optimizer.step()
+        losses.append(loss.item())  # 損失値の蓄積
+        current_loss += loss.item() * batch_size
+    epoch_loss = current_loss / datasize["train"]
+    print(f"Train Loss: {epoch_loss:.6f}")
 
 
 def test(args, fastmetro_model, model, test_loader, datasize):
@@ -85,12 +84,9 @@ def test(args, fastmetro_model, model, test_loader, datasize):
         gt_radius = annotations["radius"]
         verts_3d = annotations["vert_3d"]
         gt_pca_mean = annotations["pca_mean"]
-        pca_components = annotations["pca_components"]
-        # print(pca_components)
-        # print(f"pca_components: {pca_components.shape}")
-
+        gt_normal_v = annotations["normal_v"]
         if torch.cuda.is_available():
-            images = images.cuda(args.device)  # batch_size X 3 X 224 X 224
+            images = images.cuda(args.device)
             gt_radius = gt_radius.cuda()
             verts_3d = verts_3d.cuda()
             gt_pca_mean = gt_pca_mean.cuda()
