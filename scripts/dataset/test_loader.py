@@ -97,9 +97,9 @@ def _make_data_loader(args, *, yaml_file, is_train, batch_size):
 
 
 class CustomDataset(torch.utils.data.Dataset):
-    def __init__(self, pickle_filepath, is_train):
+    def __init__(self, pickle_filepath, *, is_train=True):
         self.pickle_filepath = pickle_filepath
-
+        self.d = pickle.load(pickle_filepath.open())
         # self.std = std
         # self.transform = transform
         # self.images = []
@@ -109,7 +109,7 @@ class CustomDataset(torch.utils.data.Dataset):
         # self.images.sort()
 
     def __len__(self):
-        return len(self.images)
+        return len(self.d)
 
     def __getitem__(self, item):
         image_address = self.images[item]
@@ -156,6 +156,7 @@ def parse_args():
 
 def test_my_dataset(pickle_filepath):
     dataset = CustomDataset(pickle_filepath=pickle_filepath)
+    print(f"dataset: {len(dataset)}")
 
 
 def main(args, *, data_dir, is_train=True):
