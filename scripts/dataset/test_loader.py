@@ -74,37 +74,6 @@ class ManoWrapper:
         return [trimesh.Trimesh(vertices=gt_vert, faces=mano_faces) for gt_vert in gt_vertices]
 
 
-#    val_dataloader = make_hand_data_loader(
-#         args,
-#         args.val_yaml,
-#         args.distributed,
-#         is_train=False,
-#         scale_factor=args.img_scale_factor,
-#     )
-
-
-class CustomDataset(torch.utils.data.Dataset):
-    def __init__(self, pickle_filepath, *, is_train=True):
-        self.pickle_filepath = pickle_filepath
-        self.d = pickle.load(pickle_filepath.open("rb"))
-        # self.std = std
-        # self.transform = transform
-        # self.images = []
-        # self.masks = []
-
-        # self.masks.sort()
-        # self.images.sort()
-
-    def __len__(self):
-        return len(self.d)
-
-    def __getitem__(self, item):
-        image_address = self.images[item]
-        mask_address = self.masks[item]
-
-        return image, mask
-
-
 class MergedDataset(torch.utils.data.Dataset):
     def __init__(self, *, pickle_filepath, handmesh_dataset, is_train):
         self.pickle_filepath = pickle_filepath
@@ -112,8 +81,9 @@ class MergedDataset(torch.utils.data.Dataset):
         self.img_keys_dict = pickle.load(pickle_filepath.open("rb"))
 
     def __len__(self):
-        # return min(, len(self.img_keys_dict))
-        return len(self.handmesh_dataset)
+        # return min(len(self.handmesh_dataset), len(self.img_keys_dict))
+        # return len(self.handmesh_dataset)
+        return 49147
 
     def __getitem__(self, idx):
         img_keys, images, annotations = self.handmesh_dataset[idx]
