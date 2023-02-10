@@ -77,7 +77,10 @@ def test(args, fastmetro_model, model, test_loader, datasize):
         gt_radius = annotations["radius"]
         verts_3d = annotations["vert_3d"]
         gt_pca_mean = annotations["pca_mean"]
-        gt_normal_v = annotations["normal_v"]
+        pca_components = annotations["pca_components"]
+        print(pca_components)
+        print(f"pca_components: {pca_components.shape}")
+        gt_normal_v = torch.cross(pca_components[:, 0], pca_components[:, 1], dim=1)
         if torch.cuda.is_available():
             images = images.cuda(args.device)  # batch_size X 3 X 224 X 224
             gt_radius = gt_radius.cuda()
