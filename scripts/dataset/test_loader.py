@@ -112,7 +112,8 @@ class MergedDataset(torch.utils.data.Dataset):
         self.img_keys_dict = pickle.load(pickle_filepath.open("rb"))
 
     def __len__(self):
-        return min(len(self.handmesh_dataset), len(self.img_keys_dict))
+        # return min(, len(self.img_keys_dict))
+        return len(self.handmesh_dataset)
 
     def __getitem__(self, idx):
         img_keys, images, annotations = self.handmesh_dataset[idx]
@@ -168,8 +169,8 @@ def main(args, *, pickle_filepath, is_train=True):
         pickle_filepath=pickle_filepath, handmesh_dataset=handmesh_dataset, is_train=is_train
     )
     print(f"dataset: {len(dataset)}")
-    for i, (img_keys, images, annotations) in dataset:
-        print(i)
+    for i, (img_keys, images, annotations) in enumerate(dataset):
+        print(i, img_keys)
 
 
 if __name__ == "__main__":
