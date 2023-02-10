@@ -23,9 +23,7 @@ from src.handinfo.fastmetro import get_fastmetro_model
 
 # from src.handinfo.data import get_mano_faces
 from src.handinfo.data.tools import make_hand_data_loader
-
-
-from src.modeling.model import FastMETRO_Hand_Network, MyModel
+from src.modeling.model import MyModel
 
 
 def train(args, fastmetro_model, model, train_loader, train_datasize, optimizer):
@@ -124,7 +122,7 @@ def _back_main(args):
     print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
 
 
-def main(args, batch_size):
+def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loader, test_loader, datasize = make_hand_data_loader(
@@ -157,4 +155,4 @@ def main(args, batch_size):
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args.resume_dir, args.input_filename, args.batch_size, args)
+    main(args)
