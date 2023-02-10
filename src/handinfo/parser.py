@@ -1,5 +1,6 @@
 import os
 import argparse
+from pathlib import Path
 
 
 def train_parse_args(parser_hook=None):
@@ -42,10 +43,10 @@ def train_parse_args(parser_hook=None):
     )
     parser.add_argument("--saving_epochs", default=20, type=int)
     parser.add_argument(
-        "--resume_checkpoint",
-        default=None,
-        type=str,
-        required=False,
+        "--fastmetro_resume_checkpoint",
+        default="./ckpt/FastMETRO-L-H64_freihand_state_dict.bin",
+        type=Path,
+        # required=False,
         help="Path to specific checkpoint for resume training.",
     )
     parser.add_argument("--resume_epoch", default=0, type=int)
