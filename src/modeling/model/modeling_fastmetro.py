@@ -494,11 +494,11 @@ class MyModel(nn.Module):
         r_tokens = self.ring_token_embed.weight.unsqueeze(1).repeat(1, batch_size, 1)
         # print(f"forward:r_tokens: {r_tokens.shape}")
         r_tokens_and_jv = torch.cat([r_tokens, jv_features_2], dim=0)
-        print(f"forward:r_tokens_and_jv: {r_tokens_and_jv.shape}")
+        # print(f"forward:r_tokens_and_jv: {r_tokens_and_jv.shape}")
         jv_features_final = self._do_decode(
             h * w, batch_size, device, enc_img_features_2, r_tokens_and_jv, pos_enc_3
         )
-        print(f"jv_features_final: {jv_features_final.shape}")
+        # print(f"jv_features_final: {jv_features_final.shape}")
         # cam_features, enc_img_features, jv_features = self.transformer_3(
         #     enc_img_features_2, cam_features_2, jv_features_2, pos_enc_3
         # )
