@@ -96,8 +96,7 @@ def _make_data_loader(args, *, yaml_file, is_train, batch_size):
     return data_loader
 
 class CustomDataset(torch.utils.data.Dataset):
-
-    def __init__(self, root_path, transform=None):
+    def __init__(self, pickle_filepath, is_train):
         self.path = root_path
         self.mean = mean
         self.std = std
@@ -105,9 +104,7 @@ class CustomDataset(torch.utils.data.Dataset):
         self.images = []
         self.masks = []
 
-        for add in os.listdir(self.path):
-            # Some script to load file from directory and appending address to relative array
-            ...
+
 
         self.masks.sort()
         self.images.sort()
@@ -119,21 +116,29 @@ class CustomDataset(torch.utils.data.Dataset):
         image_address = self.images[item]
         mask_address = self.masks[item]
 
-
-
-        if self.transform is not None:
-            augment = self.transform(image=np.asarray(Image.open(image_address, 'r', None)),
-                                     mask=np.asarray(Image.open(mask_address, 'r', None)))
-            image = Image.fromarray(augment['image'])
-            mask = augment['mask']
-
-        if self.transform is None:
-            image = np.asarray(Image.open(image_address, 'r', None))
-            mask = np.asarray(Image.open(mask_address, 'r', None))
-
-        # Handle Augmentation here
-
         return image, mask
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    # parser.add_argument(
+    #     "--data_dir",
+    #     # default="./data",
+    #     type=Path,
+    #     required=True,
+    # )
+    parser.add_argument(
+        "--output_pickle_file",
+        type=Path,
+        required=True,
+    )
+    parser.add_argument(
+        "--is_train",
+        default=False,
+        action="store_true",
+    )
+    args = parser.parse_args()
+    return args
+
 
 def test_my_dataset():
 
@@ -141,13 +146,13 @@ def test_my_dataset():
 
 def main(args, *, data_dir, is_train=True):
     # mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
-
+    pass
 
 
 if __name__ == "__main__":
     args = train_parse_args()
-    main(args, data_dir=Path("./data"))
-    # test_each_transformer_models(args)
+    # main(args, )
+    test_each_transformer_models(args)
     # model_load_and_inference(args)
     print("########")
     # original_model_test(args)
