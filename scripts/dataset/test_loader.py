@@ -83,19 +83,6 @@ class ManoWrapper:
 #     )
 
 
-def _make_data_loader(args, *, yaml_file, is_train, batch_size):
-    scale_factor = 1
-    dataset = build_hand_dataset(yaml_file, args, is_train=is_train, scale_factor=scale_factor)
-    label = "train" if is_train else "test"
-    datasize = len(dataset)
-    print(f"{label}_datasize={datasize}")
-    if is_train:
-        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-    else:
-        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-    return data_loader
-
-
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, pickle_filepath, *, is_train=True):
         self.pickle_filepath = pickle_filepath
@@ -116,6 +103,21 @@ class CustomDataset(torch.utils.data.Dataset):
         mask_address = self.masks[item]
 
         return image, mask
+
+
+class MergedDataset(torch.utils.data.Dataset):
+    def __init__(self, pickle_filepath, *, is_train=True):
+        self.pickle_filepath = pickle_filepath
+        self.d = pickle.load(pickle_filepath.open("rb"))
+
+    def __len__(self):
+        return min(len(self.dataset1), len(self.dataset2))
+
+    def __getitem__(self, idx):
+        if len(self.dataset1) > idx and len(self.dataset2) > idx:
+            return (self.dataset1[idx], self.dataset2[idx])
+        else:
+            raise IndexError("Index out of range")
 
 
 def parse_args():
@@ -159,17 +161,30 @@ def test_my_dataset(pickle_filepath):
     print(f"dataset: {len(dataset)}")
 
 
-def main(args, *, data_dir, is_train=True):
+def create_dataset(args, *, yaml_file, is_train):
+    scale_factor = 1
+    dataset = build_hand_dataset(yaml_file, args, is_train=is_train, scale_factor=scale_factor)
+    label = "train" if is_train else "test"
+    datasize = len(dataset)
+    print(f"{label}_datasize={datasize}")
+    # if is_train:
+    #     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    # else:
+    #     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    # return data_loader
+    return datasize
+
+
+def main(args, *, pickle_filepath, is_train=True):
     # mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
-    pass
+    dataset = create_dataset(args, yaml_file=args.train_yaml, is_train=is_train)
+    # ataset = CustomDataset(pickle_filepath=pickle_filepath)
+    print(f"dataset: {len(dataset)}")
 
 
 if __name__ == "__main__":
     args = parse_args()
-    # main(args, )
-    test_my_dataset(args.pickle_filepath)
+    main(args, pickle_filepath=args.pickle_filepath)
+    # test_my_dataset(args.pickle_filepath)
     # model_load_and_inference(args)
     print("########")
-    # original_model_test(args)
-    # data_load_test(args)
-    # convert_test(args)
