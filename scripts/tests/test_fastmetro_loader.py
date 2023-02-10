@@ -35,6 +35,7 @@ def load_pretrained_backbone(args):
         backbone = torch.nn.Sequential(*list(backbone.children())[:-2])
     else:
         assert False, "The CNN backbone name is not valid"
+    return backbone
 
 
 def load_fastmetro(args, *, mesh_sampler):
