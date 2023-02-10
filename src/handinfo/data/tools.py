@@ -29,8 +29,13 @@ class MergedDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         img_keys, images, annotations = self.handmesh_dataset[idx]
         d = self.img_keys_dict.get(img_keys)
+        print(d.keys())
         if d:
-            annotations.update(d)
+            for key, value in d.items():
+                if key not in ("radius", "perimeter"):
+                    annotations[key] = torch.FloatTensor(value)
+                else:
+                    annotations[key] = value
             return img_keys, images, annotations
         else:
             raise IndexError("Index out of range")
@@ -61,9 +66,6 @@ def make_hand_data_loader(args, *, ring_info_pkl_rootdir, batch_size):
     train_dataset = make_dataset(ring_info_pkl_rootdir / "ring_info_train.pkl", is_train=True)
     test_dataset = make_dataset(ring_info_pkl_rootdir / "ring_info_val.pkl", is_train=False)
 
-    # train_datasize = len(train_dataset)
-    # test_datasize = len(test_dataset)
-    # print(f"train_datasize={train_datasize} test_datasize={test_datasize}")
     datasize = {"train": len(train_dataset), "test": len(test_dataset)}
     print(f"datasize: {datasize}")
 
