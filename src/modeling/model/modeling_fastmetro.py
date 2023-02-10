@@ -453,8 +453,8 @@ class MyModel(nn.Module):
         # estimators
         # self.use_features_num = 5
         in_features = self.transformer_config_3["model_dim"]  # * self.use_features_num
-        self.ring_center_regressor = nn.Linear(in_features, 3)
-        self.ring_normal_regressor = nn.Linear(in_features, 3)
+        self.ring_center_regressor = nn.Linear(in_features * 3, 3)
+        self.ring_normal_regressor = nn.Linear(in_features * 3, 3)
         self.radius_regressor = nn.Linear(in_features, 1)
 
     def _do_decode(self, hw, bs, device, enc_img_features, jv_tokens, pos_embed):
@@ -504,8 +504,10 @@ class MyModel(nn.Module):
         # )
         # pred_cam = self.cam_predictor(cam_features_2).view(batch_size, 3)  # batch_size X 3
         center_features = jv_features_final[0:3, :, :].transpose(0, 1)
+        center_features = center_features.contiguous().view(-1, 128 * 3)
         center = self.ring_center_regressor(center_features)
         normal_v_features = jv_features_final[3:6, :, :].transpose(0, 1)
+        normal_v_features = normal_v_features.contiguous().view(-1, 128 * 3)
         normal_v = self.ring_normal_regressor(normal_v_features)
         radius_features = jv_features_final[[6], :, :].transpose(0, 1)
         radius = self.radius_regressor(radius_features)
