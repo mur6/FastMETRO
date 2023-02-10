@@ -95,82 +95,53 @@ def _make_data_loader(args, *, yaml_file, is_train, batch_size):
         data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     return data_loader
 
+class CustomDataset(torch.utils.data.Dataset):
+
+    def __init__(self, root_path, transform=None):
+        self.path = root_path
+        self.mean = mean
+        self.std = std
+        self.transform = transform
+        self.images = []
+        self.masks = []
+
+        for add in os.listdir(self.path):
+            # Some script to load file from directory and appending address to relative array
+            ...
+
+        self.masks.sort()
+        self.images.sort()
+
+    def __len__(self):
+        return len(self.images)
+
+    def __getitem__(self, item):
+        image_address = self.images[item]
+        mask_address = self.masks[item]
+
+
+
+        if self.transform is not None:
+            augment = self.transform(image=np.asarray(Image.open(image_address, 'r', None)),
+                                     mask=np.asarray(Image.open(mask_address, 'r', None)))
+            image = Image.fromarray(augment['image'])
+            mask = augment['mask']
+
+        if self.transform is None:
+            image = np.asarray(Image.open(image_address, 'r', None))
+            mask = np.asarray(Image.open(mask_address, 'r', None))
+
+        # Handle Augmentation here
+
+        return image, mask
+
+def test_my_dataset():
+
+
 
 def main(args, *, data_dir, is_train=True):
     # mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
 
-    keys = (
-        "perimeter",
-        "radius",
-        # "vert_2d",
-        "vert_3d",
-        # "center_points",
-        # "center_points_3d",
-        "pca_mean_",
-        "pca_components_",
-        "img_key",
-    )
-    inputs = defaultdict(list)
-    if is_train:
-        label = "train"
-        for f in data_dir.glob(f"{label}_ring_infos_*.npz"):
-            d = np.load(f)
-            for key in keys:
-                values = d[key]
-                # r = dict(d)
-                inputs[key].extend(values.tolist())
-                # print(values)
-    else:
-        label = "test"
-    # for v in inputs["pca_mean_"]:
-    #     print(v)
-    d = {}
-    # key_list = inputs["img_key"]
-    # rad_list = inputs["radius"]
-
-    for img_key, perimeter, radius, vert_3d, pca_mean, pca_components in zip(
-        inputs["img_key"],
-        inputs["perimeter"],
-        inputs["radius"],
-        inputs["vert_3d"],
-        inputs["pca_mean_"],
-        inputs["pca_components_"],
-    ):
-        d[img_key] = {
-            "perimeter": perimeter,
-            "radius": radius,
-            "vert_3d": vert_3d,
-            "pca_mean": pca_mean,
-            "pca_components": pca_components,
-        }
-    # print(len(d))
-    # p =
-    with Path("ring_info_train.pkl").open(mode="wb") as fh:
-        pickle.dump(d, fh)
-    # train_dataloader = _make_data_loader(
-    #     args,
-    #     yaml_file=yaml_file,
-    #     is_train=is_train,
-    #     batch_size=args.per_gpu_train_batch_size,
-    # )
-
-    # def _iter():
-    #     for d_list in iter_converted_batches(mano_model_wrapper, train_dataloader):
-    #         yield from d_list
-
-    # count = 0
-    # lis = []
-    # for i, d in enumerate(_iter()):
-    #     lis.append(d)
-    #     if (i + 1) % save_unit == 0:
-    #         print(lis[0]["img_key"], lis[-1]["img_key"])
-    #         save_to_file(f"data/{label}_ring_infos_{count:03}", lis)
-    #         count += 1
-    #         # processed_count = (cnt + 1) * args.per_gpu_train_batch_size
-    #         lis = []
-    #         print(f"processing... {i}")
-    # else:
-    #     save_to_file(f"data/{label}_ring_infos_{count:03}", lis)
 
 
 if __name__ == "__main__":
