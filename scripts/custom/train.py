@@ -73,9 +73,18 @@ def test(args, fastmetro_model, model, test_loader, datasize):
     model.eval()
 
     current_loss = 0.0
-    for img_keys, images, annotations in test_loader:
+    for _, images, annotations in test_loader:
+        gt_radius = annotations["radius"]
+        verts_3d = annotations["vert_3d"]
+        gt_pca_mean = annotations["pca_mean"]
+        gt_normal_v = annotations["normal_v"]
         if torch.cuda.is_available():
             images = images.cuda(args.device)  # batch_size X 3 X 224 X 224
+            gt_radius = gt_radius.cuda()
+            verts_3d = verts_3d.cuda()
+            gt_pca_mean = gt_pca_mean.cuda()
+            gt_normal_v = gt_normal_v.cuda()
+
         batch_size = images.shape[0]
         print(f"images: {images.shape}")
         print(f"batch_size: {batch_size}")
@@ -83,13 +92,14 @@ def test(args, fastmetro_model, model, test_loader, datasize):
             cam_features, enc_img_features, jv_features = fastmetro_model(
                 images, output_features=True
             )
-            pred_center, pred_normal_v, ring_radius = model(
+            pred_pca_mean, pred_normal_v, pred_radius = model(
                 cam_features, enc_img_features, jv_features
             )
-
-        gt_y = data.y.view(batch_size, -1).float().contiguous()
-        loss = on_circle_loss(output, data)
-        current_loss += loss.item() * output.size(0)
+        # gt_y = data.y.view(batch_size, -1).float().contiguous()
+        loss = on_circle_loss(
+            pred_pca_mean, pred_normal_v, pred_radius, verts_3d, gt_pca_mean, gt_normal_v, gt_radius
+        )
+        current_loss += loss.item() * batch_size
     epoch_loss = current_loss / datasize["test"]
     print(f"Validation Loss: {epoch_loss:.6f}")
 
@@ -152,11 +162,11 @@ def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loader, test_loader, datasize = make_hand_data_loader(
-        args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir
+        args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir, batch_size=args.batch_size
     )
 
     model = get_my_model(args.mymodel_resume_dir, device=device)
-    model.eval()
+    # model.eval()
 
     gamma = float(args.gamma)
     print(f"gamma: {gamma}")
@@ -171,8 +181,6 @@ def main(args):
     fastmetro_model = get_fastmetro_model(args, force_from_checkpoint=True)
 
     for epoch in range(1, 1000 + 1):
-        # args, fastmetro_model, model, train_loader, train_datasize, optimizer
-        # args, fastmetro_model, model, train_loader, datasize, optimizer
         train(args, fastmetro_model, model, train_loader, datasize, optimizer)
         # args, fastmetro_model, model, test_loader, datasize
         test(args, fastmetro_model, model, test_loader, datasize)

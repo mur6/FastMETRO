@@ -55,19 +55,12 @@ def on_circle_loss_wrap(pred_output, data):
     gt_pca_mean = data.pca_mean.view(batch_size, -1).float()
     gt_normal_v = data.normal_v.view(batch_size, -1).float()
     gt_radius = data.radius.float()
-    return on_circle_loss(pred_output, verts_3d, gt_pca_mean, gt_normal_v, gt_radius)
+    return on_circle_loss_1(pred_output, verts_3d, gt_pca_mean, gt_normal_v, gt_radius)
 
 
-def on_circle_loss(*, pred_output, verts_3d, gt_pca_mean, gt_normal_v, gt_radius):
-    # print(f"type: pred_output: {pred_output.dtype}")
-    # print(f"type: verts_3d: {verts_3d.dtype}")
-    pred_pca_mean = pred_output[:, :3].float()
-    pred_normal_v = pred_output[:, 3:6].float()
-    pred_radius = pred_output[:, 6:].squeeze(-1).float()
-    # print(f"pred_pca_mean: {pred_pca_mean.shape}")
-    # print(f"pred_normal_v: {pred_normal_v.shape}")
-    # print(f"pred_radius: {pred_radius.shape}")
-
+def on_circle_loss(
+    pred_pca_mean, pred_normal_v, pred_radius, verts_3d, gt_pca_mean, gt_normal_v, gt_radius
+):
     loss_pca_mean = F.mse_loss(pred_pca_mean, gt_pca_mean)
     loss_pca_mean = loss_pca_mean * 100.0
     loss_normal_v = similarity(pred_normal_v, gt_normal_v)
@@ -97,3 +90,17 @@ def on_circle_loss(*, pred_output, verts_3d, gt_pca_mean, gt_normal_v, gt_radius
         print()
     loss = loss_pca_mean + loss_normal_v + loss_radius + loss_of_plane + loss_of_sphere
     return loss.float()
+
+
+def on_circle_loss_1(*, pred_output, verts_3d, gt_pca_mean, gt_normal_v, gt_radius):
+    # print(f"type: pred_output: {pred_output.dtype}")
+    # print(f"type: verts_3d: {verts_3d.dtype}")
+    pred_pca_mean = pred_output[:, :3].float()
+    pred_normal_v = pred_output[:, 3:6].float()
+    pred_radius = pred_output[:, 6:].squeeze(-1).float()
+    # print(f"pred_pca_mean: {pred_pca_mean.shape}")
+    # print(f"pred_normal_v: {pred_normal_v.shape}")
+    # print(f"pred_radius: {pred_radius.shape}")
+    return on_circle_loss(
+        pred_pca_mean, pred_normal_v, pred_radius, verts_3d, gt_pca_mean, gt_normal_v, gt_radius
+    )
