@@ -64,10 +64,12 @@ def make_hand_data_loader(args, *, ring_info_pkl_rootdir, batch_size=32):
     # train_datasize = len(train_dataset)
     # test_datasize = len(test_dataset)
     # print(f"train_datasize={train_datasize} test_datasize={test_datasize}")
+    datasize = {"train": len(train_dataset), "test": len(test_dataset)}
+    print(f"datasize: {datasize}")
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=True)
-    return train_loader, test_loader
+    return train_loader, test_loader, datasize
 
 
 if __name__ == "__main__":

@@ -27,7 +27,7 @@ from src.handinfo.data.tools import make_hand_data_loader
 from src.modeling.model import FastMETRO_Hand_Network, MyModel
 
 
-def train(model, device, train_loader, train_datasize, bs_faces, optimizer):
+def train(model, device, train_loader, train_datasize, optimizer):
     model.train()
     losses = []
     current_loss = 0.0
@@ -47,7 +47,7 @@ def train(model, device, train_loader, train_datasize, bs_faces, optimizer):
     print(f"Train Loss: {epoch_loss:.6f}")
 
 
-def test(model, device, test_loader, test_datasize, bs_faces):
+def test(model, device, test_loader, test_datasize):
     model.eval()
 
     current_loss = 0.0
