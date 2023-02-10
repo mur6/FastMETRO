@@ -17,6 +17,7 @@ from src.modeling.hrnet.config import config as hrnet_config
 from src.modeling.hrnet.config import update_config as hrnet_update_config
 from src.modeling.hrnet.hrnet_cls_net_featmaps import get_cls_net
 from src.modeling.model import FastMETRO_Hand_Network
+from src.handinfo.parser import train_parse_args
 
 
 def load_pretrained_backbone(args):
@@ -74,6 +75,23 @@ def main(args):
     print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
 
 
+# def parse_args():
+#     def parser_hook(parser):
+#         parser.add_argument(
+#             "--ring_info_pkl_rootdir",
+#             type=Path,
+#             required=True,
+#         )
+#         parser.add_argument("--batch_size", type=int, default=32)
+#         parser.add_argument("--gamma", type=Decimal, default=Decimal("0.85"))
+#         parser.add_argument(
+#             "--resume_dir",
+#             type=Path,
+#         )
+
+#     args = train_parse_args(parser_hook=parser_hook)
+#     return args
+
 if __name__ == "__main__":
-    args = parse_args()
-    main(args.resume_dir, args.input_filename, args.batch_size, args)
+    args = train_parse_args()
+    main(args)
