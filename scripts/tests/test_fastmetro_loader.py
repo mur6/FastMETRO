@@ -39,17 +39,18 @@ def load_pretrained_backbone(args):
 
 def load_fastmetro(args, *, mesh_sampler):
     backbone = load_pretrained_backbone(args)
-    _FastMETRO_Network = FastMETRO_Hand_Network(args, backbone, mesh_sampler)
+    return FastMETRO_Hand_Network(args, backbone, mesh_sampler)
 
 
-# def setup_logger():
-#     global logger
-#     basicConfig(level=DEBUG)
-#     logger = getLogger("FastMETRO")
-#     # logger.info("Using {} GPUs".format(args.num_gpus))
+def setup_logger():
+    global logger
+    basicConfig(level=DEBUG)
+    logger = getLogger("FastMETRO")
+    # logger.info("Using {} GPUs".format(args.num_gpus))
 
 
 def main(args):
+    setup_logger()
     print("FastMETRO for 3D Hand Mesh Reconstruction!")
     # # Setup CUDA, GPU & distributed training
     # args.num_gpus = int(os.environ["WORLD_SIZE"]) if "WORLD_SIZE" in os.environ else 1
