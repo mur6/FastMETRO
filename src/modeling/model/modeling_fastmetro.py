@@ -451,8 +451,8 @@ class MyModel(nn.Module):
             hidden_dim=self.transformer_config_3["model_dim"],
         )
         # estimators
-        self.use_features_num = 5
-        in_features = self.transformer_config_3["model_dim"] * self.use_features_num
+        # self.use_features_num = 5
+        in_features = self.transformer_config_3["model_dim"]  # * self.use_features_num
         self.ring_center_regressor = nn.Linear(in_features, 3)
         self.ring_normal_regressor = nn.Linear(in_features, 3)
         self.radius_regressor = nn.Linear(in_features, 1)
@@ -493,37 +493,45 @@ class MyModel(nn.Module):
         # print(f"forward:[prev]ring_token_embed.weight: {self.ring_token_embed.weight.shape}")
         r_tokens = self.ring_token_embed.weight.unsqueeze(1).repeat(1, batch_size, 1)
         # print(f"forward:r_tokens: {r_tokens.shape}")
-        jvr_tokens = torch.cat([jv_features_2, r_tokens], dim=0)
-        # print(f"forward:jvr_tokens: {jvr_tokens.shape}")
+        r_tokens_and_jv = torch.cat([r_tokens, jv_features_2], dim=0)
+        print(f"forward:r_tokens_and_jv: {r_tokens_and_jv.shape}")
         jv_features_final = self._do_decode(
-            h * w, batch_size, device, enc_img_features_2, jv_features_2, pos_enc_3
+            h * w, batch_size, device, enc_img_features_2, r_tokens_and_jv, pos_enc_3
         )
         print(f"jv_features_final: {jv_features_final.shape}")
         # cam_features, enc_img_features, jv_features = self.transformer_3(
         #     enc_img_features_2, cam_features_2, jv_features_2, pos_enc_3
         # )
         # pred_cam = self.cam_predictor(cam_features_2).view(batch_size, 3)  # batch_size X 3
-        in_features = self.transformer_config_3["model_dim"] * self.use_features_num
-        #################
-        center_features = jv_features_final[0 : self.use_features_num, :, :].transpose(0, 1)
-        center_features = center_features.contiguous().view(-1, in_features)
-        ring_center = self.ring_center_regressor(center_features)
-        # print(f"ring_center: {ring_center.shape}")
-        #################
-        normal_features = jv_features_final[
-            self.use_features_num : self.use_features_num * 2, :, :
-        ].transpose(0, 1)
-        normal_features = normal_features.contiguous().view(-1, in_features)
-        ring_normal = self.ring_normal_regressor(normal_features)
-        #################
-        radius_features = jv_features_final[
-            self.use_features_num * 2 : self.use_features_num * 3, :, :
-        ].transpose(0, 1)
-        radius_features = radius_features.contiguous().view(-1, in_features)
-        ring_radius = self.radius_regressor(radius_features)
-        ###################
+        center_features = jv_features_final[0:3, :, :].transpose(0, 1)
+        center = self.ring_center_regressor(center_features)
+        normal_v_features = jv_features_final[3:6, :, :].transpose(0, 1)
+        normal_v = self.ring_normal_regressor(normal_v_features)
+        radius_features = jv_features_final[[6], :, :].transpose(0, 1)
+        radius = self.radius_regressor(radius_features)
         return (
-            ring_center.squeeze(1).float(),
-            ring_normal.squeeze(1).float(),
-            ring_radius.squeeze(1).float(),
+            center.squeeze(1),
+            normal_v.squeeze(1),
+            radius.squeeze(1),
         )
+
+
+# in_features = self.transformer_config_3["model_dim"] * self.use_features_num
+# #################
+# center_features = jv_features_final[0 : self.use_features_num, :, :].transpose(0, 1)
+# center_features = center_features.contiguous().view(-1, in_features)
+# center_features = self.ring_center_regressor(center_features)
+# # print(f"ring_center: {ring_center.shape}")
+# #################
+# normal_features = jv_features_final[
+#     self.use_features_num : self.use_features_num * 2, :, :
+# ].transpose(0, 1)
+# normal_features = normal_features.contiguous().view(-1, in_features)
+# ring_normal = self.ring_normal_regressor(normal_features)
+# #################
+# radius_features = jv_features_final[
+#     self.use_features_num * 2 : self.use_features_num * 3, :, :
+# ].transpose(0, 1)
+# radius_features = radius_features.contiguous().view(-1, in_features)
+# ring_radius = self.radius_regressor(radius_features)
+# ###################
