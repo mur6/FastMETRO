@@ -340,7 +340,7 @@ class FastMETRO_Hand_Network(nn.Module):
         # extract image features through a CNN backbone
         img_features = self.backbone(images)  # batch_size X 2048 X 7 X 7
         _, _, h, w = img_features.shape
-        print(f"0:img_features: h={h} w={w}")
+        # print(f"0:img_features: h={h} w={w}")
         img_features = (
             self.conv_1x1(img_features).flatten(2).permute(2, 0, 1)
         )  # 49 X batch_size X 512

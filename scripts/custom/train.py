@@ -32,7 +32,7 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
     losses = []
     current_loss = 0.0
     for _, (img_keys, images, annotations) in enumerate(train_loader):
-        if False:
+        if torch.cuda.is_available():
             images = images.cuda(args.device)  # batch_size X 3 X 224 X 224
         batch_size = images.shape[0]
         print(f"images: {images.shape}")
@@ -74,11 +74,11 @@ def test(args, fastmetro_model, model, test_loader, datasize):
 
     current_loss = 0.0
     for img_keys, images, annotations in test_loader:
-        if False:
+        if torch.cuda.is_available():
             images = images.cuda(args.device)  # batch_size X 3 X 224 X 224
         batch_size = images.shape[0]
         print(f"images: {images.shape}")
-        print(f"batch_size: {batch_size.shape}")
+        print(f"batch_size: {batch_size}")
         with torch.no_grad():
             cam_features, enc_img_features, jv_features = fastmetro_model(
                 images, output_features=True
