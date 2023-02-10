@@ -29,13 +29,16 @@ class MergedDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         img_keys, images, annotations = self.handmesh_dataset[idx]
         d = self.img_keys_dict.get(img_keys)
-        print(d.keys())
+        # print(d.keys())
         if d:
             for key, value in d.items():
                 if key not in ("radius", "perimeter"):
                     annotations[key] = torch.FloatTensor(value)
                 else:
                     annotations[key] = value
+            pca_components = annotations["pca_components"]
+            # print(pca_components.shape)
+            annotations["normal_v"] = torch.cross(pca_components[0], pca_components[1], dim=0)
             return img_keys, images, annotations
         else:
             raise IndexError("Index out of range")

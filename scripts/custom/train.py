@@ -32,10 +32,18 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
     losses = []
     current_loss = 0.0
     for _, (img_keys, images, annotations) in enumerate(train_loader):
+        gt_radius = annotations["radius"]
+        verts_3d = annotations["vert_3d"]
+        gt_pca_mean = annotations["pca_mean"]
+        gt_normal_v = annotations["normal_v"]
+        print(f"images: {images.shape}")
+        print(f"gt_radius: {gt_radius.shape}")
+        print(f"verts_3d: {verts_3d.shape}")
+        print(f"gt_pca_mean: {gt_pca_mean.shape}")
+        print(f"gt_normal_v: {gt_normal_v.shape}")
         if torch.cuda.is_available():
             images = images.cuda(args.device)  # batch_size X 3 X 224 X 224
         batch_size = images.shape[0]
-        print(f"images: {images.shape}")
         print(f"batch_size: {batch_size}")
         # (
         #     pred_cam,
@@ -78,9 +86,9 @@ def test(args, fastmetro_model, model, test_loader, datasize):
         verts_3d = annotations["vert_3d"]
         gt_pca_mean = annotations["pca_mean"]
         pca_components = annotations["pca_components"]
-        print(pca_components)
-        print(f"pca_components: {pca_components.shape}")
-        gt_normal_v = torch.cross(pca_components[:, 0], pca_components[:, 1], dim=1)
+        # print(pca_components)
+        # print(f"pca_components: {pca_components.shape}")
+
         if torch.cuda.is_available():
             images = images.cuda(args.device)  # batch_size X 3 X 224 X 224
             gt_radius = gt_radius.cuda()
