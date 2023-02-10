@@ -79,11 +79,15 @@ class MergedDataset(torch.utils.data.Dataset):
         self.pickle_filepath = pickle_filepath
         self.handmesh_dataset = handmesh_dataset
         self.img_keys_dict = pickle.load(pickle_filepath.open("rb"))
+        self.is_train = is_train
 
     def __len__(self):
         # return min(len(self.handmesh_dataset), len(self.img_keys_dict))
         # return len(self.handmesh_dataset)
-        return 49147
+        if self.is_train:
+            return 49147
+        else:
+            return len(self.img_keys_dict)
 
     def __getitem__(self, idx):
         img_keys, images, annotations = self.handmesh_dataset[idx]
@@ -117,12 +121,18 @@ def test_my_dataset(pickle_filepath):
     print(f"dataset: {len(dataset)}")
 
 
-def create_dataset(args, *, yaml_file, is_train):
+def create_dataset(args, *, is_train):
     scale_factor = 1
+    if is_train:
+        label = "train"
+        yaml_file = args.train_yaml
+    else:
+        label = "test"
+        yaml_file = args.val_yaml
     handmesh_dataset = build_hand_dataset(
         yaml_file, args, is_train=is_train, scale_factor=scale_factor
     )
-    label = "train" if is_train else "test"
+
     print(f"{label}_datasize={len(handmesh_dataset)}")
     # if is_train:
     #     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
@@ -132,15 +142,15 @@ def create_dataset(args, *, yaml_file, is_train):
     return handmesh_dataset
 
 
-def main(args, *, pickle_filepath, is_train=True):
+def main(args, *, pickle_filepath, is_train=False):
     # mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
-    handmesh_dataset = create_dataset(args, yaml_file=args.train_yaml, is_train=is_train)
+    handmesh_dataset = create_dataset(args, is_train=is_train)
     dataset = MergedDataset(
         pickle_filepath=pickle_filepath, handmesh_dataset=handmesh_dataset, is_train=is_train
     )
     print(f"dataset: {len(dataset)}")
-    for i, (img_keys, images, annotations) in enumerate(dataset):
-        print(i, img_keys)
+    # for i, (img_keys, images, annotations) in enumerate(dataset):
+    #     print(i, img_keys)
 
 
 if __name__ == "__main__":
