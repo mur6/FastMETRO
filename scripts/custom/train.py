@@ -152,32 +152,6 @@ def get_my_model(mymodel_resume_dir, device):
     return model
 
 
-def _back_main(args):
-    setup_logger()
-    print("FastMETRO for 3D Hand Mesh Reconstruction!")
-    # # Setup CUDA, GPU & distributed training
-    # args.num_gpus = int(os.environ["WORLD_SIZE"]) if "WORLD_SIZE" in os.environ else 1
-    # args.distributed = args.num_gpus > 1
-    # args.device = torch.device(args.device)
-
-    # Mesh and MANO utils
-    # mano_model = MANO().to(args.device)
-    # mano_model.layer = mano_model.layer.to(args.device)
-    model = get_fastmetro_model(args, force_from_checkpoint=True)
-    input = torch.rand(1, 3, 224, 224)
-    (
-        pred_cam,
-        pred_3d_joints,
-        pred_3d_vertices_coarse,
-        pred_3d_vertices_fine,
-    ) = model(input)
-    print("##################")
-    print(f"pred_cam: {pred_cam.shape}")
-    print(f"pred_3d_joints: {pred_3d_joints.shape}")
-    print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
-    print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
-
-
 def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -207,7 +181,7 @@ def main(args):
         if epoch % 5 == 0:
             save_checkpoint(model, epoch)
         scheduler.step(epoch)
-        print(f"lr: {scheduler.get_last_lr()}")
+        print(f"lr: {scheduler.get_last_lr()[0]}")
 
 
 if __name__ == "__main__":
