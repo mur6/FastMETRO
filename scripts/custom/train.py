@@ -15,10 +15,11 @@ from timm.scheduler import CosineLRScheduler
 # from torch_geometric.nn import MLP, PointConv, fps, global_max_pool, radius
 # from torch_geometric.utils import scatter
 
-from src.handinfo.data.olddata import get_mano_faces
+# from src.handinfo.data.olddata import get_mano_faces
 from src.handinfo.utils import load_model_from_dir, save_checkpoint
 from src.handinfo.losses import on_circle_loss
 from src.handinfo.parser import train_parse_args
+from src.handinfo.fastmetro import get_fastmetro_model
 
 # from src.handinfo.data import get_mano_faces
 from src.handinfo.data.tools import make_hand_data_loader
@@ -27,27 +28,33 @@ from src.handinfo.data.tools import make_hand_data_loader
 from src.modeling.model import FastMETRO_Hand_Network, MyModel
 
 
-def train(model, device, train_loader, train_datasize, optimizer):
+def train(args, fastmetro_model, model, train_loader, train_datasize, optimizer):
+    fastmetro_model.eval()
     model.train()
     losses = []
     current_loss = 0.0
+    for _, (img_keys, images, annotations) in enumerate(train_loader):
+        images = images.cuda(args.device)  # batch_size X 3 X 224 X 224
+        out = fastmetro_model(images)
+        print(out)
+        break
+    # for data in train_loader:
+    #     data = data.to(device)
+    #     optimizer.zero_grad()
+    #     output = model(data.x, data.pos, data.batch)
+    #     batch_size = output.shape[0]
+    #     gt_y = data.y.view(batch_size, -1).float().contiguous()
+    #     loss = on_circle_loss(output, data)
+    #     loss.backward()
+    #     optimizer.step()
+    #     losses.append(loss.item())  # 損失値の蓄積
+    #     current_loss += loss.item() * output.size(0)
+    # epoch_loss = current_loss / train_datasize
+    # print(f"Train Loss: {epoch_loss:.6f}")
 
-    for data in train_loader:
-        data = data.to(device)
-        optimizer.zero_grad()
-        output = model(data.x, data.pos, data.batch)
-        batch_size = output.shape[0]
-        gt_y = data.y.view(batch_size, -1).float().contiguous()
-        loss = on_circle_loss(output, data)
-        loss.backward()
-        optimizer.step()
-        losses.append(loss.item())  # 損失値の蓄積
-        current_loss += loss.item() * output.size(0)
-    epoch_loss = current_loss / train_datasize
-    print(f"Train Loss: {epoch_loss:.6f}")
 
-
-def test(model, device, test_loader, test_datasize):
+def test(fastmetro_model, model, device, test_loader, test_datasize):
+    fastmetro_model.eval()
     model.eval()
 
     current_loss = 0.0
@@ -91,7 +98,33 @@ def get_my_model(mymodel_resume_dir, device):
     return model
 
 
-def main_2(args, batch_size):
+def _back_main(args):
+    setup_logger()
+    print("FastMETRO for 3D Hand Mesh Reconstruction!")
+    # # Setup CUDA, GPU & distributed training
+    # args.num_gpus = int(os.environ["WORLD_SIZE"]) if "WORLD_SIZE" in os.environ else 1
+    # args.distributed = args.num_gpus > 1
+    # args.device = torch.device(args.device)
+
+    # Mesh and MANO utils
+    # mano_model = MANO().to(args.device)
+    # mano_model.layer = mano_model.layer.to(args.device)
+    model = get_fastmetro_model(args, force_from_checkpoint=True)
+    input = torch.rand(1, 3, 224, 224)
+    (
+        pred_cam,
+        pred_3d_joints,
+        pred_3d_vertices_coarse,
+        pred_3d_vertices_fine,
+    ) = model(input)
+    print("##################")
+    print(f"pred_cam: {pred_cam.shape}")
+    print(f"pred_3d_joints: {pred_3d_joints.shape}")
+    print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
+    print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
+
+
+def main(args, batch_size):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loader, test_loader, datasize = make_hand_data_loader(
@@ -110,12 +143,12 @@ def main_2(args, batch_size):
         # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=20, eta_min=1e-05)
 
-    faces = get_mano_faces()
-    bs_faces = faces.repeat(batch_size, 1).view(batch_size, 1538, 3)
+    # faces = get_mano_faces()
+    fastmetro_model = get_fastmetro_model(args, force_from_checkpoint=True)
 
     for epoch in range(1, 1000 + 1):
-        train(model, device, train_loader, datasize, optimizer)
-        test(model, device, test_loader, datasize)
+        train(fastmetro_model, model, device, train_loader, datasize, optimizer)
+        test(fastmetro_model, model, device, test_loader, datasize)
         if epoch % 5 == 0:
             save_checkpoint(model, epoch)
         scheduler.step(epoch)
