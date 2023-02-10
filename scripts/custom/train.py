@@ -64,47 +64,35 @@ def test(model, device, test_loader, test_datasize, bs_faces):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument("--gamma", type=Decimal, default=Decimal("0.85"))
-    parser.add_argument(
-        "--resume_dir",
-        type=Path,
-    )
-    parser.add_argument(
-        "--input_filename",
-        type=Path,
-        required=True,
-    )
-    args = parser.parse_args()
-    return args
-
-
-def parse_args():
     def parser_hook(parser):
         parser.add_argument(
             "--ring_info_pkl_rootdir",
             type=Path,
             required=True,
         )
-        # parser.add_argument(
-        #     "--is_train",
-        #     default=False,
-        #     action="store_true",
-        # )
+        parser.add_argument("--batch_size", type=int, default=32)
+        parser.add_argument("--gamma", type=Decimal, default=Decimal("0.85"))
+        parser.add_argument(
+            "--resume_dir",
+            type=Path,
+        )
 
     args = train_parse_args(parser_hook=parser_hook)
     return args
 
 
 def main(args):
-    a, b = make_hand_data_loader(args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir)
+    train_dataset, test_loader = make_hand_data_loader(
+        args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir
+    )
 
 
 def main_2(resume_dir, input_filename, batch_size, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    train_dataset, test_dataset = load_data_for_geometric(args)
+    train_loader, test_loader = make_hand_data_loader(
+        args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir
+    )
 
     print(f"resume_dir: {resume_dir}")
     if resume_dir:
