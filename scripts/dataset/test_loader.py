@@ -168,8 +168,8 @@ def main(args, *, pickle_filepath, is_train=True):
         pickle_filepath=pickle_filepath, handmesh_dataset=handmesh_dataset, is_train=is_train
     )
     print(f"dataset: {len(dataset)}")
-    img_keys, images, annotations = dataset[0]
-    print(img_keys)
+    for i, (img_keys, images, annotations) in dataset:
+        print(i)
 
 
 if __name__ == "__main__":
