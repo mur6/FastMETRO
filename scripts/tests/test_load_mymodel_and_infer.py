@@ -7,9 +7,6 @@ import torch
 from src.handinfo.parser import train_parse_args
 from src.handinfo.fastmetro import get_fastmetro_model
 
-
-import torch
-
 # import torch.nn.functional as F
 # from torch.nn import Linear as Lin
 # from timm.scheduler import CosineLRScheduler
@@ -112,6 +109,7 @@ def main(args):
         pred_pca_mean, pred_normal_v, pred_radius = model(
             cam_features, enc_img_features, jv_features
         )
+        break
 
 
 if __name__ == "__main__":
