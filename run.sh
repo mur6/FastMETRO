@@ -5,5 +5,5 @@ PYTHONPATH=. python scripts/custom/train.py \
     --fastmetro_resume_checkpoint "models/fastmetro_checkpoint/FastMETRO-L-H64_freihand_state_dict.bin" \
     --ring_info_pkl_rootdir "../ring_info/" \
     --lr 0.0002 \
-    --mymodel_resume_dir "models/checkpoint-40/" \
+    --mymodel_resume_dir "models/checkpoint-5/" \
     --batch_size 32
