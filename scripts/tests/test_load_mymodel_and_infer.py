@@ -13,7 +13,7 @@ import torch
 # import torch.nn.functional as F
 # from torch.nn import Linear as Lin
 # from timm.scheduler import CosineLRScheduler
-
+from src.handinfo import utils
 from src.modeling._mano import Mesh
 from src.handinfo.utils import load_model_from_dir, save_checkpoint
 from src.handinfo.losses import on_circle_loss
@@ -26,7 +26,6 @@ from src.modeling.model import MyModel
 
 
 def main(args):
-    setup_logger()
     print("FastMETRO for 3D Hand Mesh Reconstruction!")
     # # Setup CUDA, GPU & distributed training
     # args.num_gpus = int(os.environ["WORLD_SIZE"]) if "WORLD_SIZE" in os.environ else 1
@@ -58,8 +57,8 @@ def parse_args():
             type=Path,
             required=True,
         )
-        parser.add_argument("--batch_size", type=int, default=32)
-        parser.add_argument("--gamma", type=Decimal, default=Decimal("0.97"))
+        # parser.add_argument("--batch_size", type=int, default=32)
+        # parser.add_argument("--gamma", type=Decimal, default=Decimal("0.97"))
         parser.add_argument(
             "--mymodel_resume_dir",
             type=Path,
@@ -70,14 +69,14 @@ def parse_args():
     return args
 
 
-def get_my_model(mymodel_resume_dir, device):
-    print(f"My modele resume_dir: {mymodel_resume_dir}")
-    if mymodel_resume_dir:
-        model = load_model_from_dir(mymodel_resume_dir)
-    else:
-        model = MyModel(args).to(device)
-    print(f"My model loaded: {model.__class__.__name__}")
-    return model
+# def get_my_model(mymodel_resume_dir, device):
+#     print(f"My modele resume_dir: {mymodel_resume_dir}")
+#     if mymodel_resume_dir:
+#         model = load_model_from_dir(mymodel_resume_dir)
+#     else:
+#         model = MyModel(args).to(device)
+#     print(f"My model loaded: {model.__class__.__name__}")
+#     return model
 
 
 def main(args):
@@ -87,8 +86,8 @@ def main(args):
         args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir, batch_size=args.batch_size
     )
 
-    model = get_my_model(args.mymodel_resume_dir, device=device)
-    # model.eval()
+    model = utils.get_my_model(args.mymodel_resume_dir, device=device)
+    model.eval()
 
 
 if __name__ == "__main__":
