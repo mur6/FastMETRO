@@ -123,10 +123,11 @@ def parse_args():
             required=True,
         )
         parser.add_argument("--batch_size", type=int, default=32)
-        # parser.add_argument("--gamma", type=Decimal, default=Decimal("0.85"))
+        parser.add_argument("--gamma", type=Decimal, default=Decimal("0.97"))
         parser.add_argument(
             "--mymodel_resume_dir",
             type=Path,
+            required=False,
         )
 
     args = train_parse_args(parser_hook=parser_hook)
@@ -154,7 +155,10 @@ def main(args):
     # model.eval()
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
+    # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
+    gamma = float(args.gamma)
+    print(f"gamma: {gamma}")
+    lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
 
     # faces = get_mano_faces()
     fastmetro_model = get_fastmetro_model(args, force_from_checkpoint=True)
