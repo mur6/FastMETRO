@@ -94,6 +94,25 @@ def main(args):
         args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
     )
 
+    for _, (img_keys, images, annotations) in enumerate(train_loader):
+        gt_radius = annotations["radius"].float()
+        gt_verts_3d = annotations["vert_3d"]
+        gt_pca_mean = annotations["pca_mean"]
+        gt_normal_v = annotations["normal_v"]
+        print(f"gt_radius: {gt_radius.dtype}")
+        print(f"gt_verts_3d: {gt_verts_3d.dtype}")
+        print(f"gt_pca_mean: {gt_pca_mean.dtype}")
+        print(f"gt_normal_v: {gt_normal_v.dtype}")
+        batch_size = images.shape[0]
+        # print(f"batch_size: {batch_size}")
+        cam_features, enc_img_features, jv_features = fastmetro_model(images, output_features=True)
+        print(f"fastmetro:cam_features_1: {cam_features.shape}")
+        print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
+        print(f"fastmetro:jv_features_1: {jv_features.shape}")
+        pred_pca_mean, pred_normal_v, pred_radius = model(
+            cam_features, enc_img_features, jv_features
+        )
+
 
 if __name__ == "__main__":
     args = parse_args()
