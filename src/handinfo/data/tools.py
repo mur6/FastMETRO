@@ -17,16 +17,21 @@ class MergedDataset(torch.utils.data.Dataset):
         self.handmesh_dataset = handmesh_dataset
         self.img_keys_dict = pickle.load(pickle_filepath.open("rb"))
         self.is_train = is_train
+        if is_train:
+            self.limit = 5000
+        else:
+            self.limit = 800
 
     def __len__(self):
-        # return min(len(self.handmesh_dataset), len(self.img_keys_dict))
-        # return len(self.handmesh_dataset)
-        if self.is_train:
-            return 49147
-        else:
-            return len(self.img_keys_dict)
+        # if self.is_train:
+        #     return 49147
+        # else:
+        #     return len(self.img_keys_dict)
+        return self.limit
 
     def __getitem__(self, idx):
+        if idx >= self.limit:
+            raise IndexError("Index out of range")
         img_keys, images, annotations = self.handmesh_dataset[idx]
         d = self.img_keys_dict.get(img_keys)
         # print(d.keys())
