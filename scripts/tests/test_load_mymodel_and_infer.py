@@ -94,24 +94,7 @@ def make_hand_mesh(gt_vertices):
     return trimesh.Trimesh(vertices=gt_vertices.detach().numpy(), faces=mano_faces)
 
 
-def main(args):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    train_loader, test_loader, datasize = make_hand_data_loader(
-        args,
-        ring_info_pkl_rootdir=args.ring_info_pkl_rootdir,
-        batch_size=args.batch_size,
-        train_shuffle=False,
-    )
-
-    model = utils.get_my_model(args.mymodel_resume_dir, device=device)
-    model.eval()
-
-    mesh_sampler = Mesh(device=device)
-    fastmetro_model = get_fastmetro_model(
-        args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
-    )
-
+def _do_loop(fastmetro_model, model, train_loader):
     for _, (img_keys, images, annotations) in enumerate(train_loader):
         gt_radius = annotations["radius"].float()
         gt_verts_3d = annotations["vert_3d"]
@@ -140,8 +123,29 @@ def main(args):
             cam_features, enc_img_features, jv_features
         )
         mesh = make_hand_mesh(pred_3d_vertices_fine[0])
-        visualize_points(mesh=mesh)
+        visualize_points(mesh=mesh, points=pred_pca_mean[0].numpy())
         break
+
+
+def main(args):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    train_loader, test_loader, datasize = make_hand_data_loader(
+        args,
+        ring_info_pkl_rootdir=args.ring_info_pkl_rootdir,
+        batch_size=args.batch_size,
+        train_shuffle=False,
+    )
+
+    model = utils.get_my_model(args.mymodel_resume_dir, device=device)
+    model.eval()
+
+    mesh_sampler = Mesh(device=device)
+    fastmetro_model = get_fastmetro_model(
+        args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
+    )
+    with torch.no_grad():
+        _do_loop(fastmetro_model, model, train_loader)
 
 
 if __name__ == "__main__":
