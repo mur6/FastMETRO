@@ -167,7 +167,7 @@ def main(args):
     print(f"gamma: {gamma}")
     lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
     # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=gamma)
+    # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=gamma)
 
     # faces = get_mano_faces()
     mesh_sampler = Mesh(device=device)
