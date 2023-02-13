@@ -424,7 +424,7 @@ class MyModel(nn.Module):
         self.args = args
         self.num_joints = num_joints
         self.num_vertices = num_vertices
-        self.num_ring_infos = 7
+        self.num_ring_infos = 3
         assert "FastMETRO-L" in args.model_name
         num_enc_layers = 3
         num_dec_layers = 3
@@ -453,8 +453,8 @@ class MyModel(nn.Module):
         # estimators
         # self.use_features_num = 5
         in_features = self.transformer_config_3["model_dim"]  # * self.use_features_num
-        self.ring_center_regressor = nn.Linear(in_features * 3, 3)
-        self.ring_normal_regressor = nn.Linear(in_features * 3, 3)
+        self.ring_center_regressor = nn.Linear(in_features, 3)
+        self.ring_normal_regressor = nn.Linear(in_features, 3)
         self.radius_regressor = nn.Linear(in_features, 1)
 
     def _do_decode(self, hw, bs, device, enc_img_features, jv_tokens, pos_embed):
