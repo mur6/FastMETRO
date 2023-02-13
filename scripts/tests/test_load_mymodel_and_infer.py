@@ -57,7 +57,7 @@ def parse_args():
             type=Path,
             required=True,
         )
-        # parser.add_argument("--batch_size", type=int, default=32)
+        parser.add_argument("--batch_size", type=int, default=32)
         # parser.add_argument("--gamma", type=Decimal, default=Decimal("0.97"))
         parser.add_argument(
             "--mymodel_resume_dir",
@@ -88,6 +88,11 @@ def main(args):
 
     model = utils.get_my_model(args.mymodel_resume_dir, device=device)
     model.eval()
+
+    mesh_sampler = Mesh(device=device)
+    fastmetro_model = get_fastmetro_model(
+        args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
+    )
 
 
 if __name__ == "__main__":
