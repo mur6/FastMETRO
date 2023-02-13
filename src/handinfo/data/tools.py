@@ -20,7 +20,7 @@ class MergedDataset(torch.utils.data.Dataset):
         if is_train:
             self.limit = 5000
         else:
-            self.limit = 800
+            self.limit = 500
 
     def __len__(self):
         # if self.is_train:
