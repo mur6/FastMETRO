@@ -21,30 +21,46 @@ from src.handinfo.fastmetro import get_fastmetro_model
 from src.handinfo.data.tools import make_hand_data_loader
 from src.modeling.model import MyModel
 
+import trimesh
+import numpy as np
+from matplotlib import pyplot as plt
 
-def main(args):
-    print("FastMETRO for 3D Hand Mesh Reconstruction!")
-    # # Setup CUDA, GPU & distributed training
-    # args.num_gpus = int(os.environ["WORLD_SIZE"]) if "WORLD_SIZE" in os.environ else 1
-    # args.distributed = args.num_gpus > 1
-    # args.device = torch.device(args.device)
 
-    # Mesh and MANO utils
-    # mano_model = MANO().to(args.device)
-    # mano_model.layer = mano_model.layer.to(args.device)
-    model = get_fastmetro_model(args, force_from_checkpoint=True)
-    input = torch.rand(1, 3, 224, 224)
-    (
-        pred_cam,
-        pred_3d_joints,
-        pred_3d_vertices_coarse,
-        pred_3d_vertices_fine,
-    ) = model(input)
-    print("##################")
-    print(f"pred_cam: {pred_cam.shape}")
-    print(f"pred_3d_joints: {pred_3d_joints.shape}")
-    print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
-    print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
+def visualize_mesh(*, mesh, cam):
+    color = [102, 102, 102, 64]
+    for facet in mesh.facets:
+        # mesh.visual.face_colors[facet] = [color, color]
+        mesh.visual.face_colors[facet] = color
+    print(f"cam: {cam}")
+    P = np.eye(4)
+    P[0, 3] = cam[0]
+    P[1, 3] = cam[1]
+    P[2, 3] = cam[2]
+    print(f"P: {P}")
+    scene = trimesh.Scene()  # camera_transform=P
+    print(scene.camera_transform)
+    # scene.camera.K = K
+    scene.add_geometry(mesh)
+    # scene.add_geometry(create_point_geom(a_point, "red"))
+    scene.show()
+
+
+def _create_point_geom(point, color):
+    geom = trimesh.creation.icosphere(radius=0.0008)
+    if color == "red":
+        color = [202, 2, 2, 255]
+    else:
+        color = [0, 0, 200, 255]
+    geom.visual.face_colors = color
+    geom.apply_translation(point)
+    return geom
+
+
+def visualize_points(*, points):
+    scene = trimesh.Scene()
+    for p in points:
+        scene.add_geometry(_create_point_geom(p, "red"))
+    scene.show()
 
 
 def parse_args():
