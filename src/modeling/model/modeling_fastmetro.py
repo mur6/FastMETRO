@@ -529,24 +529,3 @@ class MyModel(nn.Module):
             normal_v.squeeze(1),
             radius.squeeze(1),
         )
-
-
-# in_features = self.transformer_config_3["model_dim"] * self.use_features_num
-# #################
-# center_features = jv_features_final[0 : self.use_features_num, :, :].transpose(0, 1)
-# center_features = center_features.contiguous().view(-1, in_features)
-# center_features = self.ring_center_regressor(center_features)
-# # print(f"ring_center: {ring_center.shape}")
-# #################
-# normal_features = jv_features_final[
-#     self.use_features_num : self.use_features_num * 2, :, :
-# ].transpose(0, 1)
-# normal_features = normal_features.contiguous().view(-1, in_features)
-# ring_normal = self.ring_normal_regressor(normal_features)
-# #################
-# radius_features = jv_features_final[
-#     self.use_features_num * 2 : self.use_features_num * 3, :, :
-# ].transpose(0, 1)
-# radius_features = radius_features.contiguous().view(-1, in_features)
-# ring_radius = self.radius_regressor(radius_features)
-# ###################
