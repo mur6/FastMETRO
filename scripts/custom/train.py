@@ -163,10 +163,11 @@ def main(args):
     # model.eval()
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-    # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
     gamma = float(args.gamma)
     print(f"gamma: {gamma}")
     lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
+    # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=gamma)
 
     # faces = get_mano_faces()
     mesh_sampler = Mesh(device=device)
