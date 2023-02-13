@@ -26,7 +26,7 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
     current_loss = 0.0
     for _, (img_keys, images, annotations) in enumerate(train_loader):
         last_seconds = time.time()
-        print("########: infer: begin")
+        # print("########: infer: begin")
         gt_radius = annotations["radius"].float()
         gt_verts_3d = annotations["vert_3d"]
         gt_pca_mean = annotations["pca_mean"]
@@ -49,12 +49,12 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
         batch_size = images.shape[0]
         # print(f"batch_size: {batch_size}")
         cam_features, enc_img_features, jv_features = fastmetro_model(images, output_features=True)
-        print(f"fastmetro:cam_features_1: {cam_features.shape}")
-        print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
-        print(f"fastmetro:jv_features_1: {jv_features.shape}")
-        print(f"########: infer: end. {time.time() - last_seconds}")
-        last_seconds = time.time()
-        print("########: train")
+        # print(f"fastmetro:cam_features_1: {cam_features.shape}")
+        # print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
+        # print(f"fastmetro:jv_features_1: {jv_features.shape}")
+        # print(f"########: infer: end. {time.time() - last_seconds}")
+        # last_seconds = time.time()
+        # print("########: train")
         pred_pca_mean, pred_normal_v, pred_radius = model(
             cam_features, enc_img_features, jv_features
         )
@@ -74,7 +74,7 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
             gt_radius,
         )
         loss.backward()
-        print(f"########: train: end. {time.time() - last_seconds}")
+        # print(f"########: train: end. {time.time() - last_seconds}")
         optimizer.step()
         losses.append(loss.item())
         current_loss += loss.item() * batch_size
