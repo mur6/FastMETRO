@@ -63,6 +63,7 @@ def visualize_points(*, mesh, points=()):
     scene = trimesh.Scene()
     scene.add_geometry(mesh)
     for p in points:
+        print(f"point: {p.shape}")
         scene.add_geometry(_create_point_geom(p, "red"))
     scene.show()
 
@@ -122,8 +123,16 @@ def _do_loop(fastmetro_model, model, train_loader):
         pred_pca_mean, pred_normal_v, pred_radius = model(
             cam_features, enc_img_features, jv_features
         )
+        print(f"pred_pca_mean: {pred_pca_mean.dtype}")
+        print(f"pred_normal_v: {pred_normal_v.shape}")
+        print(f"pred_radius: {pred_radius.shape}")
         mesh = make_hand_mesh(pred_3d_vertices_fine[0])
-        visualize_points(mesh=mesh, points=pred_pca_mean[0].numpy())
+        visualize_points(
+            mesh=mesh,
+            points=[
+                pred_pca_mean[0].numpy(),
+            ],
+        )
         break
 
 
