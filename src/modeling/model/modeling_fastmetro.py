@@ -414,6 +414,9 @@ class FastMETRO_Hand_Network(nn.Module):
                 pred_3d_joints,
                 pred_3d_vertices_coarse,
                 pred_3d_vertices_fine,
+                cam_features_2,
+                enc_img_features_2,
+                jv_features_2,
             )
         return out
 
