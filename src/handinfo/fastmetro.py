@@ -63,7 +63,7 @@ def _Backup_get_fastmetro_model(args, force_checkpoint=True):
     return _FastMETRO_Network
 
 
-def get_fastmetro_model(args, force_from_checkpoint=True):
+def get_fastmetro_model(args, *, mesh_sampler, force_from_checkpoint=True):
     resume_checkpoint = args.fastmetro_resume_checkpoint
     # if (
     #     (resume_checkpoint != None)
@@ -73,7 +73,7 @@ def get_fastmetro_model(args, force_from_checkpoint=True):
     #     # if only run eval, load checkpoint
     #     logger.info("Evaluation: Loading from checkpoint {}".format(args.resume_checkpoint))
     #     _FastMETRO_Network = torch.load(args.resume_checkpoint)
-    _FastMETRO_Network, backbone = load_fastmetro_and_backbone(args, mesh_sampler=Mesh())
+    _FastMETRO_Network, backbone = load_fastmetro_and_backbone(args, mesh_sampler=mesh_sampler)
     # number of parameters
     overall_params = sum(p.numel() for p in _FastMETRO_Network.parameters() if p.requires_grad)
     backbone_params = sum(p.numel() for p in backbone.parameters() if p.requires_grad)

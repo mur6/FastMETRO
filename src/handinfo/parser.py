@@ -123,7 +123,7 @@ def train_parse_args(parser_hook=None):
         action="store_true",
     )
     parser.add_argument("--logging_steps", type=int, default=1000, help="Log every X steps.")
-    parser.add_argument("--device", type=str, default="cpu", help="cuda or cpu")
+    parser.add_argument("--device", type=str, default="cuda", help="cuda or cpu")
     parser.add_argument("--seed", type=int, default=88, help="random seed for initialization.")
     parser.add_argument("--local_rank", type=int, default=0, help="For distributed training.")
     parser.add_argument("--model_save", default=False, action="store_true")

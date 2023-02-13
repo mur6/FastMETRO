@@ -7,6 +7,7 @@ import torch
 # from torch.nn import Linear as Lin
 # from timm.scheduler import CosineLRScheduler
 
+from src.modeling._mano import Mesh
 from src.handinfo.utils import load_model_from_dir, save_checkpoint
 from src.handinfo.losses import on_circle_loss
 from src.handinfo.parser import train_parse_args
@@ -161,7 +162,10 @@ def main(args):
     lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
 
     # faces = get_mano_faces()
-    fastmetro_model = get_fastmetro_model(args, force_from_checkpoint=True)
+    mesh_sampler = Mesh(device=device)
+    fastmetro_model = get_fastmetro_model(
+        args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
+    )
 
     for epoch in range(1, 1000 + 1):
         train(args, fastmetro_model, model, train_loader, datasize, optimizer)
