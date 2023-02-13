@@ -1,6 +1,9 @@
 #!/bin/bash
 PYTHONPATH=. python scripts/custom/train.py \
-    --train_yaml "../orig-MeshGraphormer/freihand/train.yaml" \
-    --val_yaml "../orig-MeshGraphormer/freihand/test.yaml" \
-    --ring_info_pkl_rootdir data/ring_info/ \
-    --batch_size 64
+    --train_yaml "../Datasets/freihand/train.yaml" \
+    --val_yaml "../Datasets/freihand/test.yaml" \
+    --fastmetro_resume_checkpoint "models/fastmetro_checkpoint/FastMETRO-L-H64_freihand_state_dict.bin" \
+    --ring_info_pkl_rootdir "../ring_info/" \
+    --mymodel_resume_dir "models/checkpoint-40/" \
+    --lr 0.000095 \
+    --batch_size 32
