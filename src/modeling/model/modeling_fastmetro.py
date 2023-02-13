@@ -426,8 +426,8 @@ class MyModel(nn.Module):
         self.num_vertices = num_vertices
         self.num_ring_infos = 3
         assert "FastMETRO-L" in args.model_name
-        num_enc_layers = 3
-        num_dec_layers = 3
+        num_enc_layers = 1
+        num_dec_layers = 1
         # configurations for the first transformer
         self.transformer_config_3 = {
             "model_dim": 32,
