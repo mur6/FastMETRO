@@ -9,7 +9,9 @@ import torch
 # from timm.scheduler import CosineLRScheduler
 
 from src.modeling._mano import Mesh
-from src.handinfo.utils import load_model_from_dir, save_checkpoint
+from src.handinfo import utils
+
+# , save_checkpoint
 from src.handinfo.losses import on_circle_loss
 from src.handinfo.parser import train_parse_args
 from src.handinfo.fastmetro import get_fastmetro_model
@@ -142,16 +144,6 @@ def parse_args():
     return args
 
 
-def get_my_model(mymodel_resume_dir, device):
-    print(f"My modele resume_dir: {mymodel_resume_dir}")
-    if mymodel_resume_dir:
-        model = load_model_from_dir(mymodel_resume_dir)
-    else:
-        model = MyModel(args).to(device)
-    print(f"My model loaded: {model.__class__.__name__}")
-    return model
-
-
 def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -159,7 +151,7 @@ def main(args):
         args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir, batch_size=args.batch_size
     )
 
-    model = get_my_model(args.mymodel_resume_dir, device=device)
+    model = utils.get_my_model(args.mymodel_resume_dir, device=device)
     # model.eval()
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
@@ -179,7 +171,7 @@ def main(args):
         train(args, fastmetro_model, model, train_loader, datasize, optimizer)
         test(args, fastmetro_model, model, test_loader, datasize)
         if epoch % 5 == 0:
-            save_checkpoint(model, epoch)
+            utils.save_checkpoint(model, epoch)
         lr_scheduler.step(epoch)
         print(f"lr: {lr_scheduler.get_last_lr()[0]}")
 

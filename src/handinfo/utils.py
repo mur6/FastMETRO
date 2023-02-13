@@ -27,3 +27,13 @@ def load_model_from_dir(resume_dir):
         return model
     else:
         raise Exception(f"{resume_dir} is not valid directory.")
+
+
+def get_my_model(mymodel_resume_dir, device):
+    print(f"My modele resume_dir: {mymodel_resume_dir}")
+    if mymodel_resume_dir:
+        model = load_model_from_dir(mymodel_resume_dir)
+    else:
+        model = MyModel(args).to(device)
+    print(f"My model loaded: {model.__class__.__name__}")
+    return model
