@@ -64,7 +64,7 @@ def create_dataset(args, *, is_train):
     return handmesh_dataset
 
 
-def make_hand_data_loader(args, *, ring_info_pkl_rootdir, batch_size):
+def make_hand_data_loader(args, *, ring_info_pkl_rootdir, batch_size, train_shuffle=True):
     def make_dataset(pickle_filepath, *, is_train):
         handmesh_dataset = create_dataset(args, is_train=is_train)
         return MergedDataset(
@@ -77,7 +77,9 @@ def make_hand_data_loader(args, *, ring_info_pkl_rootdir, batch_size):
     datasize = {"train": len(train_dataset), "test": len(test_dataset)}
     print(f"datasize: {datasize}")
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
+    train_loader = DataLoader(
+        train_dataset, batch_size=batch_size, shuffle=train_shuffle, drop_last=True
+    )
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=True)
     return train_loader, test_loader, datasize
 
