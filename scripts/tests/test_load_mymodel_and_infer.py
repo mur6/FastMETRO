@@ -96,7 +96,10 @@ def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loader, test_loader, datasize = make_hand_data_loader(
-        args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir, batch_size=args.batch_size
+        args,
+        ring_info_pkl_rootdir=args.ring_info_pkl_rootdir,
+        batch_size=args.batch_size,
+        train_shuffle=False,
     )
 
     model = utils.get_my_model(args.mymodel_resume_dir, device=device)
