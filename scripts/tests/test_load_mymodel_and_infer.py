@@ -54,16 +54,17 @@ def _create_point_geom(point, color):
 #     scene.show()
 
 
-def visualize_points(*, mesh, points=()):
+def visualize_points(*, mesh, red_points=(), blue_points=()):
     color = [102, 102, 102, 64]
     for facet in mesh.facets:
         # mesh.visual.face_colors[facet] = [color, color]
         mesh.visual.face_colors[facet] = color
     scene = trimesh.Scene()
     scene.add_geometry(mesh)
-    for p in points:
-        print(f"point: {p.shape}")
+    for p in red_points:
         scene.add_geometry(_create_point_geom(p, "red"))
+    for p in blue_points:
+        scene.add_geometry(_create_point_geom(p, "blue"))
     scene.show()
 
 
@@ -100,10 +101,10 @@ def _do_loop(fastmetro_model, model, train_loader):
         gt_verts_3d = annotations["vert_3d"]
         gt_pca_mean = annotations["pca_mean"]
         gt_normal_v = annotations["normal_v"]
-        print(f"gt_radius: {gt_radius.dtype}")
-        print(f"gt_verts_3d: {gt_verts_3d.dtype}")
-        print(f"gt_pca_mean: {gt_pca_mean.dtype}")
-        print(f"gt_normal_v: {gt_normal_v.dtype}")
+        print(f"gt_radius: {gt_radius.shape}")
+        print(f"gt_verts_3d: {gt_verts_3d.shape}")
+        print(f"gt_pca_mean: {gt_pca_mean.shape}")
+        print(f"gt_normal_v: {gt_normal_v.shape}")
         batch_size = images.shape[0]
         # print(f"batch_size: {batch_size}")
         (
@@ -128,7 +129,8 @@ def _do_loop(fastmetro_model, model, train_loader):
         mesh = make_hand_mesh(pred_3d_vertices_fine[0])
         visualize_points(
             mesh=mesh,
-            points=[
+            blue_points=gt_verts_3d[0].numpy(),
+            red_points=[
                 pred_pca_mean[0].numpy(),
             ],
         )
