@@ -58,13 +58,25 @@ def on_circle_loss_wrap(pred_output, data):
     return on_circle_loss_1(pred_output, verts_3d, gt_pca_mean, gt_normal_v, gt_radius)
 
 
-# def print_all_losses():
 other_weight = 0.1
 weight_of_pca_mean = 100.0
-weight_loss_normal_v = 1.0 * other_weight
+weight_of_normal_v = 1.0 * other_weight
 weight_of_radius = 1e4 * other_weight
 weight_of_plane = 100.0 * other_weight
 weight_of_sphere = 1e5 * other_weight
+
+
+def get_all_losses():
+    weights = (
+        weight_of_pca_mean,
+        weight_of_normal_v,
+        weight_of_radius,
+        weight_of_plane,
+        weight_of_sphere,
+    )
+    labels = ("pca_mean", "normal_v", "radius", "plane", "sphere")
+    for label, w_value in zip(labels, weights):
+        print(f"weights: {label}: {w_value}")
 
 
 def on_circle_loss(
@@ -74,7 +86,7 @@ def on_circle_loss(
     loss_pca_mean = loss_pca_mean * weight_of_pca_mean
     loss_normal_v = similarity(pred_normal_v, gt_normal_v)
     loss_normal_v = loss_normal_v.pow(2).mean()
-    loss_normal_v *= weight_loss_normal_v
+    loss_normal_v *= weight_of_normal_v
     loss_radius = F.mse_loss(pred_radius, gt_radius)
     loss_radius *= weight_of_radius
     # print(f"type: loss_pca_mean: {loss_pca_mean.dtype}")
