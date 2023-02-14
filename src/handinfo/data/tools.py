@@ -33,6 +33,7 @@ class MergedDataset(torch.utils.data.Dataset):
         if idx >= self.limit:
             raise IndexError("Index out of range")
         img_keys, images, annotations = self.handmesh_dataset[idx]
+        # print(f"annotations: {annotations.keys()}")
         d = self.img_keys_dict.get(img_keys)
         # print(d.keys())
         if d:

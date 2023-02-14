@@ -96,7 +96,7 @@ def make_hand_mesh(gt_vertices):
 
 
 def _do_loop(fastmetro_model, model, train_loader):
-    for _, (img_keys, images, annotations) in enumerate(train_loader):
+    for idx, (img_keys, images, annotations) in enumerate(train_loader):
         gt_radius = annotations["radius"].float()
         gt_verts_3d = annotations["vert_3d"]
         gt_pca_mean = annotations["pca_mean"]
@@ -134,7 +134,8 @@ def _do_loop(fastmetro_model, model, train_loader):
                 pred_pca_mean[0].numpy(),
             ],
         )
-        break
+        if idx == 2:
+            break
 
 
 def main(args):
