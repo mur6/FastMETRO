@@ -74,8 +74,8 @@ def main(args):
         train_shuffle=False,
     )
     print(f"dataset: {datasize}")
-    # for i, (img_keys, images, annotations) in enumerate(dataset):
-    #     print(i, img_keys)
+    for i, (img_keys, images, annotations) in enumerate(train_loader):
+        print(i, img_keys)
 
 
 if __name__ == "__main__":
