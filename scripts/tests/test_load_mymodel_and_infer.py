@@ -76,6 +76,10 @@ def _do_loop(fastmetro_model, model, train_loader):
         print(f"gt_pca_mean: {gt_pca_mean.shape}")
         print(f"gt_normal_v: {gt_normal_v.shape}")
         batch_size = images.shape[0]
+        ####################################################################
+        if True:
+            print(f"gt_pca_mean: {gt_pca_mean[0]}")
+            print(f"gt_normal_v: {gt_normal_v[0]}")
         # print(f"batch_size: {batch_size}")
         (
             pred_cam,
@@ -87,15 +91,11 @@ def _do_loop(fastmetro_model, model, train_loader):
             jv_features,
         ) = fastmetro_model(images, output_features=False)
 
-        # pred_cam, pred_3d_vertices_fine = (
-        #     out["pred_cam"],
-        #     out["pred_3d_vertices_fine"],
-        # )
-
-        # obtain 3d joints from full mesh
+        ################ 補正 ###############
         pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)
         pred_3d_joints_from_mano_wrist = pred_3d_joints_from_mano[:, cfg.J_NAME.index("Wrist"), :]
         pred_3d_vertices_fine = pred_3d_vertices_fine - pred_3d_joints_from_mano_wrist[:, None, :]
+        ####################################################################
 
         # cam_features, enc_img_features, jv_features = fastmetro_model(images, output_features=True)
         print(f"fastmetro:cam_features_1: {cam_features.shape}")
@@ -108,15 +108,17 @@ def _do_loop(fastmetro_model, model, train_loader):
         print(f"pred_normal_v: {pred_normal_v.shape}")
         print(f"pred_radius: {pred_radius.shape}")
         pred_mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine[0].numpy())
+        blue_points = [gt_pca_mean[0].numpy().tolist()] + gt_verts_3d[0].numpy().tolist()
+        print(f"blue_points: {blue_points}")
         visualize_mesh_and_points(
             mesh=gt_mesh,
             mesh_2=pred_mesh,
-            blue_points=[gt_pca_mean[0].numpy()],
-            red_points=[
-                pred_pca_mean[0].numpy(),
-            ],
+            blue_points=blue_points,
+            # red_points=[
+            #     pred_pca_mean[0].numpy(),
+            # ],
         )
-        if idx == 1:
+        if idx == 3:
             break
 
 
