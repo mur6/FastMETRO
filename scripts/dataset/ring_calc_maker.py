@@ -27,6 +27,7 @@ from src.modeling.model.transformer import build_transformer
 from src.handinfo.parser import train_parse_args
 from src.handinfo.mano import ManoWrapper
 from src.handinfo.ring.helper import iter_converted_batches, save_to_file
+from src.handinfo.data.tools import get_only_original_data_loader
 
 
 # ------------------------------------------------------------
@@ -36,19 +37,6 @@ from src.handinfo.ring.helper import iter_converted_batches, save_to_file
 #  --val_yaml "../orig-MeshGraphormer/freihand/test.yaml" \
 #  --num_workers 0 --per_gpu_train_batch_size 1024
 # ------------------------------------------------------------
-
-
-def _make_data_loader(args, *, yaml_file, is_train, batch_size):
-    scale_factor = 1
-    dataset = build_hand_dataset(yaml_file, args, is_train=is_train, scale_factor=scale_factor)
-    label = "train" if is_train else "test"
-    datasize = len(dataset)
-    print(f"{label}_datasize={datasize}")
-    if is_train:
-        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-    else:
-        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-    return data_loader
 
 
 def main(
@@ -65,7 +53,7 @@ def main(
     else:
         label = "test"
         yaml_file = args.val_yaml
-    train_dataloader = _make_data_loader(
+    train_dataloader = get_only_original_data_loader(
         args,
         yaml_file=yaml_file,
         is_train=is_train,

@@ -65,6 +65,19 @@ def create_dataset(args, *, is_train):
     return handmesh_dataset
 
 
+def get_only_original_data_loader(args, *, yaml_file, is_train, batch_size):
+    scale_factor = 1
+    dataset = build_hand_dataset(yaml_file, args, is_train=is_train, scale_factor=scale_factor)
+    label = "train" if is_train else "test"
+    datasize = len(dataset)
+    print(f"{label}_datasize={datasize}")
+    if is_train:
+        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    else:
+        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    return data_loader
+
+
 def make_hand_data_loader(args, *, ring_info_pkl_rootdir, batch_size, train_shuffle=True):
     def make_dataset(pickle_filepath, *, is_train):
         handmesh_dataset = create_dataset(args, is_train=is_train)
