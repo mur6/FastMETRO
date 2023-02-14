@@ -1,6 +1,8 @@
 from pathlib import Path
 import torch
 
+from src.modeling.model import MyModel
+
 
 def save_checkpoint(model, epoch, iteration=None):
     output_dir = Path("output")
@@ -29,7 +31,7 @@ def load_model_from_dir(resume_dir):
         raise Exception(f"{resume_dir} is not valid directory.")
 
 
-def get_my_model(mymodel_resume_dir, device):
+def get_my_model(args, *, mymodel_resume_dir, device):
     print(f"My modele resume_dir: {mymodel_resume_dir}")
     if mymodel_resume_dir:
         model = load_model_from_dir(mymodel_resume_dir)

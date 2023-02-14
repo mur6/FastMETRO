@@ -474,14 +474,19 @@ class MyModel(nn.Module):
             jv_tokens
         )  # (num_joints + num_vertices) X batch_size X feature_dim
         attention_mask = None
-        jv_features = self.transformer_3(
+        # jv_features = self.transformer_3(
+        #     jv_tokens,
+        #     enc_img_features,
+        #     tgt_mask=attention_mask,
+        #     memory_key_padding_mask=mask,
+        #     pos=pos_embed,
+        #     query_pos=zero_tgt,
+        # )  # (num_joints + num_vertices) X batch_size X feature_dim
+        _cam_features, _enc_img_features, jv_features = self.transformer_3(
             jv_tokens,
             enc_img_features,
             tgt_mask=attention_mask,
-            memory_key_padding_mask=mask,
-            pos=pos_embed,
-            query_pos=zero_tgt,
-        )  # (num_joints + num_vertices) X batch_size X feature_dim
+        )
         return jv_features
 
     def forward(self, cam_features_2, enc_img_features_2, jv_features_2):

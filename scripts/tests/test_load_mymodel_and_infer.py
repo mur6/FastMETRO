@@ -19,7 +19,6 @@ from src.handinfo.fastmetro import get_fastmetro_model
 
 # from src.handinfo.data import get_mano_faces
 from src.handinfo.data.tools import make_hand_data_loader
-from src.modeling.model import MyModel
 
 import trimesh
 import numpy as np
@@ -146,7 +145,7 @@ def main(args):
         train_shuffle=False,
     )
 
-    model = utils.get_my_model(args.mymodel_resume_dir, device=device)
+    model = utils.get_my_model(args, mymodel_resume_dir=args.mymodel_resume_dir, device=device)
     model.eval()
 
     mesh_sampler = Mesh(device=device)

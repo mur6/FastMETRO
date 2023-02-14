@@ -151,7 +151,7 @@ def main(args):
         args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir, batch_size=args.batch_size
     )
 
-    model = utils.get_my_model(args.mymodel_resume_dir, device=device)
+    model = utils.get_my_model(args, mymodel_resume_dir=args.mymodel_resume_dir, device=device)
     # model.eval()
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
