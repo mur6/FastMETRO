@@ -55,7 +55,6 @@ def main(
         yaml_file = args.val_yaml
     train_dataloader = get_only_original_data_loader(
         args,
-        yaml_file=yaml_file,
         is_train=is_train,
         batch_size=args.per_gpu_train_batch_size,
     )
