@@ -6,6 +6,7 @@ from src.handinfo.ring.helper import _adjust_vertices
 
 import torch
 
+import src.modeling.data.config as cfg
 from src.handinfo.parser import train_parse_args
 from src.handinfo.fastmetro import get_fastmetro_model
 
@@ -51,6 +52,7 @@ def _do_loop(fastmetro_model, model, train_loader):
     mano_model = MANO().to("cpu")
     mano_model_wrapper = ManoWrapper(mano_model=mano_model)
     for idx, (img_keys, images, annotations) in enumerate(train_loader):
+        print(f"img_keys: {img_keys[0]}")
         ####################################################################
         pose = annotations["pose"]
         assert pose.shape[1] == 48
@@ -84,6 +86,17 @@ def _do_loop(fastmetro_model, model, train_loader):
             enc_img_features,
             jv_features,
         ) = fastmetro_model(images, output_features=False)
+
+        # pred_cam, pred_3d_vertices_fine = (
+        #     out["pred_cam"],
+        #     out["pred_3d_vertices_fine"],
+        # )
+
+        # obtain 3d joints from full mesh
+        pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)
+        pred_3d_joints_from_mano_wrist = pred_3d_joints_from_mano[:, cfg.J_NAME.index("Wrist"), :]
+        pred_3d_vertices_fine = pred_3d_vertices_fine - pred_3d_joints_from_mano_wrist[:, None, :]
+
         # cam_features, enc_img_features, jv_features = fastmetro_model(images, output_features=True)
         print(f"fastmetro:cam_features_1: {cam_features.shape}")
         print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
@@ -94,11 +107,11 @@ def _do_loop(fastmetro_model, model, train_loader):
         print(f"pred_pca_mean: {pred_pca_mean.dtype}")
         print(f"pred_normal_v: {pred_normal_v.shape}")
         print(f"pred_radius: {pred_radius.shape}")
-        mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine[0].numpy())
+        pred_mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine[0].numpy())
         visualize_mesh_and_points(
             mesh=gt_mesh,
-            mesh_2=mesh,
-            blue_points=gt_verts_3d[0].numpy(),
+            mesh_2=pred_mesh,
+            blue_points=[gt_pca_mean[0].numpy()],
             red_points=[
                 pred_pca_mean[0].numpy(),
             ],
