@@ -17,7 +17,7 @@ from torch.utils.data import DataLoader
 from manopth.manolayer import ManoLayer
 
 import src.modeling.data.config as cfg
-from src.handinfo.ring.helper import _adjust_vertices
+from src.handinfo.ring.helper import _adjust_vertices, calc_ring
 from src.datasets.build import build_hand_dataset
 from src.modeling._mano import MANO, Mesh
 from src.modeling.hrnet.config import config as hrnet_config
@@ -85,6 +85,8 @@ def main(args):
         )
         print(f"gt_vertices: {gt_vertices.shape}")
         print(f"gt_3d_joints: {gt_3d_joints.shape}")
+        d_list = calc_ring(mano_model_wrapper, pose=pose, betas=betas)
+        print(d_list)
         break
 
 
