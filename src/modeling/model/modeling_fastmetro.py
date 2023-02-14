@@ -429,8 +429,8 @@ class MyModel(nn.Module):
         self.num_vertices = num_vertices
         self.num_ring_infos = 3
         assert "FastMETRO-L" in args.model_name
-        num_enc_layers = 1
-        num_dec_layers = 1
+        num_enc_layers = 2
+        num_dec_layers = 2
         # configurations for the first transformer
         self.transformer_config_3 = {
             "model_dim": 32,
@@ -447,7 +447,7 @@ class MyModel(nn.Module):
         self.dim_reduce_dec = nn.Linear(128, self.transformer_config_3["model_dim"])
 
         # build transformers
-        self.transformer_3_decoder = build_transformer(self.transformer_config_3).decoder
+        self.transformer_3 = build_transformer(self.transformer_config_3).decoder
         # token embeddings
         self.ring_token_embed = nn.Embedding(
             self.num_ring_infos, self.transformer_config_3["model_dim"]
@@ -473,9 +473,8 @@ class MyModel(nn.Module):
         zero_tgt = torch.zeros_like(
             jv_tokens
         )  # (num_joints + num_vertices) X batch_size X feature_dim
-        decoder = self.transformer_3_decoder
         attention_mask = None
-        jv_features = decoder(
+        jv_features = self.transformer_3(
             jv_tokens,
             enc_img_features,
             tgt_mask=attention_mask,
