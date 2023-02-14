@@ -10,3 +10,4 @@
 PYTHONPATH=. python scripts/dataset/test_loader.py \
     --train_yaml "../orig-MeshGraphormer/freihand/train.yaml" \
     --val_yaml "../orig-MeshGraphormer/freihand/test.yaml" \
+    --ring_info_pkl_rootdir data/ring_info/ \
