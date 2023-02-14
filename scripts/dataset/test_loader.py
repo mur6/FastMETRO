@@ -30,32 +30,6 @@ from src.handinfo.parser import train_parse_args
 from src.handinfo.data.tools import make_hand_data_loader
 from src.handinfo.utils import load_model_from_dir
 
-# def data_load_test(args):
-#     print(
-#         args.distributed,
-#     )
-#     val_dataloader = make_hand_data_loader(
-#         args,
-#         args.val_yaml,
-#         args.distributed,
-#         is_train=False,
-#         scale_factor=args.img_scale_factor,
-#     )
-#     train_dataloader = make_hand_data_loader(
-#         args,
-#         args.train_yaml,
-#         args.distributed,
-#         is_train=True,
-#         scale_factor=args.img_scale_factor,
-#     )
-#     # train_datasize = len(train_dataset)
-#     # test_datasize = len(test_dataset)
-#     # print(f"train_datasize={train_datasize} test_datasize={test_datasize}")
-#     for i, (img_keys, images, annotations) in enumerate(train_dataloader):
-#         print(f"{i}, {images.shape}")
-#         if i > 10:
-#             break
-
 
 class ManoWrapper:
     def __init__(self, *, mano_model):
@@ -93,8 +67,13 @@ def parse_args():
 
 
 def main(args):
-    a, b = make_hand_data_loader(args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir)
-    # print(f"dataset: {len(dataset)}")
+    train_loader, test_loader, datasize = make_hand_data_loader(
+        args,
+        ring_info_pkl_rootdir=args.ring_info_pkl_rootdir,
+        batch_size=1,
+        train_shuffle=False,
+    )
+    print(f"dataset: {datasize}")
     # for i, (img_keys, images, annotations) in enumerate(dataset):
     #     print(i, img_keys)
 
