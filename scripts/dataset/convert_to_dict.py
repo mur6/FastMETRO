@@ -67,10 +67,27 @@ def _conv2(inputs):
     return d
 
 
+# def find_values_by_key(d, key):
+#     new_d = d[key]
+#     del new_d["vert_3d"]
+#     return new_d
+
+
+# def print_values(d, key):
+#     values = find_values_by_key(d, key)
+#     mean = values["pca_mean"]
+#     mean = np.array(mean)
+#     comp = values["pca_components"]
+#     comp = np.array(comp)
+#     print(f"{key}: pca_mean: {mean}, pca_comp: {comp}")
+
+
 def main(*, is_train, data_dir, output_pickle_file):
     d_list = [np.load(f) for f in get_file_list(is_train, data_dir)]
     inputs = _conv1(d_list)
     d = _conv2(inputs)
+    # For debug.
+    # print_values(d, "00000000.jpg")
     with output_pickle_file.open(mode="wb") as fh:
         pickle.dump(d, fh)
 
