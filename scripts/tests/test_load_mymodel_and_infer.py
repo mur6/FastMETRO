@@ -110,13 +110,14 @@ def _do_loop(fastmetro_model, model, train_loader):
         pred_mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine[0].numpy())
         blue_points = [gt_pca_mean[0].numpy().tolist()] + gt_verts_3d[0].numpy().tolist()
         print(f"blue_points: {blue_points}")
+        red_points = [
+            pred_pca_mean[0].numpy(),
+        ]
         visualize_mesh_and_points(
             mesh=gt_mesh,
             mesh_2=pred_mesh,
             blue_points=blue_points,
-            # red_points=[
-            #     pred_pca_mean[0].numpy(),
-            # ],
+            red_points=red_points,
         )
         if idx == 3:
             break
