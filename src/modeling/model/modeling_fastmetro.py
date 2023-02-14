@@ -464,29 +464,6 @@ class MyModel(nn.Module):
         self.ring_normal_regressor = nn.Linear(in_features, 3)
         self.radius_regressor = nn.Linear(in_features, 1)
 
-    def _do_decode(self, hw, bs, device, enc_img_features, jv_tokens, pos_embed):
-        # hw, bs = img_features.shape  # (height * width), batch_size, feature_dim
-        mask = torch.zeros(
-            (bs, hw), dtype=torch.bool, device=device
-        )  # batch_size X (height * width)
-        # Transformer Decoder
-        zero_tgt = torch.zeros_like(
-            jv_tokens
-        )  # (num_joints + num_vertices) X batch_size X feature_dim
-        attention_mask = None
-        # jv_features = self.transformer_3(
-        #     jv_tokens,
-        #     enc_img_features,
-        #     tgt_mask=attention_mask,
-        #     memory_key_padding_mask=mask,
-        #     pos=pos_embed,
-        #     query_pos=zero_tgt,
-        # )  # (num_joints + num_vertices) X batch_size X feature_dim
-
-        print(f"transformer_3: result: {r}")
-        _cam_features, _enc_img_features, jv_features = r
-        return jv_features
-
     def forward(self, cam_features_2, enc_img_features_2, jv_features_2):
         device = cam_features_2.device
         batch_size = cam_features_2.size(1)
