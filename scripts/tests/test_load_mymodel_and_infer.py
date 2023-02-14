@@ -85,7 +85,7 @@ def _do_loop(fastmetro_model, model, train_loader):
         print(f"pred_normal_v: {pred_normal_v.shape}")
         print(f"pred_radius: {pred_radius.shape}")
         mesh = make_hand_mesh(pred_3d_vertices_fine[0])
-        visualize_points(
+        visualize_mesh_and_points(
             mesh=mesh,
             blue_points=gt_verts_3d[0].numpy(),
             red_points=[
