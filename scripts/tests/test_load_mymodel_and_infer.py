@@ -2,7 +2,7 @@ from decimal import Decimal
 from pathlib import Path
 from logging import DEBUG, INFO, basicConfig, getLogger, debug, error, exception, info, warning
 from src.handinfo.mano import ManoWrapper
-from src.handinfo.ring.helper import _adjust_vertices
+from src.handinfo.ring.helper import _adjust_vertices, calc_ring
 
 import torch
 
