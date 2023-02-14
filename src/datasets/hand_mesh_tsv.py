@@ -38,7 +38,6 @@ class HandMeshTSVDataset(object):
         linelist_file=None,
         is_train=True,
         cv2_output=False,
-        scale_factor=1,
     ):
         self.args = args
         self.img_file = img_file
@@ -60,9 +59,7 @@ class HandMeshTSVDataset(object):
             mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
         )
         self.is_train = is_train
-        self.scale_factor = 0.25  # rescale bounding boxes by a factor of [1-options.scale_factor,1+options.scale_factor]
-        self.noise_factor = 0.4
-        self.rot_factor = 90  # Random rotation in the range [-rot_factor, rot_factor]
+
         self.img_res = 224
         self.image_keys = self.prepare_image_keys()
         self.joints_definition = (
@@ -123,29 +120,6 @@ class HandMeshTSVDataset(object):
         elif self.args.multiscale_inference == True:
             rot = self.args.rot
             sc = self.args.sc
-
-        if self.is_train:
-            sc = 1.0
-            # Each channel is multiplied with a number
-            # in the area [1-opt.noiseFactor,1+opt.noiseFactor]
-            pn = np.random.uniform(1 - self.noise_factor, 1 + self.noise_factor, 3)
-
-            # The rotation is a number in the area [-2*rotFactor, 2*rotFactor]
-            rot = min(
-                2 * self.rot_factor,
-                max(-2 * self.rot_factor, np.random.randn() * self.rot_factor),
-            )
-
-            # The scale is multiplied with a number
-            # in the area [1-scaleFactor,1+scaleFactor]
-            sc = min(
-                1 + self.scale_factor,
-                max(1 - self.scale_factor, np.random.randn() * self.scale_factor + 1),
-            )
-            # but it is zero with probability 3/5
-            if np.random.uniform() <= 0.6:
-                rot = 0
-
         return flip, pn, rot, sc
 
     def rgb_processing(self, rgb_img, center, scale, rot, flip, pn):
@@ -322,7 +296,7 @@ class HandMeshTSVDataset(object):
 class HandMeshTSVYamlDataset(HandMeshTSVDataset):
     """TSVDataset taking a Yaml file for easy function call"""
 
-    def __init__(self, args, yaml_file, is_train=True, cv2_output=False, scale_factor=1):
+    def __init__(self, args, yaml_file, is_train=True, cv2_output=False):
         self.cfg = load_from_yaml_file(yaml_file)
         self.is_composite = self.cfg.get("composite", False)
         self.root = op.dirname(yaml_file)
@@ -339,12 +313,5 @@ class HandMeshTSVYamlDataset(HandMeshTSVDataset):
             linelist_file = find_file_path_in_yaml(self.cfg.get("linelist", None), self.root)
 
         super(HandMeshTSVYamlDataset, self).__init__(
-            args,
-            img_file,
-            label_file,
-            hw_file,
-            linelist_file,
-            is_train,
-            cv2_output=cv2_output,
-            scale_factor=scale_factor,
+            args, img_file, label_file, hw_file, linelist_file, is_train, cv2_output=cv2_output
         )
