@@ -28,7 +28,11 @@ from src.handinfo.parser import train_parse_args
 
 # from src.handinfo.data import get_mano_faces
 from src.handinfo.mano import ManoWrapper
-from src.handinfo.data.tools import make_hand_data_loader
+from src.handinfo.data.tools import (
+    make_hand_data_loader,
+    get_only_original_data_loader,
+    _create_dataset,
+)
 from src.handinfo.utils import load_model_from_dir
 
 
@@ -50,15 +54,24 @@ def parse_args():
 
 
 def main(args):
-    train_loader, test_loader, datasize = make_hand_data_loader(
-        args,
-        ring_info_pkl_rootdir=args.ring_info_pkl_rootdir,
-        batch_size=1,
-        train_shuffle=False,
-    )
-    print(f"dataset: {datasize}")
-    for i, (img_keys, images, annotations) in enumerate(train_loader):
-        print(i, img_keys)
+    mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
+    # train_loader, test_loader, datasize = make_hand_data_loader(
+    #     args,
+    #     ring_info_pkl_rootdir=args.ring_info_pkl_rootdir,
+    #     batch_size=1,
+    #     train_shuffle=False,
+    # )
+
+    # train_dataloader = get_only_original_data_loader(
+    #     args,
+    #     is_train=True,
+    #     batch_size=1,
+    # )
+    # print(f"dataset: {datasize}")
+    handmesh_dataset = _create_dataset(args, is_train=True)
+    for i, (img_keys, images, annotations) in enumerate(handmesh_dataset):
+        print(i, images.shape)
+        break
 
 
 if __name__ == "__main__":
