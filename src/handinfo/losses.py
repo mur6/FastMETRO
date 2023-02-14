@@ -60,7 +60,7 @@ def on_circle_loss_wrap(pred_output, data):
 
 other_weight = 0.1
 weight_of_pca_mean = 100.0
-weight_of_normal_v = 1.0 * other_weight
+weight_of_normal_v = 1.0 * 0.6
 weight_of_radius = 1e4 * other_weight
 weight_of_plane = 100.0 * other_weight
 weight_of_sphere = 1e5 * other_weight
