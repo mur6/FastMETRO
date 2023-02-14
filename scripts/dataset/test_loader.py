@@ -88,11 +88,16 @@ def main(args):
         print(f"gt_vertices: {gt_vertices.shape}")
         print(f"gt_3d_joints: {gt_3d_joints.shape}")
         d_list = calc_ring(mano_model_wrapper, pose=pose, betas=betas)
-        print(d_list)
+        pca_mean = d_list[0]["pca_mean_"]
+        vert_3d = d_list[0]["vert_3d"]
+        print(f"pca_mean: {pca_mean.shape}")
         mesh = make_hand_mesh(mano_model, gt_vertices[0])
         visualize_mesh_and_points(
             mesh=mesh,
-            # blue_points=gt_verts_3d[0].numpy(),
+            blue_points=vert_3d.tolist()
+            + [
+                pca_mean,
+            ],
             # red_points=[
             #     pred_pca_mean[0].numpy(),
             # ],
