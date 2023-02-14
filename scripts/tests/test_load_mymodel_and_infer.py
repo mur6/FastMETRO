@@ -16,10 +16,10 @@ from src.handinfo.utils import load_model_from_dir, save_checkpoint
 from src.handinfo.losses import on_circle_loss
 from src.handinfo.parser import train_parse_args
 from src.handinfo.fastmetro import get_fastmetro_model
-from src.handinfo.visualize import visualize_mesh_and_points
+from src.handinfo.visualize import visualize_mesh_and_points, make_hand_mesh
+from src.handinfo.data.tools import make_hand_data_loader
 
 # from src.handinfo.data import get_mano_faces
-from src.handinfo.data.tools import make_hand_data_loader
 
 import trimesh
 import numpy as np
@@ -45,15 +45,8 @@ def parse_args():
     return args
 
 
-def make_hand_mesh(gt_vertices):
-    print(f"gt_vertices: {gt_vertices.shape}")
-    mano_model = MANO().to("cpu")
-    mano_faces = mano_model.layer.th_faces
-    # mesh objects can be created from existing faces and vertex data
-    return trimesh.Trimesh(vertices=gt_vertices.detach().numpy(), faces=mano_faces)
-
-
 def _do_loop(fastmetro_model, model, train_loader):
+    mano_model = MANO().to("cpu")
     for idx, (img_keys, images, annotations) in enumerate(train_loader):
         gt_radius = annotations["radius"].float()
         gt_verts_3d = annotations["vert_3d"]
@@ -84,7 +77,7 @@ def _do_loop(fastmetro_model, model, train_loader):
         print(f"pred_pca_mean: {pred_pca_mean.dtype}")
         print(f"pred_normal_v: {pred_normal_v.shape}")
         print(f"pred_radius: {pred_radius.shape}")
-        mesh = make_hand_mesh(pred_3d_vertices_fine[0])
+        mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine[0].numpy())
         visualize_mesh_and_points(
             mesh=mesh,
             blue_points=gt_verts_3d[0].numpy(),

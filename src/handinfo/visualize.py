@@ -49,5 +49,7 @@ def make_hand_mesh(mano_model, gt_vertices):
     print(f"gt_vertices: {gt_vertices.shape}")
     mano_faces = mano_model.layer.th_faces
     print(f"mano_faces: {mano_faces.shape}")
-    # mesh objects can be created from existing faces and vertex data
     return trimesh.Trimesh(vertices=gt_vertices, faces=mano_faces)
+
+
+# return trimesh.Trimesh(vertices=gt_vertices.detach().numpy(), faces=mano_faces)
