@@ -10,7 +10,7 @@ import onnxruntime as ort
 import torch
 from torchvision import transforms
 
-
+from src.handinfo.visualize import make_hand_mesh
 from src.modeling._mano import MANO, Mesh
 
 # def test1(model_filename):
@@ -65,16 +65,6 @@ def visualize_points(*, points):
     scene.show()
 
 
-def make_hand_mesh(gt_vertices):
-    # gt_vertices = torch.transpose(gt_vertices, 2, 1).squeeze(0)
-    print(f"gt_vertices: {gt_vertices.shape}")
-    mano_model = MANO().to("cpu")
-    mano_faces = mano_model.layer.th_faces
-    print(f"mano_faces: {mano_faces.shape}")
-    # mesh objects can be created from existing faces and vertex data
-    return trimesh.Trimesh(vertices=gt_vertices, faces=mano_faces)
-
-
 def test3(model_filename, image_file):
     transform = transforms.Compose(
         [
@@ -92,6 +82,7 @@ def test3(model_filename, image_file):
     # plt.show()
     # return
     # # img_tensor = transform(img)
+    mano_model = MANO().to("cpu")
 
     batch_imgs = torch.unsqueeze(img_tensor, 0).numpy()
     print(batch_imgs.shape)
@@ -105,7 +96,7 @@ def test3(model_filename, image_file):
     print(f"pred_3d_joints: {pred_3d_joints.shape}")
     print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
     print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
-    mesh = make_hand_mesh(pred_3d_vertices_fine.squeeze(0))
+    mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine.squeeze(0))
     # print(mesh)
     visualize_mesh(mesh=mesh, cam=cam)
     # visualize_points(points=pred_3d_joints.squeeze(0))

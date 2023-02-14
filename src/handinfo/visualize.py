@@ -42,3 +42,12 @@ def visualize_mesh_and_points(*, mesh, red_points=(), blue_points=()):
     for p in blue_points:
         scene.add_geometry(_create_point_geom(p, "blue"))
     scene.show()
+
+
+def make_hand_mesh(mano_model, gt_vertices):
+    # gt_vertices = torch.transpose(gt_vertices, 2, 1).squeeze(0)
+    print(f"gt_vertices: {gt_vertices.shape}")
+    mano_faces = mano_model.layer.th_faces
+    print(f"mano_faces: {mano_faces.shape}")
+    # mesh objects can be created from existing faces and vertex data
+    return trimesh.Trimesh(vertices=gt_vertices, faces=mano_faces)
