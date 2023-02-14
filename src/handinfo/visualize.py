@@ -51,7 +51,7 @@ def visualize_mesh_and_points(*, mesh, mesh_2=None, red_points=(), blue_points=(
     scene = trimesh.Scene()
     scene.add_geometry(set_blue(mesh))
     if mesh_2 is not None:
-        scene.add_geometry(set_red(mesh))
+        scene.add_geometry(set_red(mesh_2))
     for p in red_points:
         scene.add_geometry(_create_point_geom(p, "red"))
     for p in blue_points:

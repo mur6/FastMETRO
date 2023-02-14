@@ -2,6 +2,7 @@ from decimal import Decimal
 from pathlib import Path
 from logging import DEBUG, INFO, basicConfig, getLogger, debug, error, exception, info, warning
 from src.handinfo.mano import ManoWrapper
+from src.handinfo.ring.helper import _adjust_vertices
 
 import torch
 
@@ -50,6 +51,20 @@ def _do_loop(fastmetro_model, model, train_loader):
     mano_model = MANO().to("cpu")
     mano_model_wrapper = ManoWrapper(mano_model=mano_model)
     for idx, (img_keys, images, annotations) in enumerate(train_loader):
+        ####################################################################
+        pose = annotations["pose"]
+        assert pose.shape[1] == 48
+        betas = annotations["betas"]
+        assert betas.shape[1] == 10
+        # pose = pose.unsqueeze(0)
+        # betas = betas.unsqueeze(0)
+        print(f"pose: {pose.shape}")
+        print(f"betas: {betas.shape}")
+        gt_vertices, gt_3d_joints = mano_model_wrapper.get_jv(
+            pose=pose, betas=betas, adjust_func=_adjust_vertices
+        )
+        gt_mesh = make_hand_mesh(mano_model, gt_vertices[0])
+        ####################################################################
         gt_radius = annotations["radius"].float()
         gt_verts_3d = annotations["vert_3d"]
         gt_pca_mean = annotations["pca_mean"]
@@ -81,13 +96,14 @@ def _do_loop(fastmetro_model, model, train_loader):
         print(f"pred_radius: {pred_radius.shape}")
         mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine[0].numpy())
         visualize_mesh_and_points(
-            mesh=mesh,
+            mesh=gt_mesh,
+            mesh_2=mesh,
             blue_points=gt_verts_3d[0].numpy(),
             red_points=[
                 pred_pca_mean[0].numpy(),
             ],
         )
-        if idx == 2:
+        if idx == 1:
             break
 
 
