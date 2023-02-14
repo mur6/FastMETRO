@@ -12,10 +12,12 @@ def visualize_mesh(*, mesh):
     scene.show()
 
 
-def _create_point_geom(point, color):
-    geom = trimesh.creation.icosphere(radius=0.0008)
+def _create_point_geom(point, color, *, radius=0.0008):
+    geom = trimesh.creation.icosphere(radius=radius)
     if color == "red":
         color = [202, 2, 2, 255]
+    elif color == "green":
+        color = [2, 212, 2, 255]
     else:
         color = [0, 0, 200, 255]
     geom.visual.face_colors = color
@@ -56,6 +58,8 @@ def visualize_mesh_and_points(*, mesh, mesh_2=None, red_points=(), blue_points=(
         scene.add_geometry(_create_point_geom(p, "red"))
     for p in blue_points:
         scene.add_geometry(_create_point_geom(p, "blue"))
+    # 原点
+    scene.add_geometry(_create_point_geom((0, 0, 0), "green", radius=0.009))
     scene.show()
 
 
