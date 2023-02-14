@@ -56,7 +56,8 @@ def parse_args():
 
 
 def main(args):
-    mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
+    mano_model = MANO().to("cpu")
+    mano_model_wrapper = ManoWrapper(mano_model=mano_model)
     # train_loader, test_loader, datasize = make_hand_data_loader(
     #     args,
     #     ring_info_pkl_rootdir=args.ring_info_pkl_rootdir,
@@ -70,7 +71,7 @@ def main(args):
     #     batch_size=1,
     # )
     # print(f"dataset: {datasize}")
-    mano_model = MANO().to("cpu")
+
     handmesh_dataset = _create_dataset(args, is_train=True)
     for i, (img_keys, images, annotations) in enumerate(handmesh_dataset):
         print(i, images.shape)

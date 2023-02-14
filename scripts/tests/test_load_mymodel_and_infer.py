@@ -1,6 +1,7 @@
 from decimal import Decimal
 from pathlib import Path
 from logging import DEBUG, INFO, basicConfig, getLogger, debug, error, exception, info, warning
+from src.handinfo.mano import ManoWrapper
 
 import torch
 
@@ -47,6 +48,7 @@ def parse_args():
 
 def _do_loop(fastmetro_model, model, train_loader):
     mano_model = MANO().to("cpu")
+    mano_model_wrapper = ManoWrapper(mano_model=mano_model)
     for idx, (img_keys, images, annotations) in enumerate(train_loader):
         gt_radius = annotations["radius"].float()
         gt_verts_3d = annotations["vert_3d"]
