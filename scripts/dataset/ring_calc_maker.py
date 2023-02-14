@@ -25,7 +25,7 @@ from src.modeling.hrnet.hrnet_cls_net_featmaps import get_cls_net
 from src.modeling.model import FastMETRO_Hand_Network, MyModel
 from src.modeling.model.transformer import build_transformer
 from src.handinfo.parser import train_parse_args
-
+from src.handinfo.mano import ManoWrapper
 from src.handinfo.ring.helper import iter_converted_batches, save_to_file
 
 
@@ -36,24 +36,6 @@ from src.handinfo.ring.helper import iter_converted_batches, save_to_file
 #  --val_yaml "../orig-MeshGraphormer/freihand/test.yaml" \
 #  --num_workers 0 --per_gpu_train_batch_size 1024
 # ------------------------------------------------------------
-
-
-class ManoWrapper:
-    def __init__(self, *, mano_model):
-        self.mano_model = mano_model
-
-    def get_jv(self, *, pose, betas, adjust_func=None):
-        # pose = pose.unsqueeze(0)
-        # betas = betas.unsqueeze(0)
-        gt_vertices, gt_3d_joints = self.mano_model.layer(pose, betas)
-        if adjust_func is not None:
-            gt_vertices, gt_3d_joints = adjust_func(gt_vertices, gt_3d_joints)
-        return gt_vertices, gt_3d_joints
-
-    def get_trimesh_list(self, gt_vertices):
-        mano_faces = self.mano_model.layer.th_faces
-        # mesh objects can be created from existing faces and vertex data
-        return [trimesh.Trimesh(vertices=gt_vert, faces=mano_faces) for gt_vert in gt_vertices]
 
 
 def _make_data_loader(args, *, yaml_file, is_train, batch_size):
