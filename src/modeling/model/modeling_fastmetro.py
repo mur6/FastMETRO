@@ -442,12 +442,12 @@ class MyModel(nn.Module):
             "pos_type": args.pos_type,
         }
 
-        # self.dim_reduce_enc_cam = nn.Linear(128, self.transformer_config_3["model_dim"])
+        self.dim_reduce_enc_cam = nn.Linear(128, self.transformer_config_3["model_dim"])
         self.dim_reduce_enc_img = nn.Linear(128, self.transformer_config_3["model_dim"])
         self.dim_reduce_dec = nn.Linear(128, self.transformer_config_3["model_dim"])
 
         # build transformers
-        self.transformer_3 = build_transformer(self.transformer_config_3).decoder
+        self.transformer_3 = build_transformer(self.transformer_config_3)
         # token embeddings
         self.ring_token_embed = nn.Embedding(
             self.num_ring_infos, self.transformer_config_3["model_dim"]
@@ -482,11 +482,9 @@ class MyModel(nn.Module):
         #     pos=pos_embed,
         #     query_pos=zero_tgt,
         # )  # (num_joints + num_vertices) X batch_size X feature_dim
-        _cam_features, _enc_img_features, jv_features = self.transformer_3(
-            jv_tokens,
-            enc_img_features,
-            tgt_mask=attention_mask,
-        )
+
+        print(f"transformer_3: result: {r}")
+        _cam_features, _enc_img_features, jv_features = r
         return jv_features
 
     def forward(self, cam_features_2, enc_img_features_2, jv_features_2):
@@ -494,7 +492,7 @@ class MyModel(nn.Module):
         batch_size = cam_features_2.size(1)
 
         # progressive dimensionality reduction
-        # reduced_cam_features_2 = self.dim_reduce_enc_cam(cam_features_2)  # 1 X batch_size X 32
+        reduced_cam_features_2 = self.dim_reduce_enc_cam(cam_features_2)  # 1 X batch_size X 32
         reduced_enc_img_features_2 = self.dim_reduce_enc_img(
             enc_img_features_2
         )  # 49 X batch_size X 32
@@ -515,13 +513,21 @@ class MyModel(nn.Module):
         # print(f"forward:r_tokens: {r_tokens.shape}")
         r_tokens_and_jv = torch.cat([r_tokens, jv_features_2], dim=0)
         # print(f"forward:r_tokens_and_jv: {r_tokens_and_jv.shape}")
-        jv_features_final = self._do_decode(
-            h * w, batch_size, device, reduced_enc_img_features_2, r_tokens_and_jv, pos_enc_3
-        )
-        # print(f"jv_features_final: {jv_features_final.shape}")
-        # cam_features, enc_img_features, jv_features = self.transformer_3(
-        #     enc_img_features_2, cam_features_2, jv_features_2, pos_enc_3
+
+        # cam_features_2, enc_img_features_2, jv_features_2 = self.transformer_2(
+        #     reduced_enc_img_features_1,
+        #     reduced_cam_features_1,
+        #     reduced_jv_features_1,
+        #     pos_enc_2,
+        #     attention_mask=attention_mask,
         # )
+        _, _, jv_features_final = self.transformer_3(
+            reduced_enc_img_features_2,
+            reduced_cam_features_2,
+            r_tokens_and_jv,
+            pos_enc_3,
+            attention_mask=None,
+        )
         # pred_cam = self.cam_predictor(cam_features_2).view(batch_size, 3)  # batch_size X 3
         center_features = jv_features_final[[0], :, :].transpose(0, 1)
         # center_features = center_features.contiguous().view(-1, 128 * 3)
