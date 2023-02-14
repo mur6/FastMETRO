@@ -125,3 +125,7 @@ def on_circle_loss_1(*, pred_output, verts_3d, gt_pca_mean, gt_normal_v, gt_radi
     return on_circle_loss(
         pred_pca_mean, pred_normal_v, pred_radius, verts_3d, gt_pca_mean, gt_normal_v, gt_radius
     )
+
+
+if __name__ == "__main__":
+    get_all_losses()
