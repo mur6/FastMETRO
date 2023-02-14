@@ -35,19 +35,15 @@ from src.handinfo.data.tools import get_only_original_data_loader
 #  PYTHONPATH=. python scripts/dataset/ring_calc_maker.py \
 #  --train_yaml "../orig-MeshGraphormer/freihand/train.yaml" \
 #  --val_yaml "../orig-MeshGraphormer/freihand/test.yaml" \
-#  --num_workers 0 --per_gpu_train_batch_size 1024
+#  --num_workers 0 --per_gpu_train_batch_size 1024 \
+#  --is_train
 # ------------------------------------------------------------
 
 
-def main(
-    args,
-    *,
-    save_unit=5000,
-    is_train=True,
-):
+def main(args, *, save_unit=5000):
     mano_model_wrapper = ManoWrapper(mano_model=MANO().to("cpu"))
 
-    if is_train:
+    if args.is_train:
         label = "train"
         yaml_file = args.train_yaml
     else:
@@ -55,7 +51,7 @@ def main(
         yaml_file = args.val_yaml
     train_dataloader = get_only_original_data_loader(
         args,
-        is_train=is_train,
+        is_train=args.is_train,
         batch_size=args.per_gpu_train_batch_size,
     )
 
@@ -78,8 +74,18 @@ def main(
         save_to_file(f"data/{label}_ring_infos_{count:03}", lis)
 
 
+def parse_args():
+    def parser_hook(parser):
+        parser.add_argument(
+            "--is_train",
+            default=False,
+            action="store_true",
+        )
+
+    args = train_parse_args(parser_hook=parser_hook)
+    return args
+
+
 if __name__ == "__main__":
-    args = train_parse_args()
-    print("########")
+    args = parse_args()
     main(args)
-    print("########")
