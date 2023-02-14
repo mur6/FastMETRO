@@ -6,6 +6,7 @@ from functools import partial
 from collections import defaultdict
 from pathlib import Path
 from logging import DEBUG, INFO, basicConfig, getLogger, debug, error, exception, info, warning
+from src.handinfo.visualize import make_hand_mesh, visualize_mesh_and_points
 
 import trimesh
 import numpy as np
@@ -69,6 +70,7 @@ def main(args):
     #     batch_size=1,
     # )
     # print(f"dataset: {datasize}")
+    mano_model = MANO().to("cpu")
     handmesh_dataset = _create_dataset(args, is_train=True)
     for i, (img_keys, images, annotations) in enumerate(handmesh_dataset):
         print(i, images.shape)
@@ -87,6 +89,16 @@ def main(args):
         print(f"gt_3d_joints: {gt_3d_joints.shape}")
         d_list = calc_ring(mano_model_wrapper, pose=pose, betas=betas)
         print(d_list)
+        mesh = make_hand_mesh(mano_model, gt_vertices[0])
+        visualize_mesh_and_points(
+            mesh=mesh,
+            # blue_points=gt_verts_3d[0].numpy(),
+            # red_points=[
+            #     pred_pca_mean[0].numpy(),
+            # ],
+        )
+        # if idx == 2:
+        #     break
         break
 
 
