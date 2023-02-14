@@ -17,6 +17,7 @@ from torch.utils.data import DataLoader
 from manopth.manolayer import ManoLayer
 
 import src.modeling.data.config as cfg
+from src.handinfo.ring.helper import _adjust_vertices
 from src.datasets.build import build_hand_dataset
 from src.modeling._mano import MANO, Mesh
 from src.modeling.hrnet.config import config as hrnet_config
@@ -71,6 +72,19 @@ def main(args):
     handmesh_dataset = _create_dataset(args, is_train=True)
     for i, (img_keys, images, annotations) in enumerate(handmesh_dataset):
         print(i, images.shape)
+        pose = annotations["pose"]
+        # assert pose.shape[1] == 48
+        betas = annotations["betas"]
+        # assert betas.shape[1] == 10
+        pose = pose.unsqueeze(0)
+        betas = betas.unsqueeze(0)
+        print(f"pose: {pose.shape}")
+        print(f"betas: {betas.shape}")
+        gt_vertices, gt_3d_joints = mano_model_wrapper.get_jv(
+            pose=pose, betas=betas, adjust_func=_adjust_vertices
+        )
+        print(f"gt_vertices: {gt_vertices.shape}")
+        print(f"gt_3d_joints: {gt_3d_joints.shape}")
         break
 
 
