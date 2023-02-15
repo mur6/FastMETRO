@@ -320,7 +320,7 @@ class FastMETRO_Hand_Network(nn.Module):
         temp_mask_2 = torch.cat([zeros_1, temp_mask_1], dim=1)
         self.attention_mask = torch.cat([zeros_2, temp_mask_2], dim=0)
 
-    def forward(self, images, *, output_features=False):
+    def forward(self, images, *, output_minimum=False):
         device = images.device
         batch_size = images.size(0)
 
@@ -397,7 +397,7 @@ class FastMETRO_Hand_Network(nn.Module):
             pred_3d_vertices_coarse
         )  # batch_size X num_vertices(fine) X 3
 
-        if output_features:
+        if output_minimum:
             out = (
                 cam_features_2,
                 enc_img_features_2,
