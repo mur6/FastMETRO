@@ -150,8 +150,17 @@ def main(args):
         args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir, batch_size=args.batch_size
     )
 
-    model = utils.get_my_model(args, mymodel_resume_dir=args.mymodel_resume_dir, device=device)
-    # model.eval()
+    mesh_sampler = Mesh(device=device)
+    fastmetro_model = get_fastmetro_model(
+        args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
+    )
+
+    model = utils.get_my_model(
+        args,
+        mymodel_resume_dir=args.mymodel_resume_dir,
+        fastmetro_model=fastmetro_model,
+        device=device,
+    )
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     gamma = float(args.gamma)
@@ -160,15 +169,9 @@ def main(args):
     # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
     # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=gamma)
 
-    # faces = get_mano_faces()
-    mesh_sampler = Mesh(device=device)
-    fastmetro_model = get_fastmetro_model(
-        args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
-    )
-
     for epoch in range(1, 1000 + 1):
-        train(args, fastmetro_model, model, train_loader, datasize, optimizer)
-        test(args, fastmetro_model, model, test_loader, datasize)
+        train(args, model, train_loader, datasize, optimizer)
+        test(args, model, test_loader, datasize)
         if epoch % 5 == 0:
             utils.save_checkpoint(model, epoch)
         lr_scheduler.step(epoch)
