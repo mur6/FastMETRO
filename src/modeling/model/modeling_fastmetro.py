@@ -439,13 +439,13 @@ class MLP(nn.Module):
 
 
 class SimpleCustomModel(nn.Module):
-    def __init__(self, args, fastmetro_model):
+    def __init__(self, fastmetro_model):
         super().__init__()
         self.fastmetro_model = fastmetro_model
         self.mlp_output = MLP()
 
     def forward(self, images):
-        cam_features, _, jv_features = self.fastmetro_model(images)
+        cam_features, _, jv_features = self.fastmetro_model(images, output_minimum=True)
         joint_features = jv_features[:21, :, :]
         x = torch.cat((cam_features, joint_features), 0).transpose(0, 1)
         batch_size = x.shape[0]
