@@ -215,8 +215,11 @@ def test_new_simple_model(args):
     fastmetro_model = get_fastmetro_model(args)
     images = torch.rand(32, 3, 224, 224)
     model = SimpleCustomModel(fastmetro_model)
-    x = model(images)
-    print(x.shape)
+    # x = model(images)
+    pred_pca_mean, pred_normal_v, pred_radius = model(images)
+    print(f"mymodel:pred_pca_mean: {pred_pca_mean.shape}")
+    print(f"mymodel:pred_normal_v: {pred_normal_v.shape}")
+    print(f"mymodel:pred_radius: {pred_radius.shape}")
 
 
 def my_model_instance(args):
