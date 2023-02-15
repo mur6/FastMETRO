@@ -435,7 +435,7 @@ class MLP(nn.Module):
 
     def forward(self, x):
         out = self.linear2(self.dropout(F.relu(self.linear1(x))))
-        return out
+        return out[:, 0:3], out[:, 3:6], out[:, 6]
 
 
 class SimpleCustomModel(nn.Module):
