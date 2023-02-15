@@ -20,8 +20,18 @@ from src.handinfo.fastmetro import get_fastmetro_model
 from src.handinfo.data.tools import make_hand_data_loader
 
 
+def set_requires_grad_false(model):
+    fastmetro_model = model.fastmetro_model
+    backbone = fastmetro_model.backbone
+    for param in backbone.parameters():
+        param.requires_grad = False
+    for param in fastmetro_model.parameters():
+        param.requires_grad = False
+
+
 def train(args, model, train_loader, datasize, optimizer):
     model.train()
+    set_requires_grad_false(model)
     losses = []
     current_loss = 0.0
     for _, (img_keys, images, annotations) in enumerate(train_loader):
