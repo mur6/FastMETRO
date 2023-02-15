@@ -6,6 +6,6 @@ PYTHONPATH=. python scripts/custom/train.py \
     --ring_info_pkl_rootdir "../ring_info/" \
     --lr 0.00015 \
     --gamma 0.98 \
-    --mymodel_resume_dir "models/checkpoint-20/" \
+    --mymodel_resume_dir "models/temp/checkpoint-10/" \
     --batch_size 32
 
