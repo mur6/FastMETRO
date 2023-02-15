@@ -244,26 +244,6 @@ class MLP(nn.Module):
         return out
 
 
-def test_custom_model(args):
-    input_size = 217
-    hidden_size1 = 20
-    hidden_size2 = 30
-    output_size = 3
-    model = MLP(input_size, hidden_size1, hidden_size2, output_size)
-
-    input = torch.randn(4, 3, 217)
-    r = model(input)
-    # print(f"fastmetro:cam_features_1: {cam_features.shape}")
-    # print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
-    # print(f"fastmetro:jv_features_1: {jv_features.shape}")
-    # model = MyModel(args)
-    # pred_center, pred_normal_v, ring_radius = model(cam_features, enc_img_features, jv_features)
-    print(r.shape)
-    # print(f"pred_center: {pred_center.shape}")
-    # print(f"pred_normal_v: {pred_normal_v.shape}")
-    # print(f"ring_radius: {ring_radius.shape}")
-
-
 if __name__ == "__main__":
     args = train_parse_args()
     fastmetro_model = get_fastmetro_model(args)
