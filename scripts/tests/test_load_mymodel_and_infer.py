@@ -91,11 +91,11 @@ def _do_loop(fastmetro_model, model, train_loader):
             jv_features,
         ) = fastmetro_model(images, output_features=False)
 
-        ################ 補正 ###############
+        ##################################### 補正 #######################################
         pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)
         pred_3d_joints_from_mano_wrist = pred_3d_joints_from_mano[:, cfg.J_NAME.index("Wrist"), :]
         pred_3d_vertices_fine = pred_3d_vertices_fine - pred_3d_joints_from_mano_wrist[:, None, :]
-        ####################################################################
+        #################################################################################
 
         # cam_features, enc_img_features, jv_features = fastmetro_model(images, output_features=True)
         print(f"fastmetro:cam_features_1: {cam_features.shape}")
