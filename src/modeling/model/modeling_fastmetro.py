@@ -11,6 +11,7 @@ from __future__ import absolute_import, division, print_function
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 from torch import nn
 
 from .position_encoding import build_position_encoding
@@ -419,6 +420,37 @@ class FastMETRO_Hand_Network(nn.Module):
                 jv_features_2,
             )
         return out
+
+
+class MLP(nn.Module):
+    def __init__(self, input_size=2816, hidden_size1=1024, dropout=0.1, output_size=7):
+        super(MLP, self).__init__()
+        self.linear1 = nn.Linear(input_size, hidden_size1)
+        self.dropout = nn.Dropout(dropout)
+        self.linear2 = nn.Linear(hidden_size1, output_size)
+        # self.fc1 = nn.Linear(input_size, hidden_size1)
+        # self.fc2 = nn.Linear(hidden_size1, hidden_size2)
+        # self.fc3 = nn.Linear(hidden_size2, output_size)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        out = self.linear2(self.dropout(F.relu(self.linear1(x))))
+        return out
+
+
+class SimpleCustomModel(nn.Module):
+    def __init__(self, args, fastmetro_model):
+        super().__init__()
+        self.fastmetro_model = fastmetro_model
+        self.mlp_output = MLP()
+
+    def forward(self, images):
+        cam_features, _, jv_features = self.fastmetro_model(images)
+        joint_features = jv_features[:21, :, :]
+        x = torch.cat((cam_features, joint_features), 0).transpose(0, 1)
+        batch_size = x.shape[0]
+        x = x.contiguous().view(batch_size, -1)
+        return self.mlp_output(x)
 
 
 class DecWide128Model(nn.Module):
