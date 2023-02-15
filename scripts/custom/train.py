@@ -20,8 +20,7 @@ from src.handinfo.fastmetro import get_fastmetro_model
 from src.handinfo.data.tools import make_hand_data_loader
 
 
-def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
-    fastmetro_model.eval()
+def train(args, model, train_loader, datasize, optimizer):
     model.train()
     losses = []
     current_loss = 0.0
@@ -49,16 +48,7 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
         # print(f"gt_normal_v: {gt_normal_v.dtype}")
         batch_size = images.shape[0]
         # print(f"batch_size: {batch_size}")
-        cam_features, enc_img_features, jv_features = fastmetro_model(images, output_features=True)
-        # print(f"fastmetro:cam_features_1: {cam_features.shape}")
-        # print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
-        # print(f"fastmetro:jv_features_1: {jv_features.shape}")
-        # print(f"########: infer: end. {time.time() - last_seconds}")
-        # last_seconds = time.time()
-        # print("########: train")
-        pred_pca_mean, pred_normal_v, pred_radius = model(
-            cam_features, enc_img_features, jv_features
-        )
+        pred_pca_mean, pred_normal_v, pred_radius = model(images)
         # print(f"mymodel:pred_pca_mean: {pred_pca_mean.shape}")
         # print(f"mymodel:pred_normal_v: {pred_normal_v.shape}")
         # print(f"mymodel:pred_radius: {pred_radius.shape}")
@@ -83,8 +73,7 @@ def train(args, fastmetro_model, model, train_loader, datasize, optimizer):
     print(f"Train Loss: {epoch_loss:.6f}")
 
 
-def test(args, fastmetro_model, model, test_loader, datasize):
-    fastmetro_model.eval()
+def test(args, model, test_loader, datasize):
     model.eval()
 
     current_loss = 0.0
@@ -103,12 +92,7 @@ def test(args, fastmetro_model, model, test_loader, datasize):
         batch_size = images.shape[0]
         # print(f"batch_size: {batch_size}")
         with torch.no_grad():
-            cam_features, enc_img_features, jv_features = fastmetro_model(
-                images, output_features=True
-            )
-            pred_pca_mean, pred_normal_v, pred_radius = model(
-                cam_features, enc_img_features, jv_features
-            )
+            pred_pca_mean, pred_normal_v, pred_radius = model(images)
         # gt_y = data.y.view(batch_size, -1).float().contiguous()
         loss = on_circle_loss(
             pred_pca_mean,
