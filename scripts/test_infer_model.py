@@ -229,8 +229,8 @@ def my_model_instance(args):
 if __name__ == "__main__":
     args = train_parse_args()
     # main(args)
-    # test_each_transformer_models(args)
+    test_each_transformer_models(args)
     # model_load_and_inference(args)
     print("########")
     # original_model_test(args)
-    my_model_instance(args)
+    # my_model_instance(args)

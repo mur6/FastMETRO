@@ -429,8 +429,8 @@ class WideMyModel(nn.Module):
         self.num_vertices = num_vertices
         self.num_ring_infos = 3
         assert "FastMETRO-L" in args.model_name
-        num_enc_layers = 1
-        num_dec_layers = 1
+        num_enc_layers = 3
+        num_dec_layers = 3
         # configurations for the first transformer
         self.transformer_config_3 = {
             "model_dim": 32,
@@ -441,11 +441,6 @@ class WideMyModel(nn.Module):
             "num_dec_layers": num_dec_layers,
             "pos_type": args.pos_type,
         }
-
-        # self.dim_reduce_enc_cam = nn.Linear(128, self.transformer_config_3["model_dim"])
-        self.dim_reduce_enc_img = nn.Linear(128, self.transformer_config_3["model_dim"])
-        self.dim_reduce_dec = nn.Linear(128, self.transformer_config_3["model_dim"])
-
         # build transformers
         self.transformer_3_decoder = build_transformer(self.transformer_config_3).decoder
         # token embeddings
