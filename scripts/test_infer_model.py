@@ -6,6 +6,7 @@ from logging import DEBUG, INFO, basicConfig, getLogger, debug, error, exception
 import cv2
 import numpy as np
 import torch
+import torch.nn as nn
 import torchvision.models as models
 from torch.nn import functional as F
 from torchvision.utils import make_grid
@@ -159,7 +160,7 @@ def get_fastmetro_model(args):
     # Mesh and MANO utils
     mano_model = MANO().to(args.device)
     mano_model.layer = mano_model.layer.to(args.device)
-    mesh_sampler = Mesh()
+    mesh_sampler = Mesh(device=args.device)
     hrnet_yaml = "models/hrnet/cls_hrnet_w64_sgd_lr5e-2_wd1e-4_bs32_x100.yaml"
     hrnet_checkpoint = "models/hrnet/hrnetv2_w64_imagenet_pretrained.pth"
     hrnet_update_config(hrnet_config, hrnet_yaml)
@@ -226,10 +227,61 @@ def my_model_instance(args):
     print(f"ring_radius: {ring_radius.shape}")
 
 
+class MLP(nn.Module):
+    def __init__(self, input_size=2816, hidden_size1=1024, hidden_size2=128, output_size=6):
+        super(MLP, self).__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size1)
+        self.fc2 = nn.Linear(hidden_size1, hidden_size2)
+        self.fc3 = nn.Linear(hidden_size2, output_size)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        out = self.fc1(x)
+        out = self.relu(out)
+        out = self.fc2(out)
+        out = self.relu(out)
+        out = self.fc3(out)
+        return out
+
+
+def test_custom_model(args):
+    input_size = 217
+    hidden_size1 = 20
+    hidden_size2 = 30
+    output_size = 3
+    model = MLP(input_size, hidden_size1, hidden_size2, output_size)
+
+    input = torch.randn(4, 3, 217)
+    r = model(input)
+    # print(f"fastmetro:cam_features_1: {cam_features.shape}")
+    # print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
+    # print(f"fastmetro:jv_features_1: {jv_features.shape}")
+    # model = MyModel(args)
+    # pred_center, pred_normal_v, ring_radius = model(cam_features, enc_img_features, jv_features)
+    print(r.shape)
+    # print(f"pred_center: {pred_center.shape}")
+    # print(f"pred_normal_v: {pred_normal_v.shape}")
+    # print(f"ring_radius: {ring_radius.shape}")
+
+
 if __name__ == "__main__":
     args = train_parse_args()
-    # main(args)
-    test_each_transformer_models(args)
+    fastmetro_model = get_fastmetro_model(args)
+    images = torch.rand(32, 3, 224, 224)
+    cam_features, _, jv_features = fastmetro_model(images, output_minimum=True)
+    joint_features = jv_features[:21, :, :]
+    print(cam_features.shape)
+    print(joint_features.shape)
+    # num_joints=21, num_vertices=195
+    x = torch.cat((cam_features, joint_features), 0).transpose(0, 1)
+    batch_size = x.shape[0]
+    print(f"batch_size: {batch_size}")
+    x = x.contiguous().view(batch_size, -1)
+    mlp = MLP()
+    y = mlp(x)
+    print(x.shape, y.shape)
+    # test_custom_model(args)
+    # test_each_transformer_models(args)
     # model_load_and_inference(args)
     print("########")
     # original_model_test(args)
