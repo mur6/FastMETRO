@@ -156,9 +156,9 @@ def main(args):
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     gamma = float(args.gamma)
     print(f"gamma: {gamma}")
-    # lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
+    lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
     # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=gamma)
+    # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=gamma)
 
     # faces = get_mano_faces()
     mesh_sampler = Mesh(device=device)
