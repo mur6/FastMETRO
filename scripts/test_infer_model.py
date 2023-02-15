@@ -227,23 +227,6 @@ def my_model_instance(args):
     print(f"ring_radius: {ring_radius.shape}")
 
 
-class MLP(nn.Module):
-    def __init__(self, input_size=2816, hidden_size1=1024, hidden_size2=128, output_size=6):
-        super(MLP, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size1)
-        self.fc2 = nn.Linear(hidden_size1, hidden_size2)
-        self.fc3 = nn.Linear(hidden_size2, output_size)
-        self.relu = nn.ReLU()
-
-    def forward(self, x):
-        out = self.fc1(x)
-        out = self.relu(out)
-        out = self.fc2(out)
-        out = self.relu(out)
-        out = self.fc3(out)
-        return out
-
-
 if __name__ == "__main__":
     args = train_parse_args()
     fastmetro_model = get_fastmetro_model(args)
