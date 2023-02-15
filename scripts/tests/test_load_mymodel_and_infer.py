@@ -36,7 +36,7 @@ def parse_args():
             type=Path,
             required=True,
         )
-        parser.add_argument("--batch_size", type=int, default=32)
+        parser.add_argument("--batch_size", type=int, default=4)
         # parser.add_argument("--gamma", type=Decimal, default=Decimal("0.97"))
         parser.add_argument(
             "--mymodel_resume_dir",
@@ -65,7 +65,6 @@ def _do_loop(fastmetro_model, model, train_loader):
         gt_vertices, gt_3d_joints = mano_model_wrapper.get_jv(
             pose=pose, betas=betas, adjust_func=_adjust_vertices
         )
-        gt_mesh = make_hand_mesh(mano_model, gt_vertices[0])
         ####################################################################
         gt_radius = annotations["radius"].float()
         gt_verts_3d = annotations["vert_3d"]
@@ -76,11 +75,18 @@ def _do_loop(fastmetro_model, model, train_loader):
         print(f"gt_pca_mean: {gt_pca_mean.shape}")
         print(f"gt_normal_v: {gt_normal_v.shape}")
         batch_size = images.shape[0]
+
         ####################################################################
-        if True:
-            print(f"gt_pca_mean: {gt_pca_mean[0]}")
-            print(f"gt_normal_v: {gt_normal_v[0]}")
-        # print(f"batch_size: {batch_size}")
+        def _iter_gt():
+            for gt_vertex, gt_pca_m, gt_a_verts_3d in zip(gt_vertices, gt_pca_mean, gt_verts_3d):
+                mesh = make_hand_mesh(mano_model, gt_vertex)
+                points = [gt_pca_m.numpy().tolist()] + gt_a_verts_3d.numpy().tolist()
+                # visualize_mesh_and_points(
+                #     mesh=gt_mesh,
+                #     blue_points=blue_points,
+                # )
+                yield mesh, points
+
         (
             pred_cam,
             pred_3d_joints,
@@ -96,31 +102,35 @@ def _do_loop(fastmetro_model, model, train_loader):
         pred_3d_joints_from_mano_wrist = pred_3d_joints_from_mano[:, cfg.J_NAME.index("Wrist"), :]
         pred_3d_vertices_fine = pred_3d_vertices_fine - pred_3d_joints_from_mano_wrist[:, None, :]
         #################################################################################
-
-        # cam_features, enc_img_features, jv_features = fastmetro_model(images, output_features=True)
-        print(f"fastmetro:cam_features_1: {cam_features.shape}")
-        print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
-        print(f"fastmetro:jv_features_1: {jv_features.shape}")
+        # print(f"fastmetro:cam_features_1: {cam_features.shape}")
+        # print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
+        # print(f"fastmetro:jv_features_1: {jv_features.shape}")
         pred_pca_mean, pred_normal_v, pred_radius = model(
             cam_features, enc_img_features, jv_features
         )
         print(f"pred_pca_mean: {pred_pca_mean.dtype}")
         print(f"pred_normal_v: {pred_normal_v.shape}")
         print(f"pred_radius: {pred_radius.shape}")
-        pred_mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine[0].numpy())
-        blue_points = [gt_pca_mean[0].numpy().tolist()] + gt_verts_3d[0].numpy().tolist()
-        print(f"blue_points: {blue_points}")
-        red_points = [
-            pred_pca_mean[0].numpy(),
-        ]
-        visualize_mesh_and_points(
-            mesh=gt_mesh,
-            mesh_2=pred_mesh,
-            blue_points=blue_points,
-            red_points=red_points,
-        )
-        if idx == 3:
-            break
+
+        def _iter_pred():
+            for pred_3d_vertex, pred_pca_m in zip(pred_3d_vertices_fine, pred_pca_mean):
+                mesh = make_hand_mesh(mano_model, pred_3d_vertex.numpy())
+                points = [
+                    pred_pca_m.numpy(),
+                ]
+                yield mesh, points
+
+        # blue_points = [gt_pca_mean[0].numpy().tolist()] + gt_verts_3d[0].numpy().tolist()
+        # print(f"blue_points: {blue_points}")
+        for (gt_mesh, blue_points), (pred_mesh, red_points) in zip(_iter_gt(), _iter_pred()):
+            visualize_mesh_and_points(
+                mesh=gt_mesh,
+                mesh_2=pred_mesh,
+                blue_points=blue_points,
+                red_points=red_points,
+            )
+        # if idx == 3:
+        break
 
 
 def main(args):
@@ -130,7 +140,7 @@ def main(args):
         args,
         ring_info_pkl_rootdir=args.ring_info_pkl_rootdir,
         batch_size=args.batch_size,
-        train_shuffle=False,
+        train_shuffle=True,
     )
 
     model = utils.get_my_model(args, mymodel_resume_dir=args.mymodel_resume_dir, device=device)
