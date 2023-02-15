@@ -18,7 +18,6 @@ from src.handinfo.fastmetro import get_fastmetro_model
 
 # from src.handinfo.data import get_mano_faces
 from src.handinfo.data.tools import make_hand_data_loader
-from src.modeling.model import MyModel
 
 
 def train(args, fastmetro_model, model, train_loader, datasize, optimizer):

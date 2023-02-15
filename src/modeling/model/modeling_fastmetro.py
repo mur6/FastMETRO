@@ -421,7 +421,7 @@ class FastMETRO_Hand_Network(nn.Module):
         return out
 
 
-class WideMyModel(nn.Module):
+class DecWide128Model(nn.Module):
     def __init__(self, args, num_joints=21, num_vertices=195):
         super().__init__()
         self.args = args
@@ -433,10 +433,10 @@ class WideMyModel(nn.Module):
         num_dec_layers = 3
         # configurations for the first transformer
         self.transformer_config_3 = {
-            "model_dim": 32,
+            "model_dim": 128,
             "dropout": args.transformer_dropout,
             "nhead": args.transformer_nhead,
-            "feedforward_dim": 32 * 4,
+            "feedforward_dim": 512,
             "num_enc_layers": num_enc_layers,
             "num_dec_layers": num_dec_layers,
             "pos_type": args.pos_type,
@@ -483,15 +483,6 @@ class WideMyModel(nn.Module):
     def forward(self, cam_features_2, enc_img_features_2, jv_features_2):
         device = cam_features_2.device
         batch_size = cam_features_2.size(1)
-
-        # progressive dimensionality reduction
-        # reduced_cam_features_2 = self.dim_reduce_enc_cam(cam_features_2)  # 1 X batch_size X 32
-        reduced_enc_img_features_2 = self.dim_reduce_enc_img(
-            enc_img_features_2
-        )  # 49 X batch_size X 32
-        jv_features_2 = self.dim_reduce_dec(jv_features_2)
-        # (num_joints + num_vertices) X batch_size X 32
-
         # fastmetro:cam_features_3: torch.Size([1, 1, 128])
         # fastmetro:enc_img_features_3: torch.Size([49, 1, 128])
         # fastmetro:jv_features_3: torch.Size([216, 1, 128])
@@ -507,7 +498,7 @@ class WideMyModel(nn.Module):
         r_tokens_and_jv = torch.cat([r_tokens, jv_features_2], dim=0)
         # print(f"forward:r_tokens_and_jv: {r_tokens_and_jv.shape}")
         jv_features_final = self._do_decode(
-            h * w, batch_size, device, reduced_enc_img_features_2, r_tokens_and_jv, pos_enc_3
+            h * w, batch_size, device, enc_img_features_2, r_tokens_and_jv, pos_enc_3
         )
         # print(f"jv_features_final: {jv_features_final.shape}")
         # cam_features, enc_img_features, jv_features = self.transformer_3(
@@ -529,7 +520,7 @@ class WideMyModel(nn.Module):
         )
 
 
-class MyModel(nn.Module):
+class T3EncDecModel(nn.Module):
     def __init__(self, args, num_joints=21, num_vertices=195):
         super().__init__()
         self.args = args
