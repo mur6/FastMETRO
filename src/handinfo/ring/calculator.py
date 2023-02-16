@@ -5,7 +5,8 @@ from pathlib import Path
 import math
 
 import trimesh
-import matplotlib.pyplot as plt
+
+# import matplotlib.pyplot as plt
 import numpy as np
 import numpy.linalg
 import torch
