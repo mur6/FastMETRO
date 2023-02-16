@@ -436,14 +436,15 @@ class MLP(nn.Module):
 
     def forward(self, x):
         out = self.linear2(self.dropout(F.relu(self.linear1(x))))
-        return out, None, None
+        return out
 
 
 class SimpleCustomModel(nn.Module):
     def __init__(self, fastmetro_model):
         super().__init__()
         self.fastmetro_model = fastmetro_model
-        self.mlp_output = MLP()
+        self.mlp_for_pca_mean = MLP()
+        self.mlp_for_normal_v = MLP()
 
     def forward(self, images):
         cam_features, _, jv_features = self.fastmetro_model(images, output_minimum=True)
@@ -453,7 +454,7 @@ class SimpleCustomModel(nn.Module):
         batch_size = x.shape[0]
         x = x.contiguous().view(batch_size, -1)
         # print(f"x: {x.shape}")
-        return self.mlp_output(x)
+        return self.mlp_for_pca_mean(x), self.mlp_for_normal_v(x), None
 
 
 class DecWide128Model(nn.Module):
