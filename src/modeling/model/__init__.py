@@ -11,4 +11,5 @@ from .modeling_custom import (
     T3EncDecModel,
     DecWide128Model,
     SimpleCustomModel,
+    OnlyRadiusModel,
 )

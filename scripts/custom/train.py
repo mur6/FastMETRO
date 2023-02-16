@@ -8,7 +8,7 @@ import torch.nn.functional as F
 # from torch.nn import Linear as Lin
 # from timm.scheduler import CosineLRScheduler
 
-from src.modeling._mano import Mesh
+from src.modeling._mano import Mesh, MANO
 from src.handinfo import utils
 
 # , save_checkpoint
@@ -27,17 +27,18 @@ def set_requires_grad_false(model):
         param.requires_grad = False
     for param in fastmetro_model.parameters():
         param.requires_grad = False
-    fastmetro_model.transformer_2.requires_grad = True
+    fastmetro_model.transformer_2.requires_grad = False
 
 
-def just_pca_mean_loss(
+def only_radius_loss(
     pred_pca_mean, pred_normal_v, pred_radius, verts_3d, gt_pca_mean, gt_normal_v, gt_radius
 ):
-    loss_pca_mean = F.mse_loss(pred_pca_mean, gt_pca_mean)
-    return loss_pca_mean.float()
+    # loss_pca_mean = F.mse_loss(pred_pca_mean, gt_pca_mean)
+    loss_radius = F.mse_loss(pred_radius, gt_radius)
+    return loss_radius.float()
 
 
-def train(args, model, train_loader, datasize, optimizer):
+def train(args, model, mano_model, train_loader, datasize, optimizer):
     model.train()
     set_requires_grad_false(model)
     losses = []
@@ -66,14 +67,14 @@ def train(args, model, train_loader, datasize, optimizer):
         # print(f"gt_normal_v: {gt_normal_v.dtype}")
         batch_size = images.shape[0]
         # print(f"batch_size: {batch_size}")
-        pred_pca_mean, pred_normal_v, pred_radius = model(images)
+        pred_pca_mean, pred_normal_v, pred_radius = model(images, mano_model)
         # print(f"mymodel:pred_pca_mean: {pred_pca_mean.shape}")
         # print(f"mymodel:pred_normal_v: {pred_normal_v.shape}")
         # print(f"mymodel:pred_radius: {pred_radius.shape}")
         # print()
         optimizer.zero_grad()
         # gt_y = data.y.view(batch_size, -1).float().contiguous()
-        loss = just_pca_mean_loss(
+        loss = only_radius_loss(
             pred_pca_mean,
             pred_normal_v,
             pred_radius,
@@ -91,7 +92,7 @@ def train(args, model, train_loader, datasize, optimizer):
     print(f"Train Loss: {epoch_loss:.6f}")
 
 
-def test(args, model, test_loader, datasize):
+def test(args, model, mano_model, test_loader, datasize):
     model.eval()
 
     current_loss = 0.0
@@ -110,9 +111,9 @@ def test(args, model, test_loader, datasize):
         batch_size = images.shape[0]
         # print(f"batch_size: {batch_size}")
         with torch.no_grad():
-            pred_pca_mean, pred_normal_v, pred_radius = model(images)
+            pred_pca_mean, pred_normal_v, pred_radius = model(images, mano_model)
         # gt_y = data.y.view(batch_size, -1).float().contiguous()
-        loss = just_pca_mean_loss(
+        loss = only_radius_loss(
             pred_pca_mean,
             pred_normal_v,
             pred_radius,
@@ -152,6 +153,7 @@ def main(args):
         args, ring_info_pkl_rootdir=args.ring_info_pkl_rootdir, batch_size=args.batch_size
     )
 
+    mano_model = MANO().to(device)
     mesh_sampler = Mesh(device=device)
     fastmetro_model = get_fastmetro_model(
         args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
@@ -172,8 +174,8 @@ def main(args):
     # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=gamma)
 
     for epoch in range(1, 1000 + 1):
-        train(args, model, train_loader, datasize, optimizer)
-        test(args, model, test_loader, datasize)
+        train(args, model, mano_model, train_loader, datasize, optimizer)
+        test(args, model, mano_model, test_loader, datasize)
         if epoch % 5 == 0:
             utils.save_checkpoint(model, epoch)
         lr_scheduler.step(epoch)

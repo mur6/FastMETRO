@@ -96,6 +96,9 @@ def _do_loop(train_loader, *, fastmetro_model, model=None):
             enc_img_features,
             jv_features,
         ) = fastmetro_model(images, output_minimum=False)
+        print(f"jv_features: {jv_features.shape}")
+        print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
+        break
 
         ##################################### 補正 #######################################
         pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)

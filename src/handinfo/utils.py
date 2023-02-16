@@ -1,7 +1,7 @@
 from pathlib import Path
 import torch
 
-from src.modeling.model import T3EncDecModel, DecWide128Model, SimpleCustomModel
+from src.modeling.model import T3EncDecModel, DecWide128Model, SimpleCustomModel, OnlyRadiusModel
 
 
 def save_checkpoint(model, epoch, iteration=None):
@@ -36,6 +36,6 @@ def get_my_model(args, *, mymodel_resume_dir, fastmetro_model, device):
     if mymodel_resume_dir:
         model = load_model_from_dir(mymodel_resume_dir)
     else:
-        model = SimpleCustomModel(fastmetro_model).to(device)
+        model = OnlyRadiusModel(fastmetro_model).to(device)
     print(f"My model loaded: {model.__class__.__name__}")
     return model
