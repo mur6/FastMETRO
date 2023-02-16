@@ -452,7 +452,7 @@ class SimpleCustomModel(nn.Module):
         x = joint_features.transpose(0, 1)
         batch_size = x.shape[0]
         x = x.contiguous().view(batch_size, -1)
-        print(f"x: {x.shape}")
+        # print(f"x: {x.shape}")
         return self.mlp_output(x)
 
 
