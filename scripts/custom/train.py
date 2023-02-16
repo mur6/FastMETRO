@@ -3,8 +3,8 @@ from pathlib import Path
 import time
 
 import torch
+import torch.nn.functional as F
 
-# import torch.nn.functional as F
 # from torch.nn import Linear as Lin
 # from timm.scheduler import CosineLRScheduler
 
@@ -28,6 +28,13 @@ def set_requires_grad_false(model):
     for param in fastmetro_model.parameters():
         param.requires_grad = False
     fastmetro_model.transformer_2.requires_grad = True
+
+
+def just_pca_mean_loss(
+    pred_pca_mean, pred_normal_v, pred_radius, verts_3d, gt_pca_mean, gt_normal_v, gt_radius
+):
+    loss_pca_mean = F.mse_loss(pred_pca_mean, gt_pca_mean)
+    return loss_pca_mean.float()
 
 
 def train(args, model, train_loader, datasize, optimizer):
@@ -66,7 +73,7 @@ def train(args, model, train_loader, datasize, optimizer):
         # print()
         optimizer.zero_grad()
         # gt_y = data.y.view(batch_size, -1).float().contiguous()
-        loss = on_circle_loss(
+        loss = just_pca_mean_loss(
             pred_pca_mean,
             pred_normal_v,
             pred_radius,
@@ -105,7 +112,7 @@ def test(args, model, test_loader, datasize):
         with torch.no_grad():
             pred_pca_mean, pred_normal_v, pred_radius = model(images)
         # gt_y = data.y.view(batch_size, -1).float().contiguous()
-        loss = on_circle_loss(
+        loss = just_pca_mean_loss(
             pred_pca_mean,
             pred_normal_v,
             pred_radius,
