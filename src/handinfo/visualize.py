@@ -18,6 +18,8 @@ def _create_point_geom(point, color, *, radius=0.0008):
         color = [202, 2, 2, 255]
     elif color == "green":
         color = [2, 212, 2, 255]
+    elif color == "yellow":
+        color = [220, 220, 2, 255]
     else:
         color = [0, 0, 200, 255]
     geom.visual.face_colors = color
@@ -49,7 +51,9 @@ def set_red(mesh):
     return set_color(mesh, color=red)
 
 
-def visualize_mesh_and_points(*, mesh, mesh_2=None, red_points=(), blue_points=()):
+def visualize_mesh_and_points(
+    *, mesh, mesh_2=None, red_points=(), blue_points=(), yellow_points=()
+):
     scene = trimesh.Scene()
     scene.add_geometry(set_blue(mesh))
     if mesh_2 is not None:
@@ -58,8 +62,10 @@ def visualize_mesh_and_points(*, mesh, mesh_2=None, red_points=(), blue_points=(
         scene.add_geometry(_create_point_geom(p, "red"))
     for p in blue_points:
         scene.add_geometry(_create_point_geom(p, "blue"))
+    for p in yellow_points:
+        scene.add_geometry(_create_point_geom(p, "yellow"))
     # 原点
-    scene.add_geometry(_create_point_geom((0, 0, 0), "green", radius=0.009))
+    scene.add_geometry(_create_point_geom((0, 0, 0), "green", radius=0.001))
     scene.show()
 
 
