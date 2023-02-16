@@ -21,6 +21,7 @@ from src.modeling.hrnet.hrnet_cls_net_featmaps import get_cls_net
 from src.modeling.model import FastMETRO_Hand_Network, SimpleCustomModel
 from src.modeling.model.transformer import build_transformer
 from src.handinfo.parser import train_parse_args
+from src.handinfo.ring.helper import RING_1_INDEX, RING_2_INDEX
 
 # from src.utils.comm import get_rank, get_world_size, is_main_process
 # from src.utils.geometric_layers import orthographic_projection
@@ -240,7 +241,23 @@ def my_model_instance(args):
 
 if __name__ == "__main__":
     args = train_parse_args()
-    test_new_simple_model(args)
+    fastmetro_model = get_fastmetro_model(args)
+    images = torch.rand(32, 3, 224, 224)
+    cam_features, _, jv_features = fastmetro_model(images, output_minimum=True)
+    num_joints = 21
+
+    joint_features = jv_features[RING_1_INDEX : RING_2_INDEX + 1, :, :]
+    print(joint_features.shape)
+    # # num_joints=21, num_vertices=195
+    # x = torch.cat((cam_features, joint_features), 0).transpose(0, 1)
+    # batch_size = x.shape[0]
+    # print(f"batch_size: {batch_size}")
+    # x = x.contiguous().view(batch_size, -1)
+    # mlp = MLP()
+    # y = mlp(x)
+    # print(x.shape, y.shape)
+
+    # test_new_simple_model(args)
     # test_custom_model(args)
     # test_each_transformer_models(args)
     # model_load_and_inference(args)

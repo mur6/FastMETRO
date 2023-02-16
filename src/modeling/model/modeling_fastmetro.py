@@ -17,6 +17,7 @@ from torch import nn
 from .position_encoding import build_position_encoding
 from .smpl_param_regressor import build_smpl_parameter_regressor
 from .transformer import build_transformer
+from src.handinfo.ring.helper import RING_1_INDEX, RING_2_INDEX
 
 
 class FastMETRO_Original_Hand_Network(nn.Module):
@@ -423,7 +424,7 @@ class FastMETRO_Hand_Network(nn.Module):
 
 
 class MLP(nn.Module):
-    def __init__(self, input_size=2816, hidden_size1=1024, dropout=0.1, output_size=7):
+    def __init__(self, input_size=128 * 2, hidden_size1=256 * 4, dropout=0.1, output_size=3):
         super(MLP, self).__init__()
         self.linear1 = nn.Linear(input_size, hidden_size1)
         self.dropout = nn.Dropout(dropout)
@@ -435,7 +436,7 @@ class MLP(nn.Module):
 
     def forward(self, x):
         out = self.linear2(self.dropout(F.relu(self.linear1(x))))
-        return out[:, 0:3], out[:, 3:6], out[:, 6]
+        return out, None, None
 
 
 class SimpleCustomModel(nn.Module):
@@ -446,10 +447,12 @@ class SimpleCustomModel(nn.Module):
 
     def forward(self, images):
         cam_features, _, jv_features = self.fastmetro_model(images, output_minimum=True)
-        joint_features = jv_features[:21, :, :]
-        x = torch.cat((cam_features, joint_features), 0).transpose(0, 1)
+        joint_features = jv_features[RING_1_INDEX : RING_2_INDEX + 1, :, :]
+        # x = torch.cat((cam_features, joint_features), 0).transpose(0, 1)
+        x = joint_features.transpose(0, 1)
         batch_size = x.shape[0]
         x = x.contiguous().view(batch_size, -1)
+        print(f"x: {x.shape}")
         return self.mlp_output(x)
 
 
