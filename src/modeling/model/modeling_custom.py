@@ -17,7 +17,7 @@ from torch import nn
 from .position_encoding import build_position_encoding
 from .smpl_param_regressor import build_smpl_parameter_regressor
 from .transformer import build_transformer
-from src.handinfo.ring.helper import RING_1_INDEX, RING_2_INDEX
+from src.handinfo.ring.helper import RING_1_INDEX, RING_2_INDEX, WRIST_INDEX
 
 
 class MLP(nn.Module):
@@ -34,6 +34,37 @@ class MLP(nn.Module):
     def forward(self, x):
         out = self.linear2(self.dropout(F.relu(self.linear1(x))))
         return out
+
+
+class OnlyRadiusModel(nn.Module):
+    def __init__(self, fastmetro_model):
+        super().__init__()
+        self.fastmetro_model = fastmetro_model
+        self.mlp_for_radius = MLP(input_size=195 * 3, hidden_size1=256, dropout=0.6, output_size=1)
+
+    def forward(self, images, mano_model):
+        (
+            pred_cam,
+            pred_3d_joints,
+            pred_3d_vertices_coarse,
+            pred_3d_vertices_fine,
+            cam_features,
+            enc_img_features,
+            jv_features,
+        ) = self.fastmetro_model(images)
+        pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)
+        pred_3d_joints_from_mano_wrist = pred_3d_joints_from_mano[:, WRIST_INDEX, :]
+        # pred_3d_vertices_fine = pred_3d_vertices_fine - pred_3d_joints_from_mano_wrist[:, None, :]
+        pred_3d_joints = pred_3d_joints - pred_3d_joints_from_mano_wrist[:, None, :]
+        ring1_point = pred_3d_joints[:, 13, :]
+        ring2_point = pred_3d_joints[:, 14, :]
+        plane_normal = ring2_point - ring1_point  # (batch X 3)
+        plane_origin = (ring1_point + ring2_point) / 2  # (batch X 3)
+        ######### 半径のみ推論
+        batch_size = pred_3d_vertices_coarse.shape[0]
+        x = pred_3d_vertices_coarse.contiguous().view(batch_size, -1)
+        radius = self.mlp_for_radius(x)
+        return plane_origin, plane_normal, radius
 
 
 class SimpleCustomModel(nn.Module):
