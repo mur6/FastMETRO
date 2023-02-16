@@ -36,11 +36,35 @@ class MLP(nn.Module):
         return out
 
 
+class MLP_3_Layer(nn.Module):
+    def __init__(self, input_size=195 * 3, output_size=1):
+        super(MLP, self).__init__()
+        dropout_prob = 0.5
+        self.fc1 = nn.Linear(input_size, 512)
+        self.relu1 = nn.ReLU()
+        self.dropout1 = nn.Dropout(p=dropout_prob)
+        self.fc2 = nn.Linear(512, 64)
+        self.relu2 = nn.ReLU()
+        self.dropout2 = nn.Dropout(p=dropout_prob)
+        self.fc3 = nn.Linear(64, output_size)
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.relu1(x)
+        x = self.dropout1(x)
+        x = self.fc2(x)
+        x = self.relu2(x)
+        x = self.dropout2(x)
+        x = self.fc3(x)
+        return x
+
+
 class OnlyRadiusModel(nn.Module):
     def __init__(self, fastmetro_model):
         super().__init__()
         self.fastmetro_model = fastmetro_model
-        self.mlp_for_radius = MLP(input_size=195 * 3, hidden_size1=256, dropout=0.6, output_size=1)
+        # self.mlp_for_radius = MLP(input_size=195 * 3, hidden_size1=256, dropout=0.6, output_size=1)
+        self.mlp_for_radius = MLP_3_Layer()
 
     def forward(self, images, mano_model):
         (
