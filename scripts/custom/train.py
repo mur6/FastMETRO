@@ -27,7 +27,7 @@ def set_requires_grad_false(model):
         param.requires_grad = False
     for param in fastmetro_model.parameters():
         param.requires_grad = False
-    fastmetro_model.transformer_2.requires_grad = True
+    # fastmetro_model.transformer_2.requires_grad = True
 
 
 def just_pca_mean_loss(
