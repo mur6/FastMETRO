@@ -2,13 +2,7 @@ import torch
 import torch.nn.functional as F
 from torch.nn import Linear as Lin
 
-# from torch_cluster import fps, knn_graph
 # from timm.scheduler import CosineLRScheduler
-# import torch_geometric.transforms as T
-# from torch_geometric.datasets import ModelNet
-# from torch_geometric.loader import DataLoader
-# from torch_geometric.nn import MLP, PointConv, fps, global_max_pool, radius
-# from torch_geometric.utils import scatter
 from pytorch3d.structures import Meshes, Pointclouds
 from pytorch3d.loss import point_mesh_face_distance
 
