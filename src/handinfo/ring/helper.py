@@ -61,7 +61,7 @@ MANO_JOINTS_NAME = (
     "Pinky_4",
 )
 
-
+WRIST_INDEX = MANO_JOINTS_NAME.index("Wrist")
 RING_1_INDEX = MANO_JOINTS_NAME.index(f"Ring_1")
 RING_2_INDEX = MANO_JOINTS_NAME.index(f"Ring_2")
 
