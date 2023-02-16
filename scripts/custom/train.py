@@ -34,7 +34,7 @@ def only_radius_loss(
     pred_pca_mean, pred_normal_v, pred_radius, verts_3d, gt_pca_mean, gt_normal_v, gt_radius
 ):
     # loss_pca_mean = F.mse_loss(pred_pca_mean, gt_pca_mean)
-    loss_radius = F.mse_loss(pred_radius, gt_radius)
+    loss_radius = F.mse_loss(pred_radius.squeeze(1), gt_radius)
     return loss_radius.float()
 
 
