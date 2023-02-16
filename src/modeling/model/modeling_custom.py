@@ -38,7 +38,7 @@ class MLP(nn.Module):
 
 class MLP_3_Layer(nn.Module):
     def __init__(self, input_size=195 * 3, output_size=1):
-        super(MLP, self).__init__()
+        super(MLP_3_Layer, self).__init__()
         dropout_prob = 0.5
         self.fc1 = nn.Linear(input_size, 512)
         self.relu1 = nn.ReLU()
