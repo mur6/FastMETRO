@@ -239,8 +239,7 @@ def my_model_instance(args):
     print(f"ring_radius: {ring_radius.shape}")
 
 
-if __name__ == "__main__":
-    args = train_parse_args()
+def test_fastmetro_model(args):
     fastmetro_model = get_fastmetro_model(args)
     images = torch.rand(32, 3, 224, 224)
     cam_features, _, jv_features = fastmetro_model(images, output_minimum=True)
@@ -248,6 +247,11 @@ if __name__ == "__main__":
 
     joint_features = jv_features[RING_1_INDEX : RING_2_INDEX + 1, :, :]
     print(joint_features.shape)
+
+
+if __name__ == "__main__":
+    args = train_parse_args()
+
     # # num_joints=21, num_vertices=195
     # x = torch.cat((cam_features, joint_features), 0).transpose(0, 1)
     # batch_size = x.shape[0]
@@ -264,3 +268,10 @@ if __name__ == "__main__":
     print("########")
     # original_model_test(args)
     # my_model_instance(args)
+    # x = torch.randn(8, 195, 3)
+    x = torch.rand(32, 3, 2500)
+    model = STN3d()
+    out = model(x)
+    print(f"out: {out}")
+
+    # main(args.resume_dir, args.input_filename)
