@@ -41,10 +41,10 @@ class MLP_3_Layer(nn.Module):
         super(MLP_3_Layer, self).__init__()
         dropout_prob = 0.5
         self.fc1 = nn.Linear(input_size, 512)
-        self.relu1 = nn.LeakyReLU(negative_slope=0.01)
+        self.relu1 = nn.PReLU()
         self.dropout1 = nn.Dropout(p=dropout_prob)
         self.fc2 = nn.Linear(512, 64)
-        self.relu2 = nn.LeakyReLU(negative_slope=0.01)
+        self.relu2 = nn.PReLU()
         self.dropout2 = nn.Dropout(p=dropout_prob)
         self.fc3 = nn.Linear(64, output_size)
 
