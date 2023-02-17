@@ -69,7 +69,7 @@ class OnlyRadiusModel(nn.Module):
         else:
             self.mlp_for_radius = mlp_for_radius
 
-    def forward(self, images, mano_model):
+    def forward(self, images, mano_model, *, output_minimum=False):
         (
             pred_cam,
             pred_3d_joints,
@@ -81,7 +81,7 @@ class OnlyRadiusModel(nn.Module):
         ) = self.fastmetro_model(images)
         pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)
         pred_3d_joints_from_mano_wrist = pred_3d_joints_from_mano[:, WRIST_INDEX, :]
-        # pred_3d_vertices_fine = pred_3d_vertices_fine - pred_3d_joints_from_mano_wrist[:, None, :]
+        pred_3d_vertices_fine = pred_3d_vertices_fine - pred_3d_joints_from_mano_wrist[:, None, :]
         pred_3d_joints = pred_3d_joints - pred_3d_joints_from_mano_wrist[:, None, :]
         ring1_point = pred_3d_joints[:, 13, :]
         ring2_point = pred_3d_joints[:, 14, :]
@@ -91,7 +91,16 @@ class OnlyRadiusModel(nn.Module):
         batch_size = pred_3d_vertices_coarse.shape[0]
         x = pred_3d_vertices_coarse.contiguous().view(batch_size, -1)
         radius = self.mlp_for_radius(x)
-        return plane_origin, plane_normal, radius
+        if output_minimum:
+            return plane_origin, plane_normal, radius
+        else:
+            return (
+                plane_origin,
+                plane_normal,
+                radius,
+                pred_3d_joints,
+                pred_3d_vertices_fine,
+            )
 
 
 class SimpleCustomModel(nn.Module):
