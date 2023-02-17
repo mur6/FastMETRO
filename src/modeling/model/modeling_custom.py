@@ -122,12 +122,12 @@ class OnlyRadiusModel(nn.Module):
         plane_normal = ring2_point - ring1_point  # (batch X 3)
         plane_origin = (ring1_point + ring2_point) / 2  # (batch X 3)
         ######### 半径のみ推論
-        print(f"pred_cam: {pred_cam.shape}")
-        print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
+        # print(f"pred_cam: {pred_cam.shape}")
+        # print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
         features = torch.cat((pred_cam.unsqueeze(1), pred_3d_vertices_coarse), dim=1)
-        print(f"features: {features.shape}")
+        # print(f"features: {features.shape}")
         batch_size = pred_3d_vertices_coarse.shape[0]
-        print(f"batch_size: {batch_size}")
+        # print(f"batch_size: {batch_size}")
         x = features.contiguous().view(batch_size, -1)
         # pred_3d_vertices_coarse = torch.transpose(pred_3d_vertices_coarse, 2, 1)
         radius = self.net_for_radius(x)
