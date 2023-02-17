@@ -52,7 +52,7 @@ def _do_loop(loader, *, model, fastmetro_model):
     mano_model = MANO().to("cpu")
     mano_model_wrapper = ManoWrapper(mano_model=mano_model)
     for idx, (img_keys, images, annotations) in enumerate(loader):
-        print(f"img_keys: {img_keys[0]}")
+        print(f"img_keys: {img_keys}")
         ####################################################################
         pose = annotations["pose"]
         assert pose.shape[1] == 48
@@ -101,8 +101,10 @@ def _do_loop(loader, *, model, fastmetro_model):
         plane_origin, plane_normal, radius, pred_3d_joints, pred_3d_vertices_fine = model(
             images, mano_model
         )
-        print(f"radius: {radius}")
-
+        print(f"img_keys: {img_keys}")
+        print(f"gt: radius: {gt_radius}")
+        print(f"pred: radius: {radius}")
+        continue
         if False:
             ##################################### 補正 #######################################
             pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)
@@ -183,7 +185,7 @@ def main(args):
     model.eval()
 
     with torch.no_grad():
-        _do_loop(test_loader, model=model, fastmetro_model=None)
+        _do_loop(train_loader, model=model, fastmetro_model=None)
 
 
 if __name__ == "__main__":
