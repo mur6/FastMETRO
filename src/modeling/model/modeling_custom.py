@@ -37,14 +37,14 @@ class MLP_2_Layer(nn.Module):
 
 
 class MLP_3_Layer(nn.Module):
-    def __init__(self, input_size=195 * 3, output_size=1):
+    def __init__(self, input_size=196 * 3, output_size=1):
         super(MLP_3_Layer, self).__init__()
-        dropout_prob = 0.5
+        dropout_prob = 0.2
         self.fc1 = nn.Linear(input_size, 512)
-        self.relu1 = nn.PReLU()
+        self.relu1 = nn.ReLU()
         self.dropout1 = nn.Dropout(p=dropout_prob)
         self.fc2 = nn.Linear(512, 64)
-        self.relu2 = nn.PReLU()
+        self.relu2 = nn.ReLU()
         self.dropout2 = nn.Dropout(p=dropout_prob)
         self.fc3 = nn.Linear(64, output_size)
 
@@ -97,9 +97,10 @@ class OnlyRadiusModel(nn.Module):
 
         if net_for_radius is None:
             # self.net_for_radius = STN3d()
-            self.net_for_radius = MLP_2_Layer(
-                input_size=(196 * 3), hidden_size1=256, dropout=0.5, output_size=1
-            )
+            # self.net_for_radius = MLP_2_Layer(
+            #     input_size=(196 * 3), hidden_size1=256, dropout=0.5, output_size=1
+            # )
+            self.net_for_radius = MLP_3_Layer()
         else:
             self.net_for_radius = net_for_radius
 
