@@ -22,6 +22,7 @@ from src.modeling.model import FastMETRO_Hand_Network, SimpleCustomModel
 from src.modeling.model.transformer import build_transformer
 from src.handinfo.parser import train_parse_args
 from src.handinfo.ring.helper import RING_1_INDEX, RING_2_INDEX
+from src.modeling.model.modeling_custom import STN3d
 
 # from src.utils.comm import get_rank, get_world_size, is_main_process
 # from src.utils.geometric_layers import orthographic_projection

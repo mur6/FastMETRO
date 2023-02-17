@@ -121,7 +121,10 @@ class OnlyRadiusModel(nn.Module):
         ######### 半径のみ推論
         # batch_size = pred_3d_vertices_coarse.shape[0]
         # x = pred_3d_vertices_coarse.contiguous().view(batch_size, -1)
+        pred_3d_vertices_coarse = torch.transpose(pred_3d_vertices_coarse, 2, 1)
+        # print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
         radius = self.net_for_radius(pred_3d_vertices_coarse)
+        # print(f"radius: {radius.shape}")
         if output_minimum:
             return plane_origin, plane_normal, radius
         else:
