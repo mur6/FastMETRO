@@ -60,7 +60,7 @@ class MLP_3_Layer(nn.Module):
 
 
 class OnlyRadiusModel(nn.Module):
-    def __init__(self, fastmetro_model, mlp_for_radius=None):
+    def __init__(self, fastmetro_model, *, mlp_for_radius=None):
         super().__init__()
         self.fastmetro_model = fastmetro_model
         # self.mlp_for_radius = MLP(input_size=195 * 3, hidden_size1=256, dropout=0.6, output_size=1)
