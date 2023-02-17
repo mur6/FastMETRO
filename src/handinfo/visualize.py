@@ -55,6 +55,7 @@ def visualize_mesh_and_points(
     *, gt_mesh=None, pred_mesh=None, red_points=(), blue_points=(), yellow_points=()
 ):
     scene = trimesh.Scene()
+    # Blue:教師, Red:予測値
     if gt_mesh is not None:
         scene.add_geometry(set_blue(gt_mesh))
     if pred_mesh is not None:

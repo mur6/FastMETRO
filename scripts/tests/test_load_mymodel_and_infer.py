@@ -48,10 +48,10 @@ def parse_args():
     return args
 
 
-def _do_loop(train_loader, *, fastmetro_model, model=None):
+def _do_loop(loader, *, model, fastmetro_model):
     mano_model = MANO().to("cpu")
     mano_model_wrapper = ManoWrapper(mano_model=mano_model)
-    for idx, (img_keys, images, annotations) in enumerate(train_loader):
+    for idx, (img_keys, images, annotations) in enumerate(loader):
         print(f"img_keys: {img_keys[0]}")
         ####################################################################
         pose = annotations["pose"]
@@ -87,50 +87,58 @@ def _do_loop(train_loader, *, fastmetro_model, model=None):
                 # )
                 yield mesh, points
 
-        (
-            pred_cam,
-            pred_3d_joints,
-            pred_3d_vertices_coarse,
-            pred_3d_vertices_fine,
-            cam_features,
-            enc_img_features,
-            jv_features,
-        ) = fastmetro_model(images, output_minimum=False)
-        print(f"jv_features: {jv_features.shape}")
-        print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
-        break
+        # (
+        #     pred_cam,
+        #     pred_3d_joints,
+        #     pred_3d_vertices_coarse,
+        #     pred_3d_vertices_fine,
+        #     cam_features,
+        #     enc_img_features,
+        #     jv_features,
+        # ) = fastmetro_model(images, output_minimum=False)
+        # print(f"jv_features: {jv_features.shape}")
+        # print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
+        plane_origin, plane_normal, radius, pred_3d_joints, pred_3d_vertices_fine = model(
+            images, mano_model
+        )
+        print(f"radius: {radius}")
 
-        ##################################### 補正 #######################################
-        pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)
-        pred_3d_joints_from_mano_wrist = pred_3d_joints_from_mano[:, cfg.J_NAME.index("Wrist"), :]
-        pred_3d_vertices_fine = pred_3d_vertices_fine - pred_3d_joints_from_mano_wrist[:, None, :]
-        pred_3d_joints = pred_3d_joints - pred_3d_joints_from_mano_wrist[:, None, :]
-        # print(f"pred_3d_joints_from_mano_wrist: {pred_3d_joints_from_mano_wrist}")
-        # print(f"pred_3d_joints_from_mano_wrist: {pred_3d_joints_from_mano_wrist}")
-        # print(f"pred_3d_joints_from_mano: {pred_3d_joints_from_mano.shape}")
-        # zero_points = pred_3d_joints_from_mano_wrist
+        if False:
+            ##################################### 補正 #######################################
+            pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)
+            pred_3d_joints_from_mano_wrist = pred_3d_joints_from_mano[
+                :, cfg.J_NAME.index("Wrist"), :
+            ]
+            pred_3d_vertices_fine = (
+                pred_3d_vertices_fine - pred_3d_joints_from_mano_wrist[:, None, :]
+            )
+            pred_3d_joints = pred_3d_joints - pred_3d_joints_from_mano_wrist[:, None, :]
+            # print(f"pred_3d_joints_from_mano_wrist: {pred_3d_joints_from_mano_wrist}")
+            # print(f"pred_3d_joints_from_mano_wrist: {pred_3d_joints_from_mano_wrist}")
+            # print(f"pred_3d_joints_from_mano: {pred_3d_joints_from_mano.shape}")
+            # zero_points = pred_3d_joints_from_mano_wrist
 
-        #################################################################################
-        # # print(f"fastmetro:cam_features_1: {cam_features.shape}")
-        # # print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
-        # # print(f"fastmetro:jv_features_1: {jv_features.shape}")
-        # pred_pca_mean, pred_normal_v, pred_radius = model(
-        #     cam_features, enc_img_features, jv_features
-        # )
-        # print(f"pred_pca_mean: {pred_pca_mean.dtype}")
-        # print(f"pred_normal_v: {pred_normal_v.shape}")
-        # print(f"pred_radius: {pred_radius.shape}")
+            #################################################################################
+            # # print(f"fastmetro:cam_features_1: {cam_features.shape}")
+            # # print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
+            # # print(f"fastmetro:jv_features_1: {jv_features.shape}")
+            # pred_pca_mean, pred_normal_v, pred_radius = model(
+            #     cam_features, enc_img_features, jv_features
+            # )
+            # print(f"pred_pca_mean: {pred_pca_mean.dtype}")
+            # print(f"pred_normal_v: {pred_normal_v.shape}")
+            # print(f"pred_radius: {pred_radius.shape}")
 
         def _iter_pred():
-            for pred_3d_vertex, joint in zip(pred_3d_vertices_fine, pred_3d_joints):
-                ring1_point = joint[13]
-                ring2_point = joint[14]
-                plane_normal = ring2_point - ring1_point
-                plane_origin = (ring1_point + ring2_point) / 2
+            for i, (pred_3d_vertex, joint) in enumerate(zip(pred_3d_vertices_fine, pred_3d_joints)):
+                # ring1_point = joint[13]
+                # ring2_point = joint[14]
+                # plane_normal = ring2_point - ring1_point
+                # plane_origin = (ring1_point + ring2_point) / 2
                 mesh = make_hand_mesh(mano_model, pred_3d_vertex.numpy())
-                red_points = (plane_origin.numpy(),)  # joint.numpy()
+                red_points = (plane_origin[i].numpy(),)  # joint.numpy()
                 # pred_pca_m.numpy(),
-                yellow_points = ((plane_origin + plane_normal).numpy(),)
+                yellow_points = ((plane_origin[i] + plane_normal[i]).numpy(),)
                 yield mesh, red_points, yellow_points
 
         # blue_points = [gt_pca_mean[0].numpy().tolist()] + gt_verts_3d[0].numpy().tolist()
@@ -138,10 +146,11 @@ def _do_loop(train_loader, *, fastmetro_model, model=None):
         for (gt_mesh, blue_points), (pred_mesh, red_points, yellow_points) in zip(
             _iter_gt(), _iter_pred()
         ):
+            # Blue:教師, Red:予測値
             visualize_mesh_and_points(
-                mesh=gt_mesh,
-                mesh_2=pred_mesh,
-                blue_points=blue_points,
+                gt_mesh=None,
+                pred_mesh=pred_mesh,
+                # blue_points=blue_points,
                 red_points=red_points,
                 yellow_points=yellow_points,
             )
@@ -159,15 +168,22 @@ def main(args):
         train_shuffle=True,
     )
 
-    # model = utils.get_my_model(args, mymodel_resume_dir=args.mymodel_resume_dir, device=device)
-    # model.eval()
-
     mesh_sampler = Mesh(device=device)
+
     fastmetro_model = get_fastmetro_model(
         args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
     )
+
+    model = utils.get_my_model(
+        args,
+        mymodel_resume_dir=args.mymodel_resume_dir,
+        fastmetro_model=fastmetro_model,
+        device=device,
+    )
+    model.eval()
+
     with torch.no_grad():
-        _do_loop(train_loader, fastmetro_model=fastmetro_model)
+        _do_loop(test_loader, model=model, fastmetro_model=None)
 
 
 if __name__ == "__main__":
