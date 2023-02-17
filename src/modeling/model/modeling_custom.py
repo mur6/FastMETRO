@@ -20,9 +20,9 @@ from .transformer import build_transformer
 from src.handinfo.ring.helper import RING_1_INDEX, RING_2_INDEX, WRIST_INDEX
 
 
-class MLP(nn.Module):
-    def __init__(self, input_size=128 * 2, hidden_size1=256 * 4, dropout=0.1, output_size=3):
-        super(MLP, self).__init__()
+class MLP_2_Layer(nn.Module):
+    def __init__(self, input_size=196 * 3, hidden_size1=256, dropout=0.5, output_size=1):
+        super(MLP_2_Layer, self).__init__()
         self.linear1 = nn.Linear(input_size, hidden_size1)
         self.dropout = nn.Dropout(dropout)
         self.linear2 = nn.Linear(hidden_size1, output_size)
@@ -94,9 +94,12 @@ class OnlyRadiusModel(nn.Module):
     def __init__(self, fastmetro_model, *, net_for_radius=None):
         super().__init__()
         self.fastmetro_model = fastmetro_model
-        # self.mlp_for_radius = MLP(input_size=195 * 3, hidden_size1=256, dropout=0.6, output_size=1)
+
         if net_for_radius is None:
-            self.net_for_radius = STN3d()
+            # self.net_for_radius = STN3d()
+            self.net_for_radius = MLP_2_Layer(
+                input_size=(196 * 3), hidden_size1=256, dropout=0.5, output_size=1
+            )
         else:
             self.net_for_radius = net_for_radius
 
@@ -119,11 +122,15 @@ class OnlyRadiusModel(nn.Module):
         plane_normal = ring2_point - ring1_point  # (batch X 3)
         plane_origin = (ring1_point + ring2_point) / 2  # (batch X 3)
         ######### 半径のみ推論
-        # batch_size = pred_3d_vertices_coarse.shape[0]
-        # x = pred_3d_vertices_coarse.contiguous().view(batch_size, -1)
-        pred_3d_vertices_coarse = torch.transpose(pred_3d_vertices_coarse, 2, 1)
-        # print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
-        radius = self.net_for_radius(pred_3d_vertices_coarse)
+        print(f"pred_cam: {pred_cam.shape}")
+        print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
+        features = torch.cat((pred_cam.unsqueeze(1), pred_3d_vertices_coarse), dim=1)
+        print(f"features: {features.shape}")
+        batch_size = pred_3d_vertices_coarse.shape[0]
+        print(f"batch_size: {batch_size}")
+        x = features.contiguous().view(batch_size, -1)
+        # pred_3d_vertices_coarse = torch.transpose(pred_3d_vertices_coarse, 2, 1)
+        radius = self.net_for_radius(x)
         # print(f"radius: {radius.shape}")
         if output_minimum:
             return plane_origin, plane_normal, radius
