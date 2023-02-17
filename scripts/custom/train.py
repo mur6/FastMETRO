@@ -179,7 +179,7 @@ def main(args):
         train(args, model, mano_model, train_loader, datasize, optimizer)
         test(args, model, mano_model, test_loader, datasize)
         # if epoch % 5 == 0:
-        utils.save_checkpoint(model.mlp_for_radius, epoch)
+        utils.save_checkpoint(model.net_for_radius, epoch)
         lr_scheduler.step(epoch)
         print(f"lr: {lr_scheduler.get_last_lr()[0]}")
 
