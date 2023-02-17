@@ -67,7 +67,7 @@ def train(args, model, mano_model, train_loader, datasize, optimizer):
         # print(f"gt_normal_v: {gt_normal_v.dtype}")
         batch_size = images.shape[0]
         # print(f"batch_size: {batch_size}")
-        pred_pca_mean, pred_normal_v, pred_radius = model(images, mano_model)
+        pred_pca_mean, pred_normal_v, pred_radius = model(images, mano_model, output_minimum=True)
         # print(f"mymodel:pred_pca_mean: {pred_pca_mean.shape}")
         # print(f"mymodel:pred_normal_v: {pred_normal_v.shape}")
         # print(f"mymodel:pred_radius: {pred_radius.shape}")
@@ -111,7 +111,9 @@ def test(args, model, mano_model, test_loader, datasize):
         batch_size = images.shape[0]
         # print(f"batch_size: {batch_size}")
         with torch.no_grad():
-            pred_pca_mean, pred_normal_v, pred_radius = model(images, mano_model)
+            pred_pca_mean, pred_normal_v, pred_radius = model(
+                images, mano_model, output_minimum=True
+            )
         # gt_y = data.y.view(batch_size, -1).float().contiguous()
         loss = only_radius_loss(
             pred_pca_mean,
