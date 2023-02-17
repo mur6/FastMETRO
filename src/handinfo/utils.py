@@ -35,8 +35,8 @@ def get_my_model(args, *, mymodel_resume_dir, fastmetro_model, device):
     print(f"My modele resume_dir: {mymodel_resume_dir}")
 
     if mymodel_resume_dir:
-        mlp_for_radius = load_model_from_dir(mymodel_resume_dir)
-        model = OnlyRadiusModel(fastmetro_model, mlp_for_radius=mlp_for_radius).to(device)
+        net_for_radius = load_model_from_dir(mymodel_resume_dir)
+        model = OnlyRadiusModel(fastmetro_model, net_for_radius=net_for_radius).to(device)
     else:
         model = OnlyRadiusModel(fastmetro_model).to(device)
 
