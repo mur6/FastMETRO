@@ -89,7 +89,7 @@ def train(args, model, mano_model, train_loader, datasize, optimizer):
         losses.append(loss.item())
         current_loss += loss.item() * batch_size
     epoch_loss = current_loss / datasize["train"]
-    print(f"Train Loss: {epoch_loss:.8f}")
+    print(f"Train Loss: {epoch_loss:.9f}")
 
 
 def test(args, model, mano_model, test_loader, datasize):
@@ -124,7 +124,7 @@ def test(args, model, mano_model, test_loader, datasize):
         )
         current_loss += loss.item() * batch_size
     epoch_loss = current_loss / datasize["test"]
-    print(f"Validation Loss: {epoch_loss:.8f}")
+    print(f"Validation Loss: {epoch_loss:.9f}")
 
 
 def parse_args():
