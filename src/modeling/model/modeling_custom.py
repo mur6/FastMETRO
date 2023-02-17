@@ -59,15 +59,46 @@ class MLP_3_Layer(nn.Module):
         return x
 
 
+class STN3d(nn.Module):
+    def __init__(self):
+        super(STN3d, self).__init__()
+        self.conv1 = torch.nn.Conv1d(3, 64, 1)
+        self.conv2 = torch.nn.Conv1d(64, 128, 1)
+        self.conv3 = torch.nn.Conv1d(128, 1024, 1)
+        self.fc1 = nn.Linear(1024, 512)
+        self.fc2 = nn.Linear(512, 256)
+        self.fc3 = nn.Linear(256, 1)
+        self.relu = nn.ReLU()
+
+        self.bn1 = nn.BatchNorm1d(64)
+        self.bn2 = nn.BatchNorm1d(128)
+        self.bn3 = nn.BatchNorm1d(1024)
+        self.bn4 = nn.BatchNorm1d(512)
+        self.bn5 = nn.BatchNorm1d(256)
+
+    def forward(self, x):
+        batchsize = x.size()[0]
+        x = F.relu(self.bn1(self.conv1(x)))
+        x = F.relu(self.bn2(self.conv2(x)))
+        x = F.relu(self.bn3(self.conv3(x)))
+        x = torch.max(x, 2, keepdim=True)[0]
+        x = x.view(-1, 1024)
+
+        x = F.relu(self.bn4(self.fc1(x)))
+        x = F.relu(self.bn5(self.fc2(x)))
+        x = self.fc3(x)
+        return x
+
+
 class OnlyRadiusModel(nn.Module):
-    def __init__(self, fastmetro_model, *, mlp_for_radius=None):
+    def __init__(self, fastmetro_model, *, net_for_radius=None):
         super().__init__()
         self.fastmetro_model = fastmetro_model
         # self.mlp_for_radius = MLP(input_size=195 * 3, hidden_size1=256, dropout=0.6, output_size=1)
-        if mlp_for_radius is None:
-            self.mlp_for_radius = MLP_3_Layer()
+        if net_for_radius is None:
+            self.net_for_radius = STN3d()
         else:
-            self.mlp_for_radius = mlp_for_radius
+            self.net_for_radius = net_for_radius
 
     def forward(self, images, mano_model, *, output_minimum=False):
         (
@@ -88,9 +119,9 @@ class OnlyRadiusModel(nn.Module):
         plane_normal = ring2_point - ring1_point  # (batch X 3)
         plane_origin = (ring1_point + ring2_point) / 2  # (batch X 3)
         ######### 半径のみ推論
-        batch_size = pred_3d_vertices_coarse.shape[0]
-        x = pred_3d_vertices_coarse.contiguous().view(batch_size, -1)
-        radius = self.mlp_for_radius(x)
+        # batch_size = pred_3d_vertices_coarse.shape[0]
+        # x = pred_3d_vertices_coarse.contiguous().view(batch_size, -1)
+        radius = self.net_for_radius(pred_3d_vertices_coarse)
         if output_minimum:
             return plane_origin, plane_normal, radius
         else:
@@ -318,3 +349,12 @@ class T3EncDecModel(nn.Module):
             normal_v.squeeze(1),
             radius.squeeze(1),
         )
+
+
+if __name__ == "__main__":
+    model = STNkd()
+    # m.eval()
+    x = torch.randn(8, 195, 3)
+    output = model(x)
+    print(output.shape)
+    # main(args.resume_dir, args.input_filename)
