@@ -18,9 +18,9 @@ class MergedDataset(torch.utils.data.Dataset):
         self.img_keys_dict = pickle.load(pickle_filepath.open("rb"))
         self.is_train = is_train
         if is_train:
-            self.limit = 2500
+            self.limit = 6000
         else:
-            self.limit = 250
+            self.limit = 300
 
     def __len__(self):
         # if self.is_train:
