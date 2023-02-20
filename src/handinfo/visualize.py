@@ -2,13 +2,9 @@ import trimesh
 
 
 def visualize_mesh(*, mesh):
-    color = [102, 102, 102, 64]
-    for facet in mesh.facets:
-        # mesh.visual.face_colors[facet] = [color, color]
-        mesh.visual.face_colors[facet] = color
     scene = trimesh.Scene()
-    scene.add_geometry(mesh)
-    # scene.add_geometry(create_point_geom(a_point, "red"))
+    scene.add_geometry(set_blue(mesh))
+    # scene.add_geometry(mesh)
     scene.show()
 
 
@@ -52,7 +48,13 @@ def set_red(mesh):
 
 
 def visualize_mesh_and_points(
-    *, gt_mesh=None, pred_mesh=None, red_points=(), blue_points=(), yellow_points=()
+    *,
+    gt_mesh=None,
+    pred_mesh=None,
+    red_points=(),
+    blue_points=(),
+    yellow_points=(),
+    draw_origin=False
 ):
     scene = trimesh.Scene()
     # Blue:教師, Red:予測値
@@ -66,14 +68,24 @@ def visualize_mesh_and_points(
         scene.add_geometry(_create_point_geom(p, "blue"))
     for p in yellow_points:
         scene.add_geometry(_create_point_geom(p, "yellow"))
-    # 原点
-    scene.add_geometry(_create_point_geom((0, 0, 0), "green", radius=0.001))
+    if draw_origin:
+        # 原点のポイントを描く
+        scene.add_geometry(_create_point_geom((0, 0, 0), "green", radius=0.001))
     scene.show()
 
 
 def make_hand_mesh(mano_model, gt_vertices):
     # gt_vertices = torch.transpose(gt_vertices, 2, 1).squeeze(0)
-    print(f"gt_vertices: {gt_vertices.shape}")
     mano_faces = mano_model.layer.th_faces
-    print(f"mano_faces: {mano_faces.shape}")
+    # print(f"mano_faces: {mano_faces.shape}")
     return trimesh.Trimesh(vertices=gt_vertices, faces=mano_faces)
+
+
+def convert_mesh(mesh):
+    # a = 115
+    # vertices = mesh.vertices[350 : 350 + a, :]
+    vertices = mesh.vertices
+    faces = mesh.faces[700:]
+    # print(f"convert_mesh: vertices: {vertices.shape}")
+    # print(f"convert_mesh: faces: {mesh.faces.shape}")
+    return trimesh.Trimesh(vertices=vertices, faces=faces)
