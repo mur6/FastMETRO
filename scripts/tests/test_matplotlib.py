@@ -110,9 +110,9 @@ class PlaneCollision:
         line_endpoints = triangle_sides
         ray_point = line_endpoints[:, :, 0, :]
         ray_direction = line_endpoints[:, :, 1, :] - line_endpoints[:, :, 0, :]
-        print(ray_direction.shape)
+        # print(ray_direction.shape)
         n_dot_u = plane_normal @ ray_direction
-        print(f"n_dot_u: {n_dot_u.shape}")
+        # print(f"n_dot_u: {n_dot_u.shape}")
         # # if abs(n_dot_u) < epsilon:
         # #     raise RuntimeError("no intersection or line is within plane")
         w = ray_point - plane_point
