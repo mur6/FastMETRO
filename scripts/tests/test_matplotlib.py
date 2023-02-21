@@ -76,9 +76,18 @@ class PlaneCollision:
         for face in self.ring_mesh.faces:
             # 三角形の3つの頂点を取得
             vertices = self.ring_mesh.vertices
-            vs = torch.from_numpy(vertices[face]).float() - pca_mean
-            yield vs
-            # a, b, c = vs
+            vertices_of_triangle = torch.from_numpy(vertices[face]).float() - pca_mean
+            yield vertices_of_triangle
+
+    def _iter_triangle_sides(self):
+        for vertices_of_triangle in self._iter_ring_mesh_triangles(self.pca_mean, self.normal_v):
+            # a, b, c = vertices_of_triangle
+            shifted = torch.roll(input=vertices_of_triangle, shifts=1, dims=0)
+            stacked_sides = torch.stack((vertices_of_triangle, shifted), dim=1)
+            print(f"normal_v: {self.normal_v}")
+            # for side in :
+            #     yield side
+
             # for v1, v2 in ((a, b), (b, c), (c, a)):
             #     k1 = v1 @ normal_v
             #     # print(f"{v1} @ {normal_v} = {k1}")
@@ -88,6 +97,7 @@ class PlaneCollision:
             #         colli_point = getLinePlaneCollision(normal_v, pca_mean, v1, v2)
             #         # print(f"colli_point: {colli_point}")
             #         yield colli_point
+            yield stacked_sides
 
     def get_line_segments(self):
         return list(self._iter_ring_mesh_triangles(self.pca_mean, self.normal_v))
@@ -97,8 +107,34 @@ def trimesh_main():
     for idx, (pca_mean, normal_v) in enumerate(iter_pca_mean_and_normal_v_points()):
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
         plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
-        a = plane_colli.get_line_segments()
-        print(a)
+        for line_endpoints in plane_colli._iter_triangle_sides():
+            inner_product = line_endpoints @ normal_v
+            inner_product_sign = inner_product[:, 0] * inner_product[:, 1]
+            print(inner_product_sign)
+            print()
+        # a = plane_colli.get_line_segments()
+        # print(a)
 
 
 trimesh_main()
+
+
+def main():
+    k = torch.tensor(
+        [
+            [[0.0114, -0.0057, -0.0078], [0.0125, 0.0019, 0.0063]],
+            [[0.0110, 0.0092, 0.0024], [0.0114, -0.0057, -0.0078]],
+            [[0.0125, 0.0019, 0.0063], [0.0110, 0.0092, 0.0024]],
+        ]
+    )
+    normal_v = torch.tensor([0.0313, 0.6744, 0.7377])
+    # torch.bmm()
+    print(k.shape)
+    print(normal_v.shape)
+    out = k @ normal_v
+    print(out.shape)
+    print(out)
+    print(out[:, 0] * out[:, 1])
+
+
+# main()

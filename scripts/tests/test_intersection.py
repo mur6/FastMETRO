@@ -24,7 +24,7 @@ def getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_
     return w + si * ray_direction + plane_point
 
 
-if __name__ == "__main__":
+def test_intersection():
     # # Define plane
     # planeNormal = np.array([0, 0, 1])
     # planePoint = np.array([0, 0, 5])
@@ -42,3 +42,19 @@ if __name__ == "__main__":
     line_vector_2 = torch.FloatTensor([0, 0, 10])
     point = getLinePlaneCollision(planeNormal, planePoint, line_vector_1, line_vector_2)
     print(f"intersection at: {point}")
+
+
+if __name__ == "__main__":
+    # import torch
+    # a = torch.tensor([0, 1, 2, 3, 4, 5])
+    # print(a)
+    # # tensor([0, 1, 2, 3, 4, 5])
+
+    # a_shift3 = torch.roll(input=a, shifts=3)
+    # print(a_shift3)
+
+    a = torch.tensor([0, 1, 2, 3, 4, 5]).view(3, 2)
+    a2 = torch.roll(input=a, shifts=1, dims=0)
+    a3 = torch.stack((a, a2), dim=1)
+    for k in a3:
+        print(k)
