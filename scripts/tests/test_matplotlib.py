@@ -86,11 +86,13 @@ class PlaneCollision:
 
     def get_triangle_sides(self):
         inputs = self.ring_finger_triangles
-        print(f"a: {inputs[:5]}")
-        shifted = torch.roll(input=inputs, shifts=1, dims=0)
-        # stacked_sides = torch.stack((vertices_of_triangle, shifted), dim=1)
-        print(f"b: {shifted[:5]}")
-        return
+        # print(f"a: {inputs[:5]}")
+        shifted = torch.roll(input=inputs, shifts=1, dims=1)
+        # print(f"b: {shifted[:5]}")
+        stacked_sides = torch.stack((inputs, shifted), dim=2)
+        # print(stacked_sides.shape)
+        # print(f"c: {stacked_sides[:5]}")
+        return stacked_sides
 
     def get_inner_product_signs(self):
         inputs = self.ring_finger_triangles
@@ -125,8 +127,10 @@ def trimesh_main():
     for idx, (pca_mean, normal_v) in enumerate(iter_pca_mean_and_normal_v_points()):
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
         plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
-        plane_colli.get_inner_product_signs()
+        plane_colli.get_triangle_sides()
+        # plane_colli.get_inner_product_signs()
         print("######")
+        break
 
 
 trimesh_main()
