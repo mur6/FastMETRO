@@ -99,42 +99,47 @@ class PlaneCollision:
             #         yield colli_point
             yield stacked_sides
 
+    def iter_inner_product_signs(self):
+        for line_endpoints in self._iter_triangle_sides():
+            inner_product = line_endpoints @ self.normal_v
+            inner_product_sign = inner_product[:, 0] * inner_product[:, 1]
+            yield inner_product_sign
+
+    def iter_collision_points(self):
+        plane_normal = self.normal_v
+        plane_point = self.pca_mean
+        for line_endpoints in self._iter_triangle_sides():
+            line_endpoints[:, 0, :]
+
+            ray_point = line_endpoints[:, 0, :]
+            ray_direction = line_endpoints[:, 1, :] - line_endpoints[:, 0, :]
+            print(ray_point.shape)
+            print(ray_direction.shape)
+            n_dot_u = plane_normal @ ray_direction
+            # if abs(n_dot_u) < epsilon:
+            #     raise RuntimeError("no intersection or line is within plane")
+            w = ray_point - plane_point
+            si = -(plane_normal @ w) / n_dot_u
+            collision_points = w + si * ray_direction + plane_point
+            yield n_dot_u, collision_points
+
     def get_line_segments(self):
         return list(self._iter_ring_mesh_triangles(self.pca_mean, self.normal_v))
+
+
+epsilon = 1e-6
 
 
 def trimesh_main():
     for idx, (pca_mean, normal_v) in enumerate(iter_pca_mean_and_normal_v_points()):
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
         plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
-        for line_endpoints in plane_colli._iter_triangle_sides():
-            inner_product = line_endpoints @ normal_v
-            inner_product_sign = inner_product[:, 0] * inner_product[:, 1]
-            print(inner_product_sign)
-            print()
+        # plane_colli.iter_inner_product_signs()
+        for n_dot_u, collision_points in plane_colli.iter_22():
+            print(n_dot_u < epsilon)
+            # print()
         # a = plane_colli.get_line_segments()
         # print(a)
 
 
 trimesh_main()
-
-
-def main():
-    k = torch.tensor(
-        [
-            [[0.0114, -0.0057, -0.0078], [0.0125, 0.0019, 0.0063]],
-            [[0.0110, 0.0092, 0.0024], [0.0114, -0.0057, -0.0078]],
-            [[0.0125, 0.0019, 0.0063], [0.0110, 0.0092, 0.0024]],
-        ]
-    )
-    normal_v = torch.tensor([0.0313, 0.6744, 0.7377])
-    # torch.bmm()
-    print(k.shape)
-    print(normal_v.shape)
-    out = k @ normal_v
-    print(out.shape)
-    print(out)
-    print(out[:, 0] * out[:, 1])
-
-
-# main()
