@@ -19,7 +19,12 @@ from src.handinfo.utils import load_model_from_dir, save_checkpoint
 from src.handinfo.losses import on_circle_loss
 from src.handinfo.parser import train_parse_args
 from src.handinfo.fastmetro import get_fastmetro_model
-from src.handinfo.visualize import visualize_mesh_and_points, make_hand_mesh
+from src.handinfo.visualize import (
+    visualize_mesh_and_points,
+    make_hand_mesh,
+    visualize_mesh,
+    convert_mesh,
+)
 from src.handinfo.data.tools import make_hand_data_loader
 
 # from src.handinfo.data import get_mano_faces
@@ -27,6 +32,7 @@ from src.handinfo.data.tools import make_hand_data_loader
 import trimesh
 import numpy as np
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def parse_args():
@@ -46,6 +52,33 @@ def parse_args():
 
     args = train_parse_args(parser_hook=parser_hook)
     return args
+
+
+def vis_with_label(mesh):
+    # # 3D meshの読み込み
+    # mesh = trimesh.load("example_mesh.stl")
+    # # 各面に対応するラベルを作成
+    # labels = np.array(["Face 1", "Face 2", "Face 3"])
+
+    # 各面のインデックスを取得
+    faces = mesh.faces
+
+    # プロットの設定
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+
+    # for i in range(len(faces)):
+    #     # 面の中心座標を計算
+    #     face_center = np.mean(mesh.vertices[faces[i]], axis=0)
+    #     # annotate()関数を使用して、ラベルをプロット
+    #     # ax.annotate(str(i), face_center)
+    #     x, y, z = face_center
+    #     ax.scatter(m[i, 0], m[i, 1], m[i, 2], color="b")
+    #     # ax.text(x, y, z, f"{i}", color="red")
+    vertices = mesh.vertices
+    print(f"vertices: {vertices.shape}")
+    ax.scatter(vertices[:, 0], vertices[:, 1], vertices[:, 2])
+    plt.show()
 
 
 def _do_loop(loader, *, model, fastmetro_model):
@@ -80,11 +113,12 @@ def _do_loop(loader, *, model, fastmetro_model):
         def _iter_gt():
             for gt_vertex, gt_pca_m, gt_a_verts_3d in zip(gt_vertices, gt_pca_mean, gt_verts_3d):
                 mesh = make_hand_mesh(mano_model, gt_vertex)
-                points = [gt_pca_m.numpy().tolist()] + gt_a_verts_3d.numpy().tolist()
+                points = [gt_pca_m.numpy().tolist()]  # + gt_a_verts_3d.numpy().tolist()
                 # visualize_mesh_and_points(
                 #     mesh=gt_mesh,
                 #     blue_points=blue_points,
                 # )
+                # vis_with_label(mesh)
                 yield mesh, points
 
         # (
@@ -101,10 +135,26 @@ def _do_loop(loader, *, model, fastmetro_model):
         plane_origin, plane_normal, radius, pred_3d_joints, pred_3d_vertices_fine = model(
             images, mano_model
         )
-        print(f"img_keys: {img_keys}")
-        print(f"gt: radius: {gt_radius}")
-        print(f"pred: radius: {radius}")
-        continue
+        gt_mesh_points_list = list(_iter_gt())
+
+        for i, (gt_mesh, points) in enumerate(gt_mesh_points_list):
+            # scene = trimesh.Scene()
+
+            # # scene.add_geometry(_create_point_geom((0, 0, 0), "green", radius=0.001))
+            # scene.show()
+            print(f"pca_mean: blue_points: {points}")
+            # visualize_mesh_and_points(gt_mesh=gt_mesh, blue_points=points)
+            with open(f"gt_mesh_{i:02}.obj", "w", encoding="utf-8") as fh:
+                gt_mesh.export(fh, file_type="obj")
+        print(f"gt_pca_mean: {gt_pca_mean}")
+        print(f"gt_normal_v: {gt_normal_v}")
+        print()
+        # print(f"img_keys: {img_keys}")
+        # print(f"gt: radius: {gt_radius}")
+        # print(f"pred: radius: {radius.squeeze(1)}")
+        # print(gt_radius - radius.squeeze(1))
+        # print()
+        break
         if False:
             ##################################### 補正 #######################################
             pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)
