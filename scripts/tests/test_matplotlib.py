@@ -117,10 +117,14 @@ class PlaneCollision:
         # #     raise RuntimeError("no intersection or line is within plane")
         w = ray_point - plane_point
         si = -(plane_normal @ w) / n_dot_u
-        print(f"w: {w.shape}")
-        print(f"si: {si.shape}")
+        si = si.unsqueeze(1)
+        # print(f"w: {w.shape}")  # ray_point
+        # print(f"si: {si.shape}")
+        # print(f"ray_direction: {ray_direction.shape}")
+        # print(f"si * ray_direction: {si * ray_direction}")
+        # print(f"plane_point: {plane_point.shape}")
         collision_points = w + si * ray_direction + plane_point
-        # yield n_dot_u, collision_points
+        # print(f"collision_points: {collision_points.shape}")
         return collision_points
 
     def get_line_segments(self):
