@@ -103,19 +103,25 @@ class PlaneCollision:
         # print(inner_product_sign.shape)
         return inner_product_sign
 
-    def iter_collision_points(self):
+    def get_collision_points(self, triangle_sides):
         plane_normal = self.normal_v
-        plane_point = self.pca_mean
-        for line_endpoints in self._iter_triangle_sides():
-            ray_point = line_endpoints[:, 0, :]
-            ray_direction = line_endpoints[:, 1, :] - line_endpoints[:, 0, :]
-            n_dot_u = plane_normal @ ray_direction
-            # if abs(n_dot_u) < epsilon:
-            #     raise RuntimeError("no intersection or line is within plane")
-            w = ray_point - plane_point
-            si = -(plane_normal @ w) / n_dot_u
-            collision_points = w + si * ray_direction + plane_point
-            yield n_dot_u, collision_points
+        # print(f"plane_normal: {plane_normal.shape}")
+        plane_point = torch.zeros(3, dtype=torch.float32)
+        line_endpoints = triangle_sides
+        ray_point = line_endpoints[:, :, 0, :]
+        ray_direction = line_endpoints[:, :, 1, :] - line_endpoints[:, :, 0, :]
+        print(ray_direction.shape)
+        n_dot_u = plane_normal @ ray_direction
+        print(f"n_dot_u: {n_dot_u.shape}")
+        # # if abs(n_dot_u) < epsilon:
+        # #     raise RuntimeError("no intersection or line is within plane")
+        w = ray_point - plane_point
+        si = -(plane_normal @ w) / n_dot_u
+        print(f"w: {w.shape}")
+        print(f"si: {si.shape}")
+        collision_points = w + si * ray_direction + plane_point
+        # yield n_dot_u, collision_points
+        return collision_points
 
     def get_line_segments(self):
         return list(self._iter_ring_mesh_triangles(self.pca_mean, self.normal_v))
@@ -128,9 +134,10 @@ def trimesh_main():
     for idx, (pca_mean, normal_v) in enumerate(iter_pca_mean_and_normal_v_points()):
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
         plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
-        triangle_sides = plane_colli.get_triangle_sides()
-        a = plane_colli.get_inner_product_signs(triangle_sides)
-        print(a[0])
+        triangle_sides = plane_colli.get_triangle_sides() - pca_mean
+        # a = plane_colli.get_inner_product_signs(triangle_sides)
+        # print(a[0])
+        b = plane_colli.get_collision_points(triangle_sides)
         print("######")
         break
 
