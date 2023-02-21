@@ -59,13 +59,13 @@ def test_intersection():
     # line_vector_2 = np.array([0, 0, 10])
 
     # Define plane
-    planeNormal = torch.FloatTensor([0, 0, 1])
-    planePoint = torch.FloatTensor([0, 0, 0])
+    plane_normal = torch.FloatTensor([0, 0, 1])
+    plane_point = torch.FloatTensor([0, 0, 0])
 
     # Define ray
     line_vector_1 = torch.FloatTensor([0, 0, -10])
     line_vector_2 = torch.FloatTensor([0, 0, 10])
-    point = getLinePlaneCollision(planeNormal, planePoint, line_vector_1, line_vector_2)
+    point = getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_2)
     print(f"intersection at: {point}")
 
 
