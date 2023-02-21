@@ -140,11 +140,15 @@ def trimesh_main():
         plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
         triangle_sides = plane_colli.get_triangle_sides() - pca_mean
         a = plane_colli.get_inner_product_signs(triangle_sides)
+        print(a.shape)
         idx = a <= 0
         collision_points = plane_colli.get_collision_points(triangle_sides)
-        # b = collision_points[idx].view(-1, 2, 3)
+        print(collision_points.shape)
+        filltered_c_points = collision_points[idx]  # .view(-1, 2, 3)
         # print(b.shape)
+        print(filltered_c_points.shape)
         print("######")
+        visualize_mesh_and_points(gt_mesh=mesh, blue_points=filltered_c_points)
         break
 
 
