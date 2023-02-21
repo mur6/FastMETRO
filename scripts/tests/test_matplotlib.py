@@ -129,8 +129,8 @@ def trimesh_main():
         # plane_colli.iter_inner_product_signs()
         a = [s for s in plane_colli.iter_inner_product_signs()]
         b = [collision_points for _, collision_points in plane_colli.iter_collision_points()]
-        print(a[0])
-        print(b[0])
+        idx = a[0] <= 0
+        print(b[0][idx])
         # a = plane_colli.get_line_segments()
         print("######")
 
