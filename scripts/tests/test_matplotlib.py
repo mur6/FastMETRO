@@ -41,19 +41,8 @@ def cut(faces, *, begin_index, offset):
     # print(B)
     # print(A[B])
     C = A[B]
-    print(C.shape)
+    # print(C.shape)
     return C
-
-
-def cut_ring_finger(mesh):
-    begin_index = 468
-    offset = 112
-    vertices = mesh.vertices[begin_index : begin_index + offset]
-    faces = mesh.faces
-    faces = cut(faces, begin_index=begin_index, offset=offset)
-    mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
-    print(mesh)
-    return mesh
 
 
 def getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_2, epsilon=1e-6):
@@ -68,8 +57,18 @@ def getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_
 
 
 class PlaneCollision:
+    @staticmethod
+    def ring_finger_submesh(mesh):
+        begin_index = 468
+        offset = 112
+        vertices = mesh.vertices[begin_index : begin_index + offset]
+        faces = mesh.faces
+        faces = cut(faces, begin_index=begin_index, offset=offset)
+        mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
+        return mesh
+
     def __init__(self, orig_mesh, pca_mean, normal_v):
-        self.ring_mesh = cut_ring_finger(orig_mesh)
+        self.ring_mesh = PlaneCollision.ring_finger_submesh(orig_mesh)
         self.pca_mean = pca_mean
         self.normal_v = normal_v
 
@@ -99,6 +98,7 @@ def trimesh_main():
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
         plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
         a = plane_colli.get_line_segments()
+        print(a)
 
 
 trimesh_main()
