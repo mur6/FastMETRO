@@ -139,11 +139,14 @@ def trimesh_main():
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
         plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
         triangle_sides = plane_colli.get_triangle_sides() - pca_mean
-        # a = plane_colli.get_inner_product_signs(triangle_sides)
-        # print(a[0])
-        b = plane_colli.get_collision_points(triangle_sides)
+        a = plane_colli.get_inner_product_signs(triangle_sides)
+        idx = a <= 0
+        collision_points = plane_colli.get_collision_points(triangle_sides)
+        b = collision_points[idx].view(-1, 2, 3)
+        print(b)
         print("######")
         break
 
 
-trimesh_main()
+if __name__ == "__main__":
+    trimesh_main()
