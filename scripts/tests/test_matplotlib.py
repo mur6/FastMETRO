@@ -78,6 +78,7 @@ class PlaneCollision:
             # 三角形の3つの頂点を取得
             vertices = self.ring_mesh.vertices
             vs = torch.from_numpy(vertices[face]).float() - pca_mean
+            yield vs
             # a, b, c = vs
             # for v1, v2 in ((a, b), (b, c), (c, a)):
             #     k1 = v1 @ normal_v
@@ -90,7 +91,7 @@ class PlaneCollision:
             #         yield colli_point
 
     def get_line_segments(self):
-        return list(self.plane_colli._iter_ring_mesh_triangles(self.pca_mean, self.normal_v))
+        return list(self._iter_ring_mesh_triangles(self.pca_mean, self.normal_v))
 
 
 def trimesh_main():
