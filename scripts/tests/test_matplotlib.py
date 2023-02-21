@@ -67,35 +67,37 @@ def getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_
     return w + si * ray_direction + plane_point
 
 
-def iter_k(mesh, pca_mean, normal_v):
-    for face in mesh.faces:
-        # 三角形の3つの頂点を取得
-        vs = torch.from_numpy(mesh.vertices[face]).float() - pca_mean
-        a, b, c = vs
-        for v1, v2 in ((a, b), (b, c), (c, a)):
-            k1 = v1 @ normal_v
-            # print(f"{v1} @ {normal_v} = {k1}")
-            k2 = v2 @ normal_v
-            # print(f"{v2} @ {normal_v} = {k2}")
-            if (k1 * k2) <= 0:
-                colli_point = getLinePlaneCollision(normal_v, pca_mean, v1, v2)
-                # print(f"colli_point: {colli_point}")
-                yield colli_point
+class PlaneCollision:
+    def __init__(self, orig_mesh, pca_mean, normal_v):
+        self.ring_mesh = cut_ring_finger(orig_mesh)
+        self.pca_mean = pca_mean
+        self.normal_v = normal_v
+
+    def _iter_ring_mesh_triangles(self, pca_mean, normal_v):
+        for face in self.ring_mesh.faces:
+            # 三角形の3つの頂点を取得
+            vertices = self.ring_mesh.vertices
+            vs = torch.from_numpy(vertices[face]).float() - pca_mean
+            # a, b, c = vs
+            # for v1, v2 in ((a, b), (b, c), (c, a)):
+            #     k1 = v1 @ normal_v
+            #     # print(f"{v1} @ {normal_v} = {k1}")
+            #     k2 = v2 @ normal_v
+            #     # print(f"{v2} @ {normal_v} = {k2}")
+            #     if (k1 * k2) <= 0:
+            #         colli_point = getLinePlaneCollision(normal_v, pca_mean, v1, v2)
+            #         # print(f"colli_point: {colli_point}")
+            #         yield colli_point
+
+    def get_line_segments(self):
+        return list(self.plane_colli._iter_ring_mesh_triangles(self.pca_mean, self.normal_v))
 
 
 def trimesh_main():
     for idx, (pca_mean, normal_v) in enumerate(iter_pca_mean_and_normal_v_points()):
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
-        mesh = cut_ring_finger(mesh)
-        # scene = trimesh.Scene()
-        # scene.add_geometry(set_blue(mesh))
-        # # scene.add_geometry(mesh)
-        # scene.show()
-        # 平面と3Dメッシュの交点を計算
-        line_segments = list(iter_k(mesh, pca_mean, normal_v))
-        print(f"Line segments: {line_segments}")
-        # visualize_mesh_and_points(gt_mesh=mesh, red_points=(pca_mean,))
-        break
+        plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
+        a = plane_colli.get_line_segments()
 
 
 trimesh_main()
