@@ -1,4 +1,5 @@
 import numpy as np
+from src.handinfo.visualize import visualize_points
 import torch
 
 
@@ -61,12 +62,37 @@ def test_intersection():
     # Define plane
     plane_normal = torch.FloatTensor([0, 0, 1])
     plane_point = torch.FloatTensor([0, 0, 0])
+    plane_point = torch.tensor([-0.6810, -0.2870, -0.6737])
 
     # Define ray
     line_vector_1 = torch.FloatTensor([0, 0, -10])
     line_vector_2 = torch.FloatTensor([0, 0, 10])
-    point = getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_2)
-    print(f"intersection at: {point}")
+    # lp_1 = torch.tensor(
+    #     [
+    #         [[0.0003, 0.0128, 0.0055], [-0.0020, 0.0066, 0.0124]],
+    #         [[-0.0123, 0.0061, -0.0016], [0.0003, 0.0128, 0.0055]],
+    #         [[-0.0020, 0.0066, 0.0124], [-0.0123, 0.0061, -0.0016]],
+    #     ]
+    # )
+    # lp_2 = torch.tensor(
+    #     [
+    #         [[-0.0020, 0.0066, 0.0124], [-0.0129, -0.0004, 0.0037]],
+    #         [[-0.0123, 0.0061, -0.0016], [-0.0020, 0.0066, 0.0124]],
+    #         [[-0.0129, -0.0004, 0.0037], [-0.0123, 0.0061, -0.0016]],
+    #     ]
+    # )
+    # line_endpoints = torch.cat((lp_1, lp_2))
+    line_endpoints = torch.load("triangle_sides.pt")
+    print(f"line_endpoints: {line_endpoints.shape}")
+
+    def _iter_collision_points():
+        for line_vector_1, line_vector_2 in line_endpoints:
+            p = getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_2)
+            yield p
+
+    points = list(_iter_collision_points())
+    print(f"intersection at: {len(points)}")
+    visualize_points(points=points[:100])
 
 
 def test_torch_roll():
