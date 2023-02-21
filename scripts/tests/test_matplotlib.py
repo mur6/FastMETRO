@@ -47,7 +47,7 @@ def cut(faces, *, begin_index, offset):
 
 def cut_ring_finger(mesh):
     begin_index = 468
-    offset = 112  # a = 115
+    offset = 112
     vertices = mesh.vertices[begin_index : begin_index + offset]
     faces = mesh.faces
     faces = cut(faces, begin_index=begin_index, offset=offset)
@@ -60,36 +60,40 @@ def getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_
     rayPoint = line_vector_1
     ray_direction = line_vector_2 - line_vector_1
     n_dot_u = plane_normal @ ray_direction
-    # if abs(ndotu) < epsilon:
-    #     raise RuntimeError("no intersection or line is within plane")
+    if abs(n_dot_u) < epsilon:
+        raise RuntimeError("no intersection or line is within plane")
     w = rayPoint - plane_point
     si = -(plane_normal @ w) / n_dot_u
     return w + si * ray_direction + plane_point
 
 
+def iter_k(mesh, pca_mean, normal_v):
+    for face in mesh.faces:
+        # 三角形の3つの頂点を取得
+        vs = torch.from_numpy(mesh.vertices[face]).float() - pca_mean
+        a, b, c = vs
+        for v1, v2 in ((a, b), (b, c), (c, a)):
+            k1 = v1 @ normal_v
+            # print(f"{v1} @ {normal_v} = {k1}")
+            k2 = v2 @ normal_v
+            # print(f"{v2} @ {normal_v} = {k2}")
+            if (k1 * k2) <= 0:
+                colli_point = getLinePlaneCollision(normal_v, pca_mean, v1, v2)
+                # print(f"colli_point: {colli_point}")
+                yield colli_point
+
+
 def trimesh_main():
     for idx, (pca_mean, normal_v) in enumerate(iter_pca_mean_and_normal_v_points()):
-        mesh = trimesh.load(f"gt_mesh_{idx:02}.obj")
+        mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
         mesh = cut_ring_finger(mesh)
         # scene = trimesh.Scene()
         # scene.add_geometry(set_blue(mesh))
         # # scene.add_geometry(mesh)
         # scene.show()
         # 平面と3Dメッシュの交点を計算
-        for face in mesh.faces:
-            # 三角形の3つの頂点を取得
-            vs = torch.from_numpy(mesh.vertices[face]).float() - pca_mean
-            a, b, c = vs
-            for v1, v2 in ((a, b), (b, c), (c, a)):
-                k1 = v1 @ normal_v
-                # print(f"{v1} @ {normal_v} = {k1}")
-                k2 = v2 @ normal_v
-                # print(f"{v2} @ {normal_v} = {k2}")
-                if (k1 * k2) <= 0:
-                    colli_point = getLinePlaneCollision(normal_v, pca_mean, v1, v2)
-                    print(f"colli_point: {colli_point}")
-            print()
-        # print(f"Line segments: {line_segments}")
+        line_segments = list(iter_k(mesh, pca_mean, normal_v))
+        print(f"Line segments: {line_segments}")
         # visualize_mesh_and_points(gt_mesh=mesh, red_points=(pca_mean,))
         break
 
