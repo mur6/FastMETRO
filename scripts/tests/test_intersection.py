@@ -78,3 +78,8 @@ if __name__ == "__main__":
     # b = torch.ones(2, 3, 3)
     # c = a * b
     # print(c.shape)
+    # print("########################")
+    # a = torch.ones(1, 3)
+    # b = torch.zeros(1, 3)
+    # c = torch.cat((a, b), dim=0)
+    # print(c.shape)
