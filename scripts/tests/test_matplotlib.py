@@ -142,8 +142,8 @@ def trimesh_main():
         a = plane_colli.get_inner_product_signs(triangle_sides)
         idx = a <= 0
         collision_points = plane_colli.get_collision_points(triangle_sides)
-        b = collision_points[idx].view(-1, 2, 3)
-        print(b)
+        # b = collision_points[idx].view(-1, 2, 3)
+        # print(b.shape)
         print("######")
         break
 
