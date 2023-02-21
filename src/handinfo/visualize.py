@@ -8,6 +8,16 @@ def visualize_mesh(*, mesh):
     scene.show()
 
 
+def visualize_points(*, points, draw_origin=True):
+    scene = trimesh.Scene()
+    for p in points:
+        scene.add_geometry(_create_point_geom(p, "red", radius=0.05))
+    if draw_origin:
+        # 原点のポイントを描く
+        scene.add_geometry(_create_point_geom((0, 0, 0), "green", radius=0.1))
+    scene.show()
+
+
 def _create_point_geom(point, color, *, radius=0.0008):
     geom = trimesh.creation.icosphere(radius=radius)
     if color == "red":
