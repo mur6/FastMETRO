@@ -67,39 +67,38 @@ class PlaneCollision:
         mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
         return mesh
 
+    @staticmethod
+    def ring_finger_triangles_as_tensor(ring_mesh):
+        def _iter_ring_mesh_triangles():
+            for face in ring_mesh.faces:
+                vertices = ring_mesh.vertices
+                vertices_of_triangle = torch.from_numpy(vertices[face]).float()
+                yield vertices_of_triangle
+
+        triangles = list(_iter_ring_mesh_triangles())
+        return torch.stack(triangles)
+
     def __init__(self, orig_mesh, pca_mean, normal_v):
-        self.ring_mesh = PlaneCollision.ring_finger_submesh(orig_mesh)
+        ring_mesh = PlaneCollision.ring_finger_submesh(orig_mesh)
+        self.ring_finger_triangles = PlaneCollision.ring_finger_triangles_as_tensor(ring_mesh)
         self.pca_mean = pca_mean
         self.normal_v = normal_v
 
-    def _iter_ring_mesh_triangles(self, pca_mean, normal_v):
-        for face in self.ring_mesh.faces:
-            # 三角形の3つの頂点を取得
-            vertices = self.ring_mesh.vertices
-            vertices_of_triangle = torch.from_numpy(vertices[face]).float() - pca_mean
-            yield vertices_of_triangle
+    def get_triangle_sides(self):
+        inputs = self.ring_finger_triangles
+        print(f"a: {inputs[:5]}")
+        shifted = torch.roll(input=inputs, shifts=1, dims=0)
+        # stacked_sides = torch.stack((vertices_of_triangle, shifted), dim=1)
+        print(f"b: {shifted[:5]}")
+        return
 
-    def _iter_triangle_sides(self):
-        for vertices_of_triangle in self._iter_ring_mesh_triangles(self.pca_mean, self.normal_v):
-            # a, b, c = vertices_of_triangle
-            shifted = torch.roll(input=vertices_of_triangle, shifts=1, dims=0)
-            stacked_sides = torch.stack((vertices_of_triangle, shifted), dim=1)
-            # for v1, v2 in ((a, b), (b, c), (c, a)):
-            #     k1 = v1 @ normal_v
-            #     # print(f"{v1} @ {normal_v} = {k1}")
-            #     k2 = v2 @ normal_v
-            #     # print(f"{v2} @ {normal_v} = {k2}")
-            #     if (k1 * k2) <= 0:
-            #         colli_point = getLinePlaneCollision(normal_v, pca_mean, v1, v2)
-            #         # print(f"colli_point: {colli_point}")
-            #         yield colli_point
-            yield stacked_sides
-
-    def iter_inner_product_signs(self):
-        for line_endpoints in self._iter_triangle_sides():
-            inner_product = line_endpoints @ self.normal_v
-            inner_product_sign = inner_product[:, 0] * inner_product[:, 1]
-            yield inner_product_sign
+    def get_inner_product_signs(self):
+        inputs = self.ring_finger_triangles
+        # for line_endpoints in :
+        inner_product = inputs @ self.normal_v
+        print(inner_product[0])
+        inner_product_sign = inner_product[:, 0] * inner_product[:, 1]
+        return inner_product_sign
 
     def iter_collision_points(self):
         plane_normal = self.normal_v
@@ -126,12 +125,7 @@ def trimesh_main():
     for idx, (pca_mean, normal_v) in enumerate(iter_pca_mean_and_normal_v_points()):
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
         plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
-        # plane_colli.iter_inner_product_signs()
-        a = [s for s in plane_colli.iter_inner_product_signs()]
-        b = [collision_points for _, collision_points in plane_colli.iter_collision_points()]
-        idx = a[0] <= 0
-        print(b[0][idx])
-        # a = plane_colli.get_line_segments()
+        plane_colli.get_inner_product_signs()
         print("######")
 
 
