@@ -84,10 +84,6 @@ class PlaneCollision:
             # a, b, c = vertices_of_triangle
             shifted = torch.roll(input=vertices_of_triangle, shifts=1, dims=0)
             stacked_sides = torch.stack((vertices_of_triangle, shifted), dim=1)
-            print(f"normal_v: {self.normal_v}")
-            # for side in :
-            #     yield side
-
             # for v1, v2 in ((a, b), (b, c), (c, a)):
             #     k1 = v1 @ normal_v
             #     # print(f"{v1} @ {normal_v} = {k1}")
@@ -109,12 +105,8 @@ class PlaneCollision:
         plane_normal = self.normal_v
         plane_point = self.pca_mean
         for line_endpoints in self._iter_triangle_sides():
-            line_endpoints[:, 0, :]
-
             ray_point = line_endpoints[:, 0, :]
             ray_direction = line_endpoints[:, 1, :] - line_endpoints[:, 0, :]
-            print(ray_point.shape)
-            print(ray_direction.shape)
             n_dot_u = plane_normal @ ray_direction
             # if abs(n_dot_u) < epsilon:
             #     raise RuntimeError("no intersection or line is within plane")
@@ -135,9 +127,8 @@ def trimesh_main():
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
         plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
         # plane_colli.iter_inner_product_signs()
-        for n_dot_u, collision_points in plane_colli.iter_22():
-            print(n_dot_u < epsilon)
-            # print()
+        b = [collision_points for _, collision_points in plane_colli.iter_collision_points()]
+        print(b[0])
         # a = plane_colli.get_line_segments()
         # print(a)
 
