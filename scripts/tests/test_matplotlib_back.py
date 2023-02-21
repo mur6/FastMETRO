@@ -104,6 +104,8 @@ class PlaneCollision:
     def iter_collision_points(self):
         plane_normal = self.normal_v
         plane_point = self.pca_mean
+        plane_point = torch.zeros(3)
+        print(f"plane_point: {plane_point.shape}")
         for line_endpoints in self._iter_triangle_sides():
             ray_point = line_endpoints[:, 0, :]
             ray_direction = line_endpoints[:, 1, :] - line_endpoints[:, 0, :]
@@ -112,14 +114,14 @@ class PlaneCollision:
             #     raise RuntimeError("no intersection or line is within plane")
             w = ray_point - plane_point
             si = -(plane_normal @ w) / n_dot_u
-            print(f"w: {w.shape}")  # 212, 3, 3
-            print(f"si: {si.shape}")  # 212, 3
-            print(f"ray_direction: {ray_direction.shape}")  # 212, 3, 3
-            print(f"si * ray_direction: {(ray_direction * si).shape}")  # 212, 3, 3
-            print(f"plane_point: {plane_point.shape}")
+            # print(f"w: {w.shape}")  # 212, 3, 3
+            # print(f"si: {si.shape}")  # 212, 3
+            # print(f"ray_direction: {ray_direction.shape}")  # 212, 3, 3
+            # print(f"si * ray_direction: {(ray_direction * si).shape}")  # 212, 3, 3
+            # print(f"plane_point: {plane_point.shape}")
             collision_points = w + si * ray_direction + plane_point
-            print(f"collision_points: {collision_points.shape}")
-            print()
+            # print(f"collision_points: {collision_points.shape}")
+            # print()
             yield n_dot_u, collision_points
 
     def get_line_segments(self):
@@ -136,10 +138,15 @@ def trimesh_main():
         # plane_colli.iter_inner_product_signs()
         a = [s for s in plane_colli.iter_inner_product_signs()]
         b = [collision_points for _, collision_points in plane_colli.iter_collision_points()]
-        idx = a[0] <= 0
-        print(b[0][idx])
+        c = torch.cat(b, dim=0)
+
+        # idx = a[0] <= 0
+        # print(b[0][idx])
         # a = plane_colli.get_line_segments()
+        print(c.shape)
+        visualize_mesh_and_points(gt_mesh=plane_colli.ring_mesh, blue_points=c[:10] + pca_mean)
         print("######")
+        break
 
 
 trimesh_main()
