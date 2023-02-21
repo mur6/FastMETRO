@@ -127,10 +127,12 @@ def trimesh_main():
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
         plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
         # plane_colli.iter_inner_product_signs()
+        a = [s for s in plane_colli.iter_inner_product_signs()]
         b = [collision_points for _, collision_points in plane_colli.iter_collision_points()]
+        print(a[0])
         print(b[0])
         # a = plane_colli.get_line_segments()
-        # print(a)
+        print("######")
 
 
 trimesh_main()
