@@ -2,6 +2,31 @@ import numpy as np
 import torch
 
 
+def torch_test():
+    a = torch.tensor([1, 2, 3])  # .unsqueeze(0)  # torch.arange(3)
+    # b = torch.arange(9).view(3, 3)
+    b = torch.full((3, 3), 1)
+    print(a.shape, b.shape)
+    print(a * b)
+    print("########################")
+    a = torch.tensor([[1, 2, 3], [1, 2, 3]])  # .unsqueeze(0)  # torch.arange(3)
+    # b = torch.arange(9).view(3, 3)
+    b = torch.full((2, 3, 3), 1).unsqueeze(0)
+    print(a.shape)
+    a = a.unsqueeze(1)
+    print(a.shape)
+    print(a * b)
+    # a = torch.ones(2, 3).unsqueeze(1)
+    # b = torch.ones(2, 3, 3)
+    # c = a * b
+    # print(c.shape)
+    # print("########################")
+    # a = torch.ones(1, 3)
+    # b = torch.zeros(1, 3)
+    # c = torch.cat((a, b), dim=0)
+    # print(c.shape)
+
+
 def getLinePlaneCollision_np(planeNormal, planePoint, line_vector_1, line_vector_2, epsilon=1e-6):
     rayPoint = line_vector_1
     ray_direction = line_vector_2 - line_vector_1
@@ -61,25 +86,4 @@ def test_torch_roll():
 
 
 if __name__ == "__main__":
-    a = torch.tensor([1, 2, 3])  # .unsqueeze(0)  # torch.arange(3)
-    # b = torch.arange(9).view(3, 3)
-    b = torch.full((3, 3), 1)
-    print(a.shape, b.shape)
-    print(a * b)
-    print("########################")
-    a = torch.tensor([[1, 2, 3], [1, 2, 3]])  # .unsqueeze(0)  # torch.arange(3)
-    # b = torch.arange(9).view(3, 3)
-    b = torch.full((2, 3, 3), 1).unsqueeze(0)
-    print(a.shape)
-    a = a.unsqueeze(1)
-    print(a.shape)
-    print(a * b)
-    # a = torch.ones(2, 3).unsqueeze(1)
-    # b = torch.ones(2, 3, 3)
-    # c = a * b
-    # print(c.shape)
-    # print("########################")
-    # a = torch.ones(1, 3)
-    # b = torch.zeros(1, 3)
-    # c = torch.cat((a, b), dim=0)
-    # print(c.shape)
+    test_intersection()
