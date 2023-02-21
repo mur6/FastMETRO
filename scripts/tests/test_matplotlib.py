@@ -94,12 +94,13 @@ class PlaneCollision:
         # print(f"c: {stacked_sides[:5]}")
         return stacked_sides
 
-    def get_inner_product_signs(self):
-        inputs = self.ring_finger_triangles
-        # for line_endpoints in :
-        inner_product = inputs @ self.normal_v
-        print(inner_product[0])
-        inner_product_sign = inner_product[:, 0] * inner_product[:, 1]
+    def get_inner_product_signs(self, triangle_sides):
+        # inputs = self.ring_finger_triangles
+        # # for line_endpoints in :
+        inner_product = triangle_sides @ self.normal_v
+        # print(inner_product.shape, inner_product[:, :, 0].shape)
+        inner_product_sign = inner_product[:, :, 0] * inner_product[:, :, 1]
+        # print(inner_product_sign.shape)
         return inner_product_sign
 
     def iter_collision_points(self):
@@ -127,8 +128,9 @@ def trimesh_main():
     for idx, (pca_mean, normal_v) in enumerate(iter_pca_mean_and_normal_v_points()):
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
         plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
-        plane_colli.get_triangle_sides()
-        # plane_colli.get_inner_product_signs()
+        triangle_sides = plane_colli.get_triangle_sides()
+        a = plane_colli.get_inner_product_signs(triangle_sides)
+        print(a[0])
         print("######")
         break
 
