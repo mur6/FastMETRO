@@ -128,13 +128,16 @@ def test_matmul_and_argsort():
     v1 = torch.tensor([1, 2, 3])
     v2 = torch.tensor([4, 5, 6])
     v3 = torch.tensor([7, 8, 9])
-    v = torch.stack([v1, v2, v3])
+    v = torch.stack([v1, v2, v3]).float()
 
     # 別のベクトル w を作成
-    w = torch.tensor([0.5, 0.2, 0.8])
+    w = torch.tensor([-0.5, 0.2, -0.8])
 
     # 内積の値で並べ替える
-    p = torch.matmul(v, w)
+    p = v @ w
+    # p = torch.matmul(v, w)
+    print(p)
+
     idx = torch.argsort(p)
     sorted_v = v[idx]
 
