@@ -146,4 +146,22 @@ def test_matmul_and_argsort():
 
 if __name__ == "__main__":
     # test_intersection()
-    test_matmul_and_argsort()
+    # test_matmul_and_argsort()
+    # N = 4
+    points = torch.tensor(
+        [
+            [-0.1164, -0.3724, -0.7614],
+            [1.0364, -0.9977, 0.1118],
+            [0.9462, 0.4087, 0.9843],
+            [-0.2610, 0.9101, 0.0963],
+        ]
+    )
+    shifted = torch.roll(
+        points,
+        shifts=1,
+        dims=0,
+    )
+    d = points - shifted
+    print(d.shape)
+    d = torch.norm(d, dim=1)
+    print(d.sum())
