@@ -175,7 +175,9 @@ def trimesh_main():
 
         print(f"points: {points.shape}")
         # torch.save(points, "collision_points.pt")
-        plot_points(points)
+        show_matplotlib_3d = False
+        if show_matplotlib_3d:
+            plot_points(points)
 
         # visualize_points(blue_points=vertices - pca_mean, red_points=point_list[:20])
 
