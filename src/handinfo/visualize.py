@@ -1,4 +1,19 @@
 import trimesh
+from matplotlib import pyplot as plt
+
+
+def plot_points(*, blue_points=None, red_points=None):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+
+    def draw(p, color):
+        ax.scatter(p[:, 0], p[:, 1], p[:, 2], c=color)
+
+    if blue_points is not None:
+        draw(blue_points, "blue")
+    if red_points is not None:
+        draw(red_points, "red")
+    plt.show()
 
 
 def visualize_mesh(*, mesh):
