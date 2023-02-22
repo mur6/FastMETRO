@@ -140,8 +140,10 @@ def trimesh_main():
         # plane_colli.iter_inner_product_signs()
         print(f"plane_normal: {normal_v}")
         a = list(plane_colli._iter_triangle_sides())
-        a = torch.cat(a, dim=0)
-        # print(a.shape)
+        a = torch.stack(a, dim=0)
+        print(f"a: {a.shape}")
+        # a = torch.cat(a, dim=0)
+        # print(f"a: {a.shape}")
         # torch.save(a, "triangle_sides.pt")
         break
         a = [s for s in plane_colli.iter_inner_product_signs()]
