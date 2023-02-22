@@ -130,10 +130,13 @@ class PlaneCollision:
         return list(self._iter_ring_mesh_triangles(self.pca_mean, self.normal_v))
 
 
-def getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_2):
+def getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_2, first=False):
     rayPoint = line_vector_1
     ray_direction = line_vector_2 - line_vector_1
     n_dot_u = plane_normal @ ray_direction
+    if first:
+        print(f"ray_direction: {ray_direction}")
+        print(f"n_dot_u: {n_dot_u}")
     w = rayPoint - plane_point
     si = -(plane_normal @ w) / n_dot_u
     return w + si * ray_direction + plane_point
@@ -170,14 +173,16 @@ def trimesh_main():
         print(triangle_sides[0])
 
         point_list = []
-        for triangles_line_endpoints in triangle_sides:
+        for i, triangles_line_endpoints in enumerate(triangle_sides):
             # print(f"triangles_line_endpoints: ")
             # print(triangles_line_endpoints)
             # print(f"triangle: {triangle.shape}")
             for line_vector_1, line_vector_2 in triangles_line_endpoints:
                 plane_normal = normal_v
                 plane_point = torch.zeros(3)
-                p = getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_2)
+                p = getLinePlaneCollision(
+                    plane_normal, plane_point, line_vector_1, line_vector_2, first=(i == 0)
+                )
                 point_list.append(p)
         print("First elem of points:")
         print(point_list[:3])
