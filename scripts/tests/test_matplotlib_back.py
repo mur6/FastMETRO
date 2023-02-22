@@ -10,7 +10,7 @@ from src.handinfo.visualize import (
     visualize_mesh_and_points,
     make_hand_mesh,
     visualize_points,
-    set_blue,
+    plot_points,
 )
 
 
@@ -149,20 +149,6 @@ def getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_
     return w + si * ray_direction + plane_point
 
 
-def plot_points(*, blue_points=None, red_points=None):
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection="3d")
-
-    def draw(p, color):
-        ax.scatter(p[:, 0], p[:, 1], p[:, 2], c=color)
-
-    if blue_points is not None:
-        draw(blue_points, "blue")
-    if red_points is not None:
-        draw(red_points, "red")
-    plt.show()
-
-
 def trimesh_main():
     for idx, (pca_mean, normal_v) in enumerate(iter_pca_mean_and_normal_v_points()):
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
@@ -187,9 +173,7 @@ def trimesh_main():
             for line_vector_1, line_vector_2 in triangles_line_endpoints:
                 plane_normal = normal_v
                 plane_point = torch.zeros(3)
-                p = getLinePlaneCollision(
-                    plane_normal, plane_point, line_vector_1, line_vector_2, first=(i == 0)
-                )
+                p = getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_2)
                 point_list.append(p)
         print("First elem of points:")
         print(point_list[:3])

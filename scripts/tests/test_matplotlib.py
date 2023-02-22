@@ -9,8 +9,8 @@ from mpl_toolkits.mplot3d import Axes3D
 from src.handinfo.visualize import (
     visualize_mesh_and_points,
     make_hand_mesh,
-    visualize_mesh,
-    set_blue,
+    visualize_points,
+    plot_points,
 )
 
 
@@ -79,8 +79,8 @@ class PlaneCollision:
         return torch.stack(triangles)
 
     def __init__(self, orig_mesh, pca_mean, normal_v):
-        ring_mesh = PlaneCollision.ring_finger_submesh(orig_mesh)
-        self.ring_finger_triangles = PlaneCollision.ring_finger_triangles_as_tensor(ring_mesh)
+        self.ring_mesh = PlaneCollision.ring_finger_submesh(orig_mesh)
+        self.ring_finger_triangles = PlaneCollision.ring_finger_triangles_as_tensor(self.ring_mesh)
         self.pca_mean = pca_mean
         self.normal_v = normal_v
 
@@ -138,6 +138,14 @@ def trimesh_main():
     for idx, (pca_mean, normal_v) in enumerate(iter_pca_mean_and_normal_v_points()):
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
         plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
+        print(f"plane_normal: {normal_v}")
+        vertices = plane_colli.ring_mesh.vertices  # 112 x 3
+        vertices = torch.from_numpy(vertices)
+        # print(vertices.shape)
+        faces = plane_colli.ring_mesh.faces  # 212 x 3
+        # print(faces.shape)
+
+        #############
         triangle_sides = plane_colli.get_triangle_sides() - pca_mean
         a = plane_colli.get_inner_product_signs(triangle_sides)
         idx = a <= 0
@@ -154,6 +162,23 @@ def trimesh_main():
             print(f"distance: {distance[:30]}")
             print(f"mean of distance: {torch.mean(distance)}")
             print(f"max of distance: {torch.max(distance)}")
+
+        distance = torch.sum(points**2, dim=1)
+
+        # torch.save(points, "collision_points.pt")
+        show_stats, show_matplotlib_3d_plot, show_trimesh_plot = False, True, False
+        if show_stats:
+            print(f"distance: {distance[:30]}")
+            print(f"mean of distance: {torch.mean(distance)}")
+            print(f"max of distance: {torch.max(distance)}")
+            print(f"points: {points.shape}")
+
+        points = points[distance < 0.007]  # Filter by distance.
+
+        if show_matplotlib_3d_plot:
+            plot_points(blue_points=vertices - pca_mean, red_points=points)
+        if show_trimesh_plot:
+            visualize_points(blue_points=vertices - pca_mean, red_points=points)
 
         # filltered_c_points = collision_points[idx]  # .view(-1, 2, 3)
         if False:
