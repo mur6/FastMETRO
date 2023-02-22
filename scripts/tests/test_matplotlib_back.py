@@ -139,16 +139,16 @@ def getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_
     return w + si * ray_direction + plane_point
 
 
-def plot_points(*, blue_points=(), red_points=()):
+def plot_points(*, blue_points=None, red_points=None):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
 
     def draw(p, color):
         ax.scatter(p[:, 0], p[:, 1], p[:, 2], c=color)
 
-    if blue_points:
+    if blue_points is not None:
         draw(blue_points, "blue")
-    if red_points:
+    if red_points is not None:
         draw(red_points, "red")
     plt.show()
 
@@ -185,7 +185,7 @@ def trimesh_main():
             print(torch.max(distance))
             print(f"points: {points.shape}")
         if show_matplotlib_3d_plot:
-            plot_points(blue_points=vertices - pca_mean)
+            plot_points(blue_points=vertices - pca_mean, red_points=points)
         if show_trimesh_plot:
             visualize_points(blue_points=vertices - pca_mean, red_points=points)
 
