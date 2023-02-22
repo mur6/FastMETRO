@@ -139,6 +139,13 @@ def getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_
     return w + si * ray_direction + plane_point
 
 
+def plot_points(points):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+    ax.scatter(points[:, 0], points[:, 1], points[:, 2])
+    plt.show()
+
+
 def trimesh_main():
     for idx, (pca_mean, normal_v) in enumerate(iter_pca_mean_and_normal_v_points()):
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
@@ -165,14 +172,10 @@ def trimesh_main():
         points = points[distance < 1]
         # print(torch.mean(distance))
         # print(torch.max(distance))
-        print(points.shape)
 
-        # print(f"points: {points.shape}")
+        print(f"points: {points.shape}")
         # torch.save(points, "collision_points.pt")
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection="3d")
-        ax.scatter(points[:, 0], points[:, 1], points[:, 2])
-        plt.show()
+        plot_points(points)
 
         # visualize_points(blue_points=vertices - pca_mean, red_points=point_list[:20])
 
