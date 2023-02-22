@@ -147,12 +147,6 @@ def trimesh_main():
         print(f"points: {points}")
         show_matplotlib_3d_plot, show_trimesh_plot = True, False
 
-        # 円周を測る
-        shifted_points = torch.roll(
-            points,
-            shifts=1,
-            dims=0,
-        )
         # print("原点からの距離1:")
         r = torch.norm(points, dim=1)
         print(f"max:{r.max()} min:{r.min()} mean:{r.mean()}")
@@ -160,8 +154,15 @@ def trimesh_main():
         print(f"推定される円周(平均): {2*math.pi*r.mean()}")
         print(f"推定される円周(最小): {2*math.pi*r.min()}")
 
+        ########### 円周を測る ##########
+        shifted_points = torch.roll(
+            points,
+            shifts=1,
+            dims=0,
+        )
         d = torch.norm(points - shifted_points, dim=1)
         print(d, d.sum())
+        ###############################
 
         if show_matplotlib_3d_plot:
             plot_points(blue_points=vertices - pca_mean, red_points=points)
