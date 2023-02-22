@@ -105,8 +105,8 @@ class PlaneCollision:
         plane_normal = self.normal_v
         plane_point = self.pca_mean
         plane_point = torch.zeros(3)
-        print(f"plane_point: {plane_point.shape}")
         for line_endpoints in self._iter_triangle_sides():
+            # print(f"line_endpoints: {line_endpoints}")
             ray_point = line_endpoints[:, 0, :]
             ray_direction = line_endpoints[:, 1, :] - line_endpoints[:, 0, :]
             n_dot_u = plane_normal @ ray_direction
@@ -123,6 +123,8 @@ class PlaneCollision:
             # print(f"collision_points: {collision_points.shape}")
             # print()
             yield n_dot_u, collision_points
+        # print(f"plane_point: {plane_point}")
+        # print(f"plane_normal: {plane_normal}")
 
     def get_line_segments(self):
         return list(self._iter_ring_mesh_triangles(self.pca_mean, self.normal_v))
@@ -136,10 +138,16 @@ def trimesh_main():
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
         plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
         # plane_colli.iter_inner_product_signs()
+        print(f"plane_normal: {normal_v}")
+        a = list(plane_colli._iter_triangle_sides())
+        a = torch.cat(a, dim=0)
+        print(a.shape)
+        torch.save(a, "triangle_sides.pt")
+        break
         a = [s for s in plane_colli.iter_inner_product_signs()]
         b = [collision_points for _, collision_points in plane_colli.iter_collision_points()]
         c = torch.cat(b, dim=0)
-
+        break
         # idx = a[0] <= 0
         # print(b[0][idx])
         # a = plane_colli.get_line_segments()
