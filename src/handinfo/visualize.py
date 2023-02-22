@@ -8,9 +8,11 @@ def visualize_mesh(*, mesh):
     scene.show()
 
 
-def visualize_points(*, points, draw_origin=True):
+def visualize_points(*, blue_points=(), red_points=(), draw_origin=True):
     scene = trimesh.Scene()
-    for p in points:
+    for p in blue_points:
+        scene.add_geometry(_create_point_geom(p, "blue", radius=0.05))
+    for p in red_points:
         scene.add_geometry(_create_point_geom(p, "red", radius=0.05))
     if draw_origin:
         # 原点のポイントを描く

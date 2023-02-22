@@ -9,7 +9,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from src.handinfo.visualize import (
     visualize_mesh_and_points,
     make_hand_mesh,
-    visualize_mesh,
+    visualize_points,
     set_blue,
 )
 
@@ -72,7 +72,7 @@ class PlaneCollision:
         self.pca_mean = pca_mean
         self.normal_v = normal_v
 
-    def _iter_ring_mesh_triangles(self, pca_mean, normal_v):
+    def _iter_ring_mesh_triangles(self, pca_mean):
         for face in self.ring_mesh.faces:
             # 三角形の3つの頂点を取得
             vertices = self.ring_mesh.vertices
@@ -80,7 +80,7 @@ class PlaneCollision:
             yield vertices_of_triangle
 
     def _iter_triangle_sides(self):
-        for vertices_of_triangle in self._iter_ring_mesh_triangles(self.pca_mean, self.normal_v):
+        for vertices_of_triangle in self._iter_ring_mesh_triangles(self.pca_mean):
             # a, b, c = vertices_of_triangle
             shifted = torch.roll(input=vertices_of_triangle, shifts=1, dims=0)
             stacked_sides = torch.stack((vertices_of_triangle, shifted), dim=1)
@@ -145,9 +145,19 @@ def trimesh_main():
         plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
         # plane_colli.iter_inner_product_signs()
         print(f"plane_normal: {normal_v}")
-        a = list(plane_colli._iter_triangle_sides())
-        a = torch.stack(a, dim=0)
-        print(f"a: {a.shape}")
+        point_list = []
+        for triangles_line_endpoints in plane_colli._iter_triangle_sides():
+            # print(f"triangle: {triangle.shape}")
+            for line_vector_1, line_vector_2 in triangles_line_endpoints:
+                plane_normal = normal_v
+                plane_point = torch.zeros(3)
+                p = getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_2)
+                point_list.append(p)
+        print(len(point_list))
+        visualize_points(points=point_list[:70])
+        # visualize_mesh_and_points(gt_mesh=plane_colli.ring_mesh, blue_points=point_list[:100])
+        # a = torch.stack(a, dim=0)
+        # print(f"a: {a.shape}")
         # a = torch.cat(a, dim=0)
         # print(f"a: {a.shape}")
         # torch.save(a, "triangle_sides.pt")
