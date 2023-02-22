@@ -147,8 +147,9 @@ def trimesh_main():
 
         #############
         triangle_sides = plane_colli.get_triangle_sides() - pca_mean
-        a = plane_colli.get_inner_product_signs(triangle_sides)
-        idx = a <= 0
+        a = plane_colli.get_inner_product_signs(triangle_sides).view(-1)
+        print(f"a: {a.shape}")
+        # idx = a <= 0
 
         print(f"triangle_sides: {triangle_sides.shape}")
         triangle_sides = triangle_sides.view(-1, 2, 3)
@@ -166,6 +167,7 @@ def trimesh_main():
             print(f"points: {points.shape}")
 
         points = collision_points[distance < 0.007]  # Filter by distance.
+        points = collision_points[a <= 0]
 
         if show_matplotlib_3d_plot:
             plot_points(blue_points=vertices - pca_mean, red_points=points)
