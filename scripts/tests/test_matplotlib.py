@@ -88,49 +88,36 @@ class PlaneCollision:
 
     def get_triangle_sides(self):
         inputs = self.ring_finger_triangles
-        # print(f"a: {inputs[:5]}")
         shifted = torch.roll(input=inputs, shifts=1, dims=1)
-        # print(f"b: {shifted[:5]}")
         stacked_sides = torch.stack((inputs, shifted), dim=2)
-        # print(stacked_sides.shape)
-        # print(f"c: {stacked_sides[:5]}")
         return stacked_sides
 
     def get_inner_product_signs(self, triangle_sides):
-        # inputs = self.ring_finger_triangles
-        # # for line_endpoints in :
         inner_product = triangle_sides @ self.normal_v
-        # print(inner_product.shape, inner_product[:, :, 0].shape)
         inner_product_sign = inner_product[:, :, 0] * inner_product[:, :, 1]
-        # print(inner_product_sign.shape)
         return inner_product_sign
 
     def get_collision_points(self, triangle_sides):
         plane_normal = self.normal_v
-        # print(f"plane_normal: {plane_normal}")
         plane_point = torch.zeros(3, dtype=torch.float32)
         line_endpoints = triangle_sides
         ray_point = line_endpoints[:, 0, :]
         ray_direction = line_endpoints[:, 1, :] - line_endpoints[:, 0, :]
-        # print(f"ray_direction: {ray_direction}")
         n_dot_u = ray_direction @ plane_normal
-        # print(f"n_dot_u: {n_dot_u}")
-        # # if abs(n_dot_u) < epsilon:
-        # #     raise RuntimeError("no intersection or line is within plane")
         w = ray_point - plane_point
         si = -(w @ plane_normal) / n_dot_u
         si = si.unsqueeze(1)
-        # print(f"w: {w.shape}")  # ray_point
-        # print(f"si: {si.shape}")
-        # print(f"ray_direction: {ray_direction.shape}")
-        # print(f"si * ray_direction: {si * ray_direction}")
-        # print(f"plane_point: {plane_point.shape}")
         collision_points = w + si * ray_direction + plane_point
-        # print(f"collision_points: {collision_points.shape}")
         return collision_points
 
-    def get_line_segments(self):
-        return list(self._iter_ring_mesh_triangles(self.pca_mean, self.normal_v))
+    def get_filtered_collision_points(self):
+        triangle_sides = self.get_triangle_sides() - self.pca_mean
+        signs = self.get_inner_product_signs(triangle_sides).view(-1)
+        # print(f"triangle_sides: {triangle_sides.shape}")
+        triangle_sides = triangle_sides.view(-1, 2, 3)
+        collision_points = self.get_collision_points(triangle_sides)
+        points = collision_points[signs <= 0]
+        return points
 
 
 epsilon = 1e-6
@@ -148,28 +135,9 @@ def trimesh_main():
         # print(faces.shape)
 
         #############
-        triangle_sides = plane_colli.get_triangle_sides() - pca_mean
-        a = plane_colli.get_inner_product_signs(triangle_sides).view(-1)
-        print(f"a: {a.shape}")
-        # idx = a <= 0
-
-        print(f"triangle_sides: {triangle_sides.shape}")
-        triangle_sides = triangle_sides.view(-1, 2, 3)
-        collision_points = plane_colli.get_collision_points(triangle_sides)
-
-        print(f"collision_points: {collision_points}")
-
-        distance = torch.sum(collision_points**2, dim=1)
-
-        show_stats, show_matplotlib_3d_plot, show_trimesh_plot = False, False, False
-        if show_stats:
-            print(f"distance: {distance[:30]}")
-            print(f"mean of distance: {torch.mean(distance)}")
-            print(f"max of distance: {torch.max(distance)}")
-            print(f"points: {points.shape}")
-
-        # points = collision_points[distance < 0.007]  # Filter by distance.
-        points = collision_points[a <= 0]
+        points = plane_colli.get_filtered_collision_points()
+        # print(f"collision_points: {collision_points}")
+        show_matplotlib_3d_plot, show_trimesh_plot = False, False
 
         # 内積順にソートする
         ref_vec = points[0]
