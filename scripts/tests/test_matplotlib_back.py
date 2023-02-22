@@ -130,7 +130,13 @@ class PlaneCollision:
         return list(self._iter_ring_mesh_triangles(self.pca_mean, self.normal_v))
 
 
-epsilon = 1e-6
+def getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_2):
+    rayPoint = line_vector_1
+    ray_direction = line_vector_2 - line_vector_1
+    n_dot_u = plane_normal @ ray_direction
+    w = rayPoint - plane_point
+    si = -(plane_normal @ w) / n_dot_u
+    return w + si * ray_direction + plane_point
 
 
 def trimesh_main():
