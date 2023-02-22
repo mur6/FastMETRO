@@ -111,8 +111,7 @@ def test_torch_roll():
         print(k)
 
 
-if __name__ == "__main__":
-    # test_intersection()
+def test_dot_product():
     plane_normal = torch.tensor([-0.6810, -0.2870, -0.6737])
     ray_direction = torch.tensor([0.0022, 0.0015, 0.0031])
     print(plane_normal @ ray_direction)
@@ -122,3 +121,26 @@ if __name__ == "__main__":
     )
     print(ray_direction2.shape)
     print(ray_direction2 @ plane_normal)
+
+
+def test_matmul_and_argsort():
+    # ベクトル v1, v2, ... を作成
+    v1 = torch.tensor([1, 2, 3])
+    v2 = torch.tensor([4, 5, 6])
+    v3 = torch.tensor([7, 8, 9])
+    v = torch.stack([v1, v2, v3])
+
+    # 別のベクトル w を作成
+    w = torch.tensor([0.5, 0.2, 0.8])
+
+    # 内積の値で並べ替える
+    p = torch.matmul(v, w)
+    idx = torch.argsort(p)
+    sorted_v = v[idx]
+
+    print(sorted_v)
+
+
+if __name__ == "__main__":
+    # test_intersection()
+    test_matmul_and_argsort()
