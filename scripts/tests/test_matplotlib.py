@@ -145,7 +145,7 @@ def trimesh_main():
         #############
         points = plane_colli.get_filtered_collision_points(sort_by_angle=True)
         print(f"points: {points}")
-        show_matplotlib_3d_plot, show_trimesh_plot = True, False
+        show_matplotlib_3d_plot, show_trimesh_plot = False, True
 
         # print("原点からの距離1:")
         r = torch.norm(points, dim=1)
@@ -168,13 +168,6 @@ def trimesh_main():
             plot_points(blue_points=vertices - pca_mean, red_points=points)
         if show_trimesh_plot:
             visualize_points(blue_points=vertices - pca_mean, red_points=points)
-
-        # filltered_c_points = collision_points[idx]  # .view(-1, 2, 3)
-        if False:
-            print(filltered_c_points.shape)
-            print("######")
-            visualize_mesh_and_points(gt_mesh=mesh, blue_points=filltered_c_points)
-        break
 
 
 if __name__ == "__main__":
