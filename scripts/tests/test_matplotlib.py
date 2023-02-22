@@ -172,8 +172,7 @@ def trimesh_main():
         # 内積順にソートする
         ref_vec = points[0]
         p = torch.matmul(points, ref_vec)
-
-        points = points[torch.argsort(p)]
+        points = points[torch.argsort(p)][::2]
 
         if show_matplotlib_3d_plot:
             plot_points(blue_points=vertices - pca_mean, red_points=points)
