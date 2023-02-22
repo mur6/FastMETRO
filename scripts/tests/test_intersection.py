@@ -165,3 +165,8 @@ if __name__ == "__main__":
     print(d.shape)
     d = torch.norm(d, dim=1)
     print(d.sum())
+
+    print("#############")
+    c = torch.tensor([[1, 1, 0], [1, 1, 1], [0.5, 0, 0]], dtype=torch.float)
+    ans = torch.norm(c, dim=1)
+    print(ans)
