@@ -160,7 +160,10 @@ def trimesh_main():
                 p = getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_2)
                 point_list.append(p)
         print(len(point_list))
-        visualize_points(blue_points=vertices - pca_mean, red_points=point_list[:20])
+        points = torch.stack(point_list, dim=0)
+        print(f"points: {points.shape}")
+        torch.save(points, "collision_points.pt")
+        # visualize_points(blue_points=vertices - pca_mean, red_points=point_list[:20])
 
         # visualize_mesh_and_points(gt_mesh=plane_colli.ring_mesh, blue_points=point_list[:100])
         # a = torch.stack(a, dim=0)
