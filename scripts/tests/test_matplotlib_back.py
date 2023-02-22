@@ -146,6 +146,7 @@ def trimesh_main():
         # plane_colli.iter_inner_product_signs()
         print(f"plane_normal: {normal_v}")
         vertices = plane_colli.ring_mesh.vertices  # 112 x 3
+        vertices = torch.from_numpy(vertices)
         # print(vertices.shape)
         faces = plane_colli.ring_mesh.faces  # 212 x 3
         # print(faces.shape)
@@ -159,7 +160,7 @@ def trimesh_main():
                 p = getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_2)
                 point_list.append(p)
         print(len(point_list))
-        visualize_points(blue_points=(), red_points=point_list[:70])
+        visualize_points(blue_points=vertices - pca_mean, red_points=point_list[:70])
 
         # visualize_mesh_and_points(gt_mesh=plane_colli.ring_mesh, blue_points=point_list[:100])
         # a = torch.stack(a, dim=0)
