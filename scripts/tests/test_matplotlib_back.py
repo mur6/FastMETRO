@@ -134,11 +134,18 @@ def getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_
     rayPoint = line_vector_1
     ray_direction = line_vector_2 - line_vector_1
     n_dot_u = plane_normal @ ray_direction
+
+    w = rayPoint - plane_point
     if first:
         print(f"ray_direction: {ray_direction}")
         print(f"n_dot_u: {n_dot_u}")
-    w = rayPoint - plane_point
+        print(f"w: {w}")
+    si_0 = -(plane_normal @ w)
     si = -(plane_normal @ w) / n_dot_u
+    if first:
+        print(f"si_0: {si_0}")
+        print(f"si: {si}")
+        print()
     return w + si * ray_direction + plane_point
 
 

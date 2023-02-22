@@ -111,12 +111,16 @@ class PlaneCollision:
         ray_point = line_endpoints[:, 0, :]
         ray_direction = line_endpoints[:, 1, :] - line_endpoints[:, 0, :]
         print(f"ray_direction: {ray_direction}")
-        n_dot_u = plane_normal @ ray_direction
-        print(f"n_dot_u: {n_dot_u.shape}")
+        n_dot_u = ray_direction @ plane_normal
+        print(f"n_dot_u: {n_dot_u}")
         # # if abs(n_dot_u) < epsilon:
         # #     raise RuntimeError("no intersection or line is within plane")
         w = ray_point - plane_point
-        si = -(plane_normal @ w) / n_dot_u
+        print(f"w: {w}")
+        si_0 = -(w @ plane_normal)
+        si = -(w @ plane_normal) / n_dot_u
+        print(f"si_0: {si_0}")
+        print(f"si: {si}")
         si = si.unsqueeze(1)
         # print(f"w: {w.shape}")  # ray_point
         # print(f"si: {si.shape}")

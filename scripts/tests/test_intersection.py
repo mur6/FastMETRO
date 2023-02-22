@@ -112,4 +112,13 @@ def test_torch_roll():
 
 
 if __name__ == "__main__":
-    test_intersection()
+    # test_intersection()
+    plane_normal = torch.tensor([-0.6810, -0.2870, -0.6737])
+    ray_direction = torch.tensor([0.0022, 0.0015, 0.0031])
+    print(plane_normal @ ray_direction)
+
+    ray_direction2 = torch.tensor(
+        [[0.0022, 0.0015, 0.0031], [-0.0020, -0.0054, 0.0032], [-0.0002, 0.0039, -0.0063]]
+    )
+    print(ray_direction2.shape)
+    print(ray_direction2 @ plane_normal)
