@@ -140,15 +140,24 @@ def trimesh_main():
         plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
         triangle_sides = plane_colli.get_triangle_sides() - pca_mean
         a = plane_colli.get_inner_product_signs(triangle_sides)
-        print(a.shape)
         idx = a <= 0
+
         collision_points = plane_colli.get_collision_points(triangle_sides)
-        print(collision_points.shape)
+        # print(collision_points[:30])
+        print(f"collision_points: {collision_points.shape}")
+        if False:  # めちゃめちゃ数値が間違ってる！
+            points = collision_points.view(-1, 3)
+            print(f"points: {points.shape}")
+            distance = torch.sum(points**2, dim=1)
+            print(f"distance: {distance[:30]}")
+            print(f"mean of distance: {torch.mean(distance)}")
+            print(f"max of distance: {torch.max(distance)}")
+
         filltered_c_points = collision_points[idx]  # .view(-1, 2, 3)
-        # print(b.shape)
-        print(filltered_c_points.shape)
-        print("######")
-        visualize_mesh_and_points(gt_mesh=mesh, blue_points=filltered_c_points)
+        if False:
+            print(filltered_c_points.shape)
+            print("######")
+            visualize_mesh_and_points(gt_mesh=mesh, blue_points=filltered_c_points)
         break
 
 
