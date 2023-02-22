@@ -110,14 +110,26 @@ class PlaneCollision:
         collision_points = w + si * ray_direction + plane_point
         return collision_points
 
-    def get_filtered_collision_points(self):
+    def get_filtered_collision_points(self, *, sort_by_angle):
         triangle_sides = self.get_triangle_sides() - self.pca_mean
         signs = self.get_inner_product_signs(triangle_sides).view(-1)
         # print(f"triangle_sides: {triangle_sides.shape}")
         triangle_sides = triangle_sides.view(-1, 2, 3)
         collision_points = self.get_collision_points(triangle_sides)
         points = collision_points[signs <= 0]
-        return points
+        if sort_by_angle:
+            ref_vec = points[0]
+            cosines = torch.matmul(points, ref_vec) / (
+                torch.norm(ref_vec) * torch.norm(points, dim=1)
+            )
+            angles = torch.acos(cosines)
+            # print("cosines:", cosines.shape)
+            # print("angles:", angles.shape)
+            # for cos, ang in zip(cosines, angles):
+            #     print(cos, ang)
+            return points[torch.argsort(angles)][::2]  # 重複も除く
+        else:
+            return points
 
 
 epsilon = 1e-6
@@ -135,20 +147,9 @@ def trimesh_main():
         # print(faces.shape)
 
         #############
-        points = plane_colli.get_filtered_collision_points()
-        # print(f"collision_points: {collision_points}")
+        points = plane_colli.get_filtered_collision_points(sort_by_angle=True)
+        print(f"points: {points}")
         show_matplotlib_3d_plot, show_trimesh_plot = False, False
-
-        # 内積順にソートする
-        ref_vec = points[0]
-        cosines = torch.matmul(points, ref_vec) / (torch.norm(ref_vec) * torch.norm(points, dim=1))
-        angles = torch.acos(cosines)
-        # print("cosines:", cosines.shape)
-        # print("angles:", angles.shape)
-        # for cos, ang in zip(cosines, angles):
-        #     print(cos, ang)
-        points = points[torch.argsort(angles)][::2]
-        print(points.shape)
 
         # 円周を測る
         shifted_points = torch.roll(
