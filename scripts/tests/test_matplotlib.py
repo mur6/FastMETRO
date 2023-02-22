@@ -149,7 +149,7 @@ def trimesh_main():
         #############
         points = plane_colli.get_filtered_collision_points(sort_by_angle=True)
         print(f"points: {points}")
-        show_matplotlib_3d_plot, show_trimesh_plot = False, False
+        show_matplotlib_3d_plot, show_trimesh_plot = True, False
 
         # 円周を測る
         shifted_points = torch.roll(
@@ -157,10 +157,12 @@ def trimesh_main():
             shifts=1,
             dims=0,
         )
-        print("原点からの距離1:")
+        # print("原点からの距離1:")
         r = torch.norm(points, dim=1)
         print(f"max:{r.max()} min:{r.min()} mean:{r.mean()}")
-        print(f"推定される円周: {2*math.pi*r.mean()}")
+        print(f"推定される円周(最大): {2*math.pi*r.max()}")
+        print(f"推定される円周(平均): {2*math.pi*r.mean()}")
+        print(f"推定される円周(最小): {2*math.pi*r.min()}")
 
         d = torch.norm(points - shifted_points, dim=1)
         print(d, d.sum())
