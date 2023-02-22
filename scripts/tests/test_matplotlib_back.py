@@ -176,14 +176,17 @@ def trimesh_main():
         print(len(point_list))
         points = torch.stack(point_list, dim=0)
         distance = torch.sum(points**2, dim=1)
-        points = points[distance < 0.007]
 
         # torch.save(points, "collision_points.pt")
-        show_stats, show_matplotlib_3d_plot, show_trimesh_plot = False, True, False
+        show_stats, show_matplotlib_3d_plot, show_trimesh_plot = True, False, False
         if show_stats:
-            print(torch.mean(distance))
-            print(torch.max(distance))
+            print(f"distance: {distance[:30]}")
+            print(f"mean of distance: {torch.mean(distance)}")
+            print(f"max of distance: {torch.max(distance)}")
             print(f"points: {points.shape}")
+
+        points = points[distance < 0.007]  # Filter by distance.
+
         if show_matplotlib_3d_plot:
             plot_points(blue_points=vertices - pca_mean, red_points=points)
         if show_trimesh_plot:
