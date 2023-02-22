@@ -1,3 +1,5 @@
+import math
+
 import trimesh
 import numpy as np
 import torch
@@ -159,7 +161,7 @@ def trimesh_main():
 
         distance = torch.sum(collision_points**2, dim=1)
 
-        show_stats, show_matplotlib_3d_plot, show_trimesh_plot = False, False, True
+        show_stats, show_matplotlib_3d_plot, show_trimesh_plot = False, False, False
         if show_stats:
             print(f"distance: {distance[:30]}")
             print(f"mean of distance: {torch.mean(distance)}")
@@ -171,8 +173,28 @@ def trimesh_main():
 
         # 内積順にソートする
         ref_vec = points[0]
-        p = torch.matmul(points, ref_vec)
-        points = points[torch.argsort(p)][::2]
+        cosines = torch.matmul(points, ref_vec) / (torch.norm(ref_vec) * torch.norm(points, dim=1))
+        angles = torch.acos(cosines)
+        # print("cosines:", cosines.shape)
+        # print("angles:", angles.shape)
+        # for cos, ang in zip(cosines, angles):
+        #     print(cos, ang)
+        points = points[torch.argsort(angles)][::2]
+        print(points.shape)
+
+        # 円周を測る
+        shifted_points = torch.roll(
+            points,
+            shifts=1,
+            dims=0,
+        )
+        print("原点からの距離1:")
+        r = torch.norm(points, dim=1)
+        print(f"max:{r.max()} min:{r.min()} mean:{r.mean()}")
+        print(f"推定される円周: {2*math.pi*r.mean()}")
+
+        d = torch.norm(points - shifted_points, dim=1)
+        print(d, d.sum())
 
         if show_matplotlib_3d_plot:
             plot_points(blue_points=vertices - pca_mean, red_points=points)
