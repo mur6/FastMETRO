@@ -141,8 +141,8 @@ def trimesh_main():
         print(f"plane_normal: {normal_v}")
         a = list(plane_colli._iter_triangle_sides())
         a = torch.cat(a, dim=0)
-        print(a.shape)
-        torch.save(a, "triangle_sides.pt")
+        # print(a.shape)
+        # torch.save(a, "triangle_sides.pt")
         break
         a = [s for s in plane_colli.iter_inner_product_signs()]
         b = [collision_points for _, collision_points in plane_colli.iter_collision_points()]
