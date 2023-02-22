@@ -155,17 +155,9 @@ def trimesh_main():
         collision_points = plane_colli.get_collision_points(triangle_sides)
 
         print(f"collision_points: {collision_points}")
-        if True:  # めちゃめちゃ数値が間違ってる！
-            points = collision_points.view(-1, 3)
-            print(f"points: {points.shape}")
-            distance = torch.sum(points**2, dim=1)
-            print(f"distance: {distance[:30]}")
-            print(f"mean of distance: {torch.mean(distance)}")
-            print(f"max of distance: {torch.max(distance)}")
 
-        distance = torch.sum(points**2, dim=1)
+        distance = torch.sum(collision_points**2, dim=1)
 
-        # torch.save(points, "collision_points.pt")
         show_stats, show_matplotlib_3d_plot, show_trimesh_plot = False, True, False
         if show_stats:
             print(f"distance: {distance[:30]}")
@@ -173,7 +165,7 @@ def trimesh_main():
             print(f"max of distance: {torch.max(distance)}")
             print(f"points: {points.shape}")
 
-        points = points[distance < 0.007]  # Filter by distance.
+        points = collision_points[distance < 0.007]  # Filter by distance.
 
         if show_matplotlib_3d_plot:
             plot_points(blue_points=vertices - pca_mean, red_points=points)
