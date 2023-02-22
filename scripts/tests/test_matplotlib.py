@@ -37,16 +37,6 @@ def iter_pca_mean_and_normal_v_points():
         yield pca_mean, normal_v
 
 
-def cut(faces, *, begin_index, offset):
-    A = faces - begin_index
-    B = ((0 <= A) & (A < offset)).all(axis=1)
-    # print(B)
-    # print(A[B])
-    C = A[B]
-    # print(C.shape)
-    return C
-
-
 def getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_2, epsilon=1e-6):
     rayPoint = line_vector_1
     ray_direction = line_vector_2 - line_vector_1
@@ -60,12 +50,18 @@ def getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_
 
 class PlaneCollision:
     @staticmethod
+    def filter_only_ring_faces(faces, *, begin_index, offset):
+        A = faces - begin_index
+        B = ((0 <= A) & (A < offset)).all(axis=1)
+        return A[B]
+
+    @staticmethod
     def ring_finger_submesh(mesh):
         begin_index = 468
         offset = 112
         vertices = mesh.vertices[begin_index : begin_index + offset]
         faces = mesh.faces
-        faces = cut(faces, begin_index=begin_index, offset=offset)
+        faces = PlaneCollision.filter_only_ring_faces(faces, begin_index=begin_index, offset=offset)
         mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
         return mesh
 
