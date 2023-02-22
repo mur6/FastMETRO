@@ -165,16 +165,24 @@ def trimesh_main():
         faces = plane_colli.ring_mesh.faces  # 212 x 3
         # print(faces.shape)
 
+        triangle_sides = list(plane_colli._iter_triangle_sides())
+        print("inputs[triangle_sides]:")
+        print(triangle_sides[0])
+
         point_list = []
-        for triangles_line_endpoints in plane_colli._iter_triangle_sides():
+        for triangles_line_endpoints in triangle_sides:
+            # print(f"triangles_line_endpoints: ")
+            # print(triangles_line_endpoints)
             # print(f"triangle: {triangle.shape}")
             for line_vector_1, line_vector_2 in triangles_line_endpoints:
                 plane_normal = normal_v
                 plane_point = torch.zeros(3)
                 p = getLinePlaneCollision(plane_normal, plane_point, line_vector_1, line_vector_2)
                 point_list.append(p)
-        print(len(point_list))
+        print("First elem of points:")
+        print(point_list[:3])
         points = torch.stack(point_list, dim=0)
+        print(f"points: {points.shape}")
         distance = torch.sum(points**2, dim=1)
 
         # torch.save(points, "collision_points.pt")
