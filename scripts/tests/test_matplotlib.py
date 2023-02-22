@@ -105,22 +105,18 @@ class PlaneCollision:
 
     def get_collision_points(self, triangle_sides):
         plane_normal = self.normal_v
-        print(f"plane_normal: {plane_normal}")
+        # print(f"plane_normal: {plane_normal}")
         plane_point = torch.zeros(3, dtype=torch.float32)
         line_endpoints = triangle_sides
         ray_point = line_endpoints[:, 0, :]
         ray_direction = line_endpoints[:, 1, :] - line_endpoints[:, 0, :]
-        print(f"ray_direction: {ray_direction}")
+        # print(f"ray_direction: {ray_direction}")
         n_dot_u = ray_direction @ plane_normal
-        print(f"n_dot_u: {n_dot_u}")
+        # print(f"n_dot_u: {n_dot_u}")
         # # if abs(n_dot_u) < epsilon:
         # #     raise RuntimeError("no intersection or line is within plane")
         w = ray_point - plane_point
-        print(f"w: {w}")
-        si_0 = -(w @ plane_normal)
         si = -(w @ plane_normal) / n_dot_u
-        print(f"si_0: {si_0}")
-        print(f"si: {si}")
         si = si.unsqueeze(1)
         # print(f"w: {w.shape}")  # ray_point
         # print(f"si: {si.shape}")
@@ -147,12 +143,11 @@ def trimesh_main():
         idx = a <= 0
 
         print(f"triangle_sides: {triangle_sides.shape}")
-        print(triangle_sides[0])
-        # triangle_sides = triangle_sides.view(-1, 2, 3)
-        collision_points = plane_colli.get_collision_points(triangle_sides[0])
-        # print(collision_points[:30])
+        triangle_sides = triangle_sides.view(-1, 2, 3)
+        collision_points = plane_colli.get_collision_points(triangle_sides)
+
         print(f"collision_points: {collision_points}")
-        if False:  # めちゃめちゃ数値が間違ってる！
+        if True:  # めちゃめちゃ数値が間違ってる！
             points = collision_points.view(-1, 3)
             print(f"points: {points.shape}")
             distance = torch.sum(points**2, dim=1)
