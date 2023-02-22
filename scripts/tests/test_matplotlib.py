@@ -60,7 +60,7 @@ def trimesh_main():
 
         #############
         points = plane_colli.get_filtered_collision_points(sort_by_angle=True)
-        print(f"points: {points}")
+        # print(f"points: {points}")
         show_matplotlib_3d_plot, show_trimesh_plot = False, True
 
         # print("原点からの距離1:")
@@ -84,6 +84,7 @@ def trimesh_main():
             plot_points(blue_points=vertices - pca_mean, red_points=points)
         if show_trimesh_plot:
             visualize_points(blue_points=vertices - pca_mean, red_points=points)
+        break
 
 
 if __name__ == "__main__":
