@@ -161,8 +161,19 @@ def trimesh_main():
                 point_list.append(p)
         print(len(point_list))
         points = torch.stack(point_list, dim=0)
-        print(f"points: {points.shape}")
-        torch.save(points, "collision_points.pt")
+        distance = torch.sum(points**2, dim=1)
+        points = points[distance < 1]
+        # print(torch.mean(distance))
+        # print(torch.max(distance))
+        print(points.shape)
+
+        # print(f"points: {points.shape}")
+        # torch.save(points, "collision_points.pt")
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection="3d")
+        ax.scatter(points[:, 0], points[:, 1], points[:, 2])
+        plt.show()
+
         # visualize_points(blue_points=vertices - pca_mean, red_points=point_list[:20])
 
         # visualize_mesh_and_points(gt_mesh=plane_colli.ring_mesh, blue_points=point_list[:100])
