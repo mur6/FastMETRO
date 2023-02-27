@@ -108,7 +108,7 @@ def main():
     print(f"mesh_faces: {mesh_faces.shape}")
     print(f"pred_3d_joints: {pred_3d_joints.shape}")
     print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
-    mano_model = MANO().to("cpu")
+    # mano_model = MANO().to("cpu")
     # mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine[0].detach().numpy())
     # print(mesh)
     # visualize_mesh_and_points(gt_mesh=mesh)
@@ -117,9 +117,7 @@ def main():
         pred_3d_vertices_fine,
         plane_normal,
         plane_origin,
-    ) = make_plane_normal_and_origin_from_3d_vertices(
-        mano_model, pred_3d_joints, pred_3d_vertices_fine
-    )
+    ) = make_plane_normal_and_origin_from_3d_vertices(pred_3d_joints, pred_3d_vertices_fine)
     print(f"pca_mean: {plane_origin[0]}")
     print(f"normal_v: {plane_normal[0]}")
     ring_mesh_vertices, ring_mesh_faces = PlaneCollision.ring_finger_submesh(
@@ -204,5 +202,5 @@ def export_joint_regressor():
 if __name__ == "__main__":
     args = parse_args()
     # infer_from_image(args.sample_dir)
-    # main()
-    export_joint_regressor()
+    main()
+    # export_joint_regressor()

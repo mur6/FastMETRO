@@ -86,10 +86,21 @@ class PlaneCollision:
 # epsilon = 1e-6
 
 
-def make_plane_normal_and_origin_from_3d_vertices(
-    mano_model, pred_3d_joints, pred_3d_vertices_fine
-):
-    pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)
+def _get_3d_joints(vertices):
+    """
+    This method is used to get the joint locations from the SMPL mesh
+    Input:
+        vertices: size = (B, 778, 3)
+    Output:
+        3D joints: size = (B, 21, 3)
+    """
+    joint_regressor_torch = torch.load("models/weights/joint_regressor.pt")
+    joints = torch.einsum("bik,ji->bjk", [vertices, joint_regressor_torch])
+    return joints
+
+
+def make_plane_normal_and_origin_from_3d_vertices(pred_3d_joints, pred_3d_vertices_fine):
+    pred_3d_joints_from_mano = _get_3d_joints(pred_3d_vertices_fine)
     pred_3d_joints_from_mano_wrist = pred_3d_joints_from_mano[:, WRIST_INDEX, :]
     pred_3d_vertices_fine = pred_3d_vertices_fine - pred_3d_joints_from_mano_wrist[:, None, :]
     pred_3d_joints = pred_3d_joints - pred_3d_joints_from_mano_wrist[:, None, :]
