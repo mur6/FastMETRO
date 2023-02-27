@@ -187,6 +187,13 @@ def parse_args():
     return args
 
 
+def export_joint_regressor():
+    mano_model = MANO().to("cpu")
+    joint_regressor = mano_model.joint_regressor_torch
+    print(joint_regressor.shape)
+    torch.save(joint_regressor, "models/weights/joint_regressor.pt")
+
+
 # if __name__ == "__main__":
 #     parser = argparse.ArgumentParser()
 #     parser.add_argument("--checkpoint_path", type=Path, help="load checkpoint path")
@@ -197,4 +204,5 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
     # infer_from_image(args.sample_dir)
-    main()
+    # main()
+    export_joint_regressor()
