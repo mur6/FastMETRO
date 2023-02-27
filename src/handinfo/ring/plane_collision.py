@@ -1,23 +1,23 @@
-import trimesh
+# import trimesh
 import torch
+
+from src.handinfo.ring.helper import WRIST_INDEX
 
 
 class PlaneCollision:
     @staticmethod
-    def filter_only_ring_faces(faces, *, begin_index, offset):
+    def cut_sub_faces(faces, *, begin_index, offset):
         A = faces - begin_index
         B = ((0 <= A) & (A < offset)).all(axis=1)
         return A[B]
 
     @staticmethod
-    def ring_finger_submesh(mesh):
+    def ring_finger_submesh(mesh_vertices, mesh_faces):
         begin_index = 468
         offset = 112
-        vertices = mesh.vertices[begin_index : begin_index + offset]
-        faces = mesh.faces
-        faces = PlaneCollision.filter_only_ring_faces(faces, begin_index=begin_index, offset=offset)
-        mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
-        return mesh
+        new_vertices = mesh_vertices[begin_index : begin_index + offset]
+        new_faces = PlaneCollision.cut_sub_faces(mesh_faces, begin_index=begin_index, offset=offset)
+        return new_vertices, new_faces
 
     @staticmethod
     def ring_finger_triangles_as_tensor(ring_mesh):
@@ -30,8 +30,8 @@ class PlaneCollision:
         triangles = list(_iter_ring_mesh_triangles())
         return torch.stack(triangles)
 
-    def __init__(self, orig_mesh, pca_mean, normal_v):
-        self.ring_mesh = PlaneCollision.ring_finger_submesh(orig_mesh)
+    def __init__(self, mesh_vertices, mesh_faces, pca_mean, normal_v):
+        self.ring_mesh = PlaneCollision.ring_finger_submesh(mesh_vertices, mesh_faces)
         self.ring_finger_triangles = PlaneCollision.ring_finger_triangles_as_tensor(self.ring_mesh)
         self.pca_mean = pca_mean
         self.normal_v = normal_v
@@ -83,3 +83,17 @@ class PlaneCollision:
 
 
 # epsilon = 1e-6
+
+
+def make_plane_normal_and_origin_from_3d_vertices(
+    mano_model, pred_3d_joints, pred_3d_vertices_fine
+):
+    pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)
+    pred_3d_joints_from_mano_wrist = pred_3d_joints_from_mano[:, WRIST_INDEX, :]
+    pred_3d_vertices_fine = pred_3d_vertices_fine - pred_3d_joints_from_mano_wrist[:, None, :]
+    pred_3d_joints = pred_3d_joints - pred_3d_joints_from_mano_wrist[:, None, :]
+    ring1_point = pred_3d_joints[:, 13, :]
+    ring2_point = pred_3d_joints[:, 14, :]
+    plane_normal = ring2_point - ring1_point  # (batch X 3)
+    plane_origin = (ring1_point + ring2_point) / 2  # (batch X 3)
+    return plane_normal, plane_origin
