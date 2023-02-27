@@ -276,8 +276,8 @@ def main(args):
         args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
     )
     inputs = torch.randn(16, 3, 224, 224)
-    out = fastmetro_model(inputs)
-    print(len(out))
+    # out = fastmetro_model(inputs)
+    # print(len(out))
     model = WrapperForRadiusModel(fastmetro_model)
     (
         plane_origin,
