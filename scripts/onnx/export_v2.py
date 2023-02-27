@@ -2,7 +2,10 @@
 import argparse
 from pathlib import Path
 from src.handinfo.fastmetro import get_fastmetro_model
-from src.handinfo.ring.plane_collision import make_plane_normal_and_origin_from_3d_vertices
+from src.handinfo.ring.plane_collision import (
+    PlaneCollision,
+    make_plane_normal_and_origin_from_3d_vertices,
+)
 from src.handinfo.visualize import make_hand_mesh, visualize_mesh_and_points
 
 import torch
@@ -95,11 +98,11 @@ def infer_from_image(image_file):
 
 
 def main():
-    faces = torch.load("faces.pt")
-    # vertices = torch.load("vertices.pt")
+    mesh_faces = torch.load("faces.pt")
+    mesh_vertices = torch.load("vertices.pt")
     pred_3d_joints = torch.load("pred_3d_joints.pt")
     pred_3d_vertices_fine = torch.load("pred_3d_vertices_fine.pt")
-    print(f"faces: {faces.shape}")
+    print(f"mesh_faces: {mesh_faces.shape}")
     print(f"pred_3d_joints: {pred_3d_joints.shape}")
     print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
     mano_model = MANO().to("cpu")
@@ -109,6 +112,27 @@ def main():
     plane_normal, plane_origin = make_plane_normal_and_origin_from_3d_vertices(
         mano_model, pred_3d_joints, pred_3d_vertices_fine
     )
+    ring_mesh_vertices, ring_mesh_faces = PlaneCollision.ring_finger_submesh(
+        mesh_vertices, mesh_faces
+    )
+    print(f"ring_mesh_faces: {ring_mesh_faces.shape}")
+    print(f"ring_mesh_vertices: {ring_mesh_vertices.shape}")
+
+    def _iter_ring_mesh_triangles():
+        for face in ring_mesh_faces:
+            vertices = ring_mesh_vertices
+            vertices_of_triangle = vertices[face]
+            yield vertices_of_triangle
+
+    ring_finger_triangles = ring_mesh_vertices[ring_mesh_faces]
+
+    # print(ring_mesh_faces)
+    # print(ring_mesh_vertices)
+    # triangles = list(_iter_ring_mesh_triangles())
+    # ring_finger_triangles = torch.stack(triangles)
+    print(ring_finger_triangles.shape)
+
+    # plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
     # return
     # # # img_tensor = transform(img)
     # mano_model = MANO().to("cpu")
