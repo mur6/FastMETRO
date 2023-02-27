@@ -21,18 +21,6 @@ from src.handinfo.parser import train_parse_args
 from src.modeling._mano import Mesh, MANO
 
 
-def get_wrapper_for_radius_model(args, device):
-    mesh_sampler = Mesh(device=device)
-    fastmetro_model = get_fastmetro_model(
-        args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
-    )
-    faces = torch.load("models/weights/faces.pt")
-    model = WrapperForRadiusModel(
-        fastmetro_model=fastmetro_model, mesh_sampler=mesh_sampler, faces=faces
-    )
-    return model
-
-
 def load_image_as_tensor(image_file, show_image=False):
     transform = transforms.Compose(
         [
@@ -133,6 +121,34 @@ def main():
     # mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine.squeeze(0))
 
 
+def get_wrapper_for_radius_model(args, device):
+    mesh_sampler = Mesh(device=device)
+    fastmetro_model = get_fastmetro_model(
+        args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
+    )
+    faces = torch.load("models/weights/faces.pt")
+    model = WrapperForRadiusModel(
+        fastmetro_model=fastmetro_model, mesh_sampler=mesh_sampler, faces=faces
+    )
+    return model
+
+
+def main_2(args, image_file):
+    images = load_image_as_tensor(image_file)
+    print(images.shape)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    radius_model = get_wrapper_for_radius_model(args, device)
+    (
+        plane_origin,
+        plane_normal,
+        collision_points,
+        pred_3d_joints,
+        pred_3d_vertices_fine,
+    ) = radius_model(images)
+
+
 def parse_args_backup():
     parser = argparse.ArgumentParser()
     # parser.add_argument(
@@ -179,5 +195,6 @@ def export_joint_regressor():
 if __name__ == "__main__":
     args = parse_args()
     # infer_from_image(args.sample_dir)
-    main()
+    # main()
     # export_joint_regressor()
+    main_2(args, args.sample_dir)
