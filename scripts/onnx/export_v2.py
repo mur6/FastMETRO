@@ -60,7 +60,7 @@ def load_image_as_tensor(image_file, show_image=False):
     return img_tensor.unsqueeze(0)
 
 
-def main(image_file):
+def infer_from_image(image_file):
     imgs = load_image_as_tensor(image_file)
     print(imgs.shape)
 
@@ -69,6 +69,7 @@ def main(image_file):
     mesh_sampler = Mesh(device=device)
     mano_model = MANO().to("cpu")
 
+    faces = mano_model.layer.th_faces
     fastmetro_model = get_fastmetro_model(
         args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
     )
@@ -82,10 +83,24 @@ def main(image_file):
         enc_img_features,
         jv_features,
     ) = fastmetro_model(imgs)
-    print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
-    mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine[0].detach().numpy())
-    print(mesh)
-    visualize_mesh_and_points(gt_mesh=mesh)
+    # print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
+    vertices = pred_3d_vertices_fine.squeeze(0)
+    torch.save(faces, "faces.pt")
+    torch.save(vertices, "vertices.pt")
+    print(f"faces: {faces.shape}")
+    print(f"vertices: {vertices.shape}")
+
+
+def main(image_file):
+    faces = torch.load("faces.pt")
+    vertices = torch.load("vertices.pt")
+    print(f"faces: {faces.shape}")
+    print(f"vertices: {vertices.shape}")
+
+    # mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine[0].detach().numpy())
+    # print(mesh)
+    # visualize_mesh_and_points(gt_mesh=mesh)
+
     # return
     # # # img_tensor = transform(img)
     # mano_model = MANO().to("cpu")
@@ -143,4 +158,5 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args.sample_dir)
+    # infer_from_image(args.sample_dir)
+    main()
