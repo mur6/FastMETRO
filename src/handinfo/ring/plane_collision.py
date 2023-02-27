@@ -19,20 +19,21 @@ class PlaneCollision:
         new_faces = PlaneCollision.cut_sub_faces(mesh_faces, begin_index=begin_index, offset=offset)
         return new_vertices, new_faces
 
-    @staticmethod
-    def ring_finger_triangles_as_tensor(ring_mesh):
-        def _iter_ring_mesh_triangles():
-            for face in ring_mesh.faces:
-                vertices = ring_mesh.vertices
-                vertices_of_triangle = torch.from_numpy(vertices[face]).float()
-                yield vertices_of_triangle
+    # @staticmethod
+    # def ring_finger_triangles_as_tensor(ring_mesh):
+    #     def _iter_ring_mesh_triangles():
+    #         for face in ring_mesh.faces:
+    #             vertices = ring_mesh.vertices
+    #             vertices_of_triangle = torch.from_numpy(vertices[face]).float()
+    #             yield vertices_of_triangle
 
-        triangles = list(_iter_ring_mesh_triangles())
-        return torch.stack(triangles)
+    #     triangles = list(_iter_ring_mesh_triangles())
+    #     return torch.stack(triangles)
 
-    def __init__(self, mesh_vertices, mesh_faces, pca_mean, normal_v):
-        self.ring_mesh = PlaneCollision.ring_finger_submesh(mesh_vertices, mesh_faces)
-        self.ring_finger_triangles = PlaneCollision.ring_finger_triangles_as_tensor(self.ring_mesh)
+    def __init__(self, ring_finger_triangles, *, pca_mean, normal_v):
+        # self.ring_mesh = PlaneCollision.ring_finger_submesh(mesh_vertices, mesh_faces)
+        self.ring_finger_triangles = ring_finger_triangles
+        # self.ring_finger_triangles = PlaneCollision.ring_finger_triangles_as_tensor(self.ring_mesh)
         self.pca_mean = pca_mean
         self.normal_v = normal_v
 
@@ -96,4 +97,4 @@ def make_plane_normal_and_origin_from_3d_vertices(
     ring2_point = pred_3d_joints[:, 14, :]
     plane_normal = ring2_point - ring1_point  # (batch X 3)
     plane_origin = (ring1_point + ring2_point) / 2  # (batch X 3)
-    return plane_normal, plane_origin
+    return pred_3d_joints, pred_3d_vertices_fine, plane_normal, plane_origin
