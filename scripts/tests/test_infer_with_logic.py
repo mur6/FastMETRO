@@ -227,8 +227,8 @@ def _do_loop(loader, *, model, fastmetro_model):
         break
 
 
-class RadiusModel(nn.Module):
-    def __init__(self, fastmetro_model, *, net_for_radius=None):
+class WrapperForRadiusModel(nn.Module):
+    def __init__(self, fastmetro_model):
         super().__init__()
         self.fastmetro_model = fastmetro_model
 
@@ -270,18 +270,17 @@ def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     mesh_sampler = Mesh(device=device)
+    mano_model = MANO().to("cpu")
 
     fastmetro_model = get_fastmetro_model(
         args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
     )
-
-    # model = utils.get_my_model(
-    #     args,
-    #     mymodel_resume_dir=args.mymodel_resume_dir,
-    #     fastmetro_model=fastmetro_model,
-    #     device=device,
-    # )
-    # model.eval()
+    inputs = torch.randn(16, 3, 224, 224)
+    out = fastmetro_model(inputs)
+    print(len(out))
+    model = WrapperForRadiusModel(fastmetro_model)
+    model(inputs, mano_model)
+    model.eval()
 
 
 if __name__ == "__main__":
