@@ -7,7 +7,10 @@ from src.handinfo.ring.plane_collision import (
     make_plane_normal_and_origin_from_3d_vertices,
 )
 from src.handinfo.visualize import make_hand_mesh, visualize_mesh_and_points
-
+from src.handinfo.visualize import (
+    visualize_points,
+    plot_points,
+)
 import torch
 from PIL import Image
 from matplotlib import pyplot as plt
@@ -109,14 +112,28 @@ def main():
     # mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine[0].detach().numpy())
     # print(mesh)
     # visualize_mesh_and_points(gt_mesh=mesh)
-    plane_normal, plane_origin = make_plane_normal_and_origin_from_3d_vertices(
+    (
+        pred_3d_joints,
+        pred_3d_vertices_fine,
+        plane_normal,
+        plane_origin,
+    ) = make_plane_normal_and_origin_from_3d_vertices(
         mano_model, pred_3d_joints, pred_3d_vertices_fine
     )
+    print(f"pca_mean: {plane_origin[0]}")
+    print(f"normal_v: {plane_normal[0]}")
     ring_mesh_vertices, ring_mesh_faces = PlaneCollision.ring_finger_submesh(
-        mesh_vertices, mesh_faces
+        pred_3d_vertices_fine[0], mesh_faces
     )
     print(f"ring_mesh_faces: {ring_mesh_faces.shape}")
     print(f"ring_mesh_vertices: {ring_mesh_vertices.shape}")
+    plot_points(
+        blue_points=ring_mesh_vertices.detach().numpy(), red_points=plane_origin.detach().numpy()
+    )
+    # visualize_points(
+    #     blue_points=pred_3d_vertices_fine[0].detach().numpy(),
+    #     red_points=plane_origin.detach().numpy(),
+    # )
 
     def _iter_ring_mesh_triangles():
         for face in ring_mesh_faces:
@@ -124,7 +141,7 @@ def main():
             vertices_of_triangle = vertices[face]
             yield vertices_of_triangle
 
-    ring_finger_triangles = ring_mesh_vertices[ring_mesh_faces]
+    ring_finger_triangles = ring_mesh_vertices[ring_mesh_faces].float()
 
     # print(ring_mesh_faces)
     # print(ring_mesh_vertices)
@@ -132,8 +149,11 @@ def main():
     # ring_finger_triangles = torch.stack(triangles)
     print(ring_finger_triangles.shape)
 
-    # plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
-    # return
+    plane_colli = PlaneCollision(
+        ring_finger_triangles, pca_mean=plane_origin[0], normal_v=plane_normal[0]
+    )
+    points = plane_colli.get_filtered_collision_points(sort_by_angle=True)
+    print(f"points: {points}")
     # # # img_tensor = transform(img)
     # mano_model = MANO().to("cpu")
 

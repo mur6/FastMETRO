@@ -17,7 +17,10 @@ from src.handinfo.visualize import (
     visualize_points,
     plot_points,
 )
-from src.handinfo.ring.plane_collision import PlaneCollision
+from src.handinfo.ring.plane_collision import (
+    PlaneCollision,
+    make_plane_normal_and_origin_from_3d_vertices,
+)
 
 from src.handinfo.mano import ManoWrapper
 from src.handinfo.ring.helper import _adjust_vertices, calc_ring
@@ -242,16 +245,10 @@ class WrapperForRadiusModel(nn.Module):
             enc_img_features,
             jv_features,
         ) = self.fastmetro_model(images)
-        pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)
-        pred_3d_joints_from_mano_wrist = pred_3d_joints_from_mano[:, WRIST_INDEX, :]
-        pred_3d_vertices_fine = pred_3d_vertices_fine - pred_3d_joints_from_mano_wrist[:, None, :]
-        pred_3d_joints = pred_3d_joints - pred_3d_joints_from_mano_wrist[:, None, :]
-        ring1_point = pred_3d_joints[:, 13, :]
-        ring2_point = pred_3d_joints[:, 14, :]
-        plane_normal = ring2_point - ring1_point  # (batch X 3)
-        plane_origin = (ring1_point + ring2_point) / 2  # (batch X 3)
-
-        # plane_colli = PlaneCollision(mesh, plane_normal, plane_origin)
+        plane_normal, plane_origin = make_plane_normal_and_origin_from_3d_vertices(
+            mano_model, pred_3d_vertices_fine
+        )
+        plane_colli = PlaneCollision(mesh, plane_normal, plane_origin)
         radius = 0.0
 
         # if output_minimum:

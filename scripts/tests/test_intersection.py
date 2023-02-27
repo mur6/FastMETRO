@@ -144,7 +144,7 @@ def test_matmul_and_argsort():
     print(sorted_v)
 
 
-if __name__ == "__main__":
+def test_5():
     # test_intersection()
     # test_matmul_and_argsort()
     # N = 4
@@ -170,3 +170,25 @@ if __name__ == "__main__":
     c = torch.tensor([[1, 1, 0], [1, 1, 1], [0.5, 0, 0]], dtype=torch.float)
     ans = torch.norm(c, dim=1)
     print(ans)
+
+
+def test_6():
+    ring_mesh_vertices = torch.tensor(
+        [
+            [-0.1164, -0.3724, -0.7614],
+            [1.0364, -0.9977, 0.1118],
+            [0.9462, 0.4087, 0.9843],
+            [-0.2610, 0.9101, 0.0963],
+            [-0.1164, -0.3724, -0.7614],
+            [1.0364, -0.9977, 0.1118],
+            [0.9462, 0.4087, 0.9843],
+            [-0.2610, 0.9101, 0.0963],
+        ]
+    )
+    idx = torch.tensor([[0, 1, 2], [0, 2, 4], [2, 1, 3], [1, 5, 4]])
+    x = ring_mesh_vertices[idx]
+    print(x.shape)
+
+
+if __name__ == "__main__":
+    test_6()
