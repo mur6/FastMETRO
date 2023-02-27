@@ -2,6 +2,7 @@
 import argparse
 from pathlib import Path
 from src.handinfo.fastmetro import get_fastmetro_model
+from src.handinfo.visualize import make_hand_mesh, visualize_mesh_and_points
 
 import torch
 from PIL import Image
@@ -60,8 +61,8 @@ def load_image_as_tensor(image_file, show_image=False):
 
 
 def main(image_file):
-    img = load_image_as_tensor(image_file)
-    print(img.shape)
+    imgs = load_image_as_tensor(image_file)
+    print(imgs.shape)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -71,7 +72,20 @@ def main(image_file):
     fastmetro_model = get_fastmetro_model(
         args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
     )
-
+    # out = fastmetro_model(imgs)
+    (
+        pred_cam,
+        pred_3d_joints,
+        pred_3d_vertices_coarse,
+        pred_3d_vertices_fine,
+        cam_features,
+        enc_img_features,
+        jv_features,
+    ) = fastmetro_model(imgs)
+    print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
+    mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine[0].detach().numpy())
+    print(mesh)
+    visualize_mesh_and_points(gt_mesh=mesh)
     # return
     # # # img_tensor = transform(img)
     # mano_model = MANO().to("cpu")
