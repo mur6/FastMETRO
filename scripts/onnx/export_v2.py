@@ -127,20 +127,6 @@ def main():
     )
     print(f"ring_mesh_faces: {ring_mesh_faces.shape}")
     print(f"ring_mesh_vertices: {ring_mesh_vertices.shape}")
-    plot_points(
-        blue_points=ring_mesh_vertices.detach().numpy(), red_points=plane_origin.detach().numpy()
-    )
-    # visualize_points(
-    #     blue_points=pred_3d_vertices_fine[0].detach().numpy(),
-    #     red_points=plane_origin.detach().numpy(),
-    # )
-
-    def _iter_ring_mesh_triangles():
-        for face in ring_mesh_faces:
-            vertices = ring_mesh_vertices
-            vertices_of_triangle = vertices[face]
-            yield vertices_of_triangle
-
     ring_finger_triangles = ring_mesh_vertices[ring_mesh_faces].float()
 
     # print(ring_mesh_faces)
