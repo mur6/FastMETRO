@@ -119,7 +119,7 @@ class WrapperForRadiusModel(nn.Module):
         self.mesh_sampler = mesh_sampler
         self.faces = faces
 
-    def forward(self, images, mano_model):
+    def forward(self, images):
         (
             pred_cam,
             pred_3d_joints,
@@ -129,19 +129,36 @@ class WrapperForRadiusModel(nn.Module):
             enc_img_features,
             jv_features,
         ) = self.fastmetro_model(images)
-        plane_normal, plane_origin = make_plane_normal_and_origin_from_3d_vertices(
-            mano_model, pred_3d_vertices_fine
-        )
-        plane_colli = PlaneCollision(mesh, plane_normal, plane_origin)
-        radius = 0.0
 
-        # if output_minimum:
-        #     return plane_origin, plane_normal, radius
-        # else:
+        # vertices = pred_3d_vertices_fine.squeeze(0)
+
+        # mesh_vertices = torch.load("vertices.pt")
+        # pred_3d_joints = torch.load("pred_3d_joints.pt")
+        # pred_3d_vertices_fine = torch.load("pred_3d_vertices_fine.pt")
+        # print(f"mesh_faces: {mesh_faces.shape}")
+        # print(f"pred_3d_joints: {pred_3d_joints.shape}")
+        # print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
+
+        (
+            pred_3d_joints,
+            pred_3d_vertices_fine,
+            plane_normal,
+            plane_origin,
+        ) = make_plane_normal_and_origin_from_3d_vertices(pred_3d_joints, pred_3d_vertices_fine)
+
+        ring_mesh_vertices, ring_mesh_faces = PlaneCollision.ring_finger_submesh(
+            pred_3d_vertices_fine[0], self.faces
+        )
+        ring_finger_triangles = ring_mesh_vertices[ring_mesh_faces].float()
+
+        plane_colli = PlaneCollision(
+            ring_finger_triangles, pca_mean=plane_origin[0], normal_v=plane_normal[0]
+        )
+        collision_points = plane_colli.get_filtered_collision_points(sort_by_angle=True)
         return (
             plane_origin,
             plane_normal,
-            radius,
+            collision_points,
             pred_3d_joints,
             pred_3d_vertices_fine,
         )

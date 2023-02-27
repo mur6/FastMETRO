@@ -10,9 +10,6 @@ from matplotlib import pyplot as plt
 import mpld3
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-
-# from mpl_toolkits.mplot3d import axes3d
 from src.handinfo.visualize import (
     visualize_points,
     plot_points,
@@ -228,39 +225,6 @@ def _do_loop(loader, *, model, fastmetro_model):
             )
         # if idx == 3:
         break
-
-
-class WrapperForRadiusModel(nn.Module):
-    def __init__(self, fastmetro_model):
-        super().__init__()
-        self.fastmetro_model = fastmetro_model
-
-    def forward(self, images, mano_model):
-        (
-            pred_cam,
-            pred_3d_joints,
-            pred_3d_vertices_coarse,
-            pred_3d_vertices_fine,
-            cam_features,
-            enc_img_features,
-            jv_features,
-        ) = self.fastmetro_model(images)
-        plane_normal, plane_origin = make_plane_normal_and_origin_from_3d_vertices(
-            mano_model, pred_3d_vertices_fine
-        )
-        plane_colli = PlaneCollision(mesh, plane_normal, plane_origin)
-        radius = 0.0
-
-        # if output_minimum:
-        #     return plane_origin, plane_normal, radius
-        # else:
-        return (
-            plane_origin,
-            plane_normal,
-            radius,
-            pred_3d_joints,
-            pred_3d_vertices_fine,
-        )
 
 
 def main(args):
