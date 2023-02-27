@@ -154,7 +154,7 @@ def _do_loop(loader, *, model, fastmetro_model):
         # print(f"pred: radius: {radius.squeeze(1)}")
         # print(gt_radius - radius.squeeze(1))
         # print()
-        break
+
         if False:
             ##################################### 補正 #######################################
             pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)

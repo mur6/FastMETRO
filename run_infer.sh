@@ -2,7 +2,7 @@
 
 if [ "$1" = "logic" ]; then
     echo "Start infer with logic:"
-    PYTHONPATH=. python scripts/dataset/test_infer_with_logic.py
+    PYTHONPATH=. python scripts/tests/test_infer_with_logic.py
 else
     PYTHONPATH=. python scripts/tests/test_load_mymodel_and_infer.py \
         --train_yaml "../orig-MeshGraphormer/freihand/train.yaml" \
