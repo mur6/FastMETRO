@@ -108,7 +108,7 @@ def main():
     print(f"mesh_faces: {mesh_faces.shape}")
     print(f"pred_3d_joints: {pred_3d_joints.shape}")
     print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
-    # mano_model = MANO().to("cpu")
+
     # mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine[0].detach().numpy())
     # print(mesh)
     # visualize_mesh_and_points(gt_mesh=mesh)
