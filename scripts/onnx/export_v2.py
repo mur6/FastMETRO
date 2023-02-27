@@ -5,6 +5,7 @@ from src.handinfo.fastmetro import get_fastmetro_model
 from src.handinfo.ring.plane_collision import (
     PlaneCollision,
     make_plane_normal_and_origin_from_3d_vertices,
+    WrapperForRadiusModel,
 )
 from src.handinfo.visualize import make_hand_mesh, visualize_mesh_and_points
 from src.handinfo.visualize import (
@@ -20,32 +21,16 @@ from src.handinfo.parser import train_parse_args
 from src.modeling._mano import Mesh, MANO
 
 
-def main(args):
-    # result_dir = "results/"
-    # if not os.path.exists(result_dir):
-    #     os.mkdir(result_dir)
-    model_path = args.checkpoint_path
-    model = MyHomographyNet()
-    device = torch.device("cpu")
-    state = torch.load(model_path, map_location=device)
-    model.load_state_dict(state["state_dict"])
-    model = ModelWrapper(model)
-
-    # images = get_images()[0]
-    dummy = torch.zeros((1, 3, 128, 128))
-    print(dummy.shape)
-
-    print("onnx export")
-    with torch.no_grad():
-        model.eval()
-        model_int8 = torch.quantization.convert(model)
-        torch.onnx.export(
-            model_int8,
-            dummy,
-            "models/mat_lite.onnx",
-            input_names=["input"],
-            output_names=["output"],
-        )
+def get_wrapper_for_radius_model(args, device):
+    mesh_sampler = Mesh(device=device)
+    fastmetro_model = get_fastmetro_model(
+        args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
+    )
+    faces = torch.load("models/weights/faces.pt")
+    model = WrapperForRadiusModel(
+        fastmetro_model=fastmetro_model, mesh_sampler=mesh_sampler, faces=faces
+    )
+    return model
 
 
 def load_image_as_tensor(image_file, show_image=False):
@@ -73,13 +58,6 @@ def infer_from_image(image_file):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    mesh_sampler = Mesh(device=device)
-    mano_model = MANO().to("cpu")
-
-    faces = mano_model.layer.th_faces
-    fastmetro_model = get_fastmetro_model(
-        args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
-    )
     # out = fastmetro_model(imgs)
     (
         pred_cam,
@@ -101,7 +79,6 @@ def infer_from_image(image_file):
 
 
 def main():
-    mesh_faces = torch.load("faces.pt")
     mesh_vertices = torch.load("vertices.pt")
     pred_3d_joints = torch.load("pred_3d_joints.pt")
     pred_3d_vertices_fine = torch.load("pred_3d_vertices_fine.pt")

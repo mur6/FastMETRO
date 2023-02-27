@@ -1,5 +1,6 @@
 # import trimesh
 import torch
+from torch import nn
 
 from src.handinfo.ring.helper import WRIST_INDEX
 
@@ -109,3 +110,38 @@ def make_plane_normal_and_origin_from_3d_vertices(pred_3d_joints, pred_3d_vertic
     plane_normal = ring2_point - ring1_point  # (batch X 3)
     plane_origin = (ring1_point + ring2_point) / 2  # (batch X 3)
     return pred_3d_joints, pred_3d_vertices_fine, plane_normal, plane_origin
+
+
+class WrapperForRadiusModel(nn.Module):
+    def __init__(self, fastmetro_model, mesh_sampler, faces):
+        super().__init__()
+        self.fastmetro_model = fastmetro_model
+        self.mesh_sampler = mesh_sampler
+        self.faces = faces
+
+    def forward(self, images, mano_model):
+        (
+            pred_cam,
+            pred_3d_joints,
+            pred_3d_vertices_coarse,
+            pred_3d_vertices_fine,
+            cam_features,
+            enc_img_features,
+            jv_features,
+        ) = self.fastmetro_model(images)
+        plane_normal, plane_origin = make_plane_normal_and_origin_from_3d_vertices(
+            mano_model, pred_3d_vertices_fine
+        )
+        plane_colli = PlaneCollision(mesh, plane_normal, plane_origin)
+        radius = 0.0
+
+        # if output_minimum:
+        #     return plane_origin, plane_normal, radius
+        # else:
+        return (
+            plane_origin,
+            plane_normal,
+            radius,
+            pred_3d_joints,
+            pred_3d_vertices_fine,
+        )
