@@ -279,8 +279,15 @@ def main(args):
     out = fastmetro_model(inputs)
     print(len(out))
     model = WrapperForRadiusModel(fastmetro_model)
-    model(inputs, mano_model)
-    model.eval()
+    (
+        plane_origin,
+        plane_normal,
+        _,
+        pred_3d_joints,
+        pred_3d_vertices_fine,
+    ) = model(inputs, mano_model)
+    # model.eval()
+    print(plane_origin, plane_normal)
 
 
 if __name__ == "__main__":
