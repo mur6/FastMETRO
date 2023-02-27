@@ -2,7 +2,11 @@
 
 if [ "$1" = "logic" ]; then
     echo "Start infer with logic:"
-    PYTHONPATH=. python scripts/tests/test_infer_with_logic.py
+    PYTHONPATH=. python scripts/tests/test_infer_with_logic.py \
+        --train_yaml "../orig-MeshGraphormer/freihand/train.yaml" \
+        --val_yaml "../orig-MeshGraphormer/freihand/test.yaml" \
+        --fastmetro_resume_checkpoint "ckpt/FastMETRO-L-H64_freihand_state_dict.bin" \
+        --device cpu
 else
     PYTHONPATH=. python scripts/tests/test_load_mymodel_and_infer.py \
         --train_yaml "../orig-MeshGraphormer/freihand/train.yaml" \

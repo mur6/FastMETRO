@@ -22,7 +22,7 @@ from src.handinfo.ring.plane_collision import PlaneCollision
 from src.handinfo.mano import ManoWrapper
 from src.handinfo.ring.helper import _adjust_vertices, calc_ring
 
-
+from src.handinfo.ring.helper import RING_1_INDEX, RING_2_INDEX, WRIST_INDEX
 import src.modeling.data.config as cfg
 from src.handinfo.parser import train_parse_args
 from src.handinfo.fastmetro import get_fastmetro_model
@@ -41,7 +41,7 @@ from src.handinfo.visualize import (
     convert_mesh,
 )
 from src.handinfo.data.tools import make_hand_data_loader
-
+from src.handinfo.ring.plane_collision import PlaneCollision
 
 # def trimesh_main():
 #     for idx, (pca_mean, normal_v) in enumerate(iter_pca_mean_and_normal_v_points()):
@@ -85,18 +85,13 @@ from src.handinfo.data.tools import make_hand_data_loader
 
 def parse_args():
     def parser_hook(parser):
-        parser.add_argument(
-            "--ring_info_pkl_rootdir",
-            type=Path,
-            required=True,
-        )
         parser.add_argument("--batch_size", type=int, default=4)
         # parser.add_argument("--gamma", type=Decimal, default=Decimal("0.97"))
-        parser.add_argument(
-            "--mymodel_resume_dir",
-            type=Path,
-            required=False,
-        )
+        # parser.add_argument(
+        #     "--mymodel_resume_dir",
+        #     type=Path,
+        #     required=False,
+        # )
 
     args = train_parse_args(parser_hook=parser_hook)
     return args
@@ -237,7 +232,7 @@ class RadiusModel(nn.Module):
         super().__init__()
         self.fastmetro_model = fastmetro_model
 
-    def forward(self, images, mano_model, *, output_minimum=False):
+    def forward(self, images, mano_model):
         (
             pred_cam,
             pred_3d_joints,
@@ -256,27 +251,23 @@ class RadiusModel(nn.Module):
         plane_normal = ring2_point - ring1_point  # (batch X 3)
         plane_origin = (ring1_point + ring2_point) / 2  # (batch X 3)
 
-        if output_minimum:
-            return plane_origin, plane_normal, radius
-        else:
-            return (
-                plane_origin,
-                plane_normal,
-                radius,
-                pred_3d_joints,
-                pred_3d_vertices_fine,
-            )
+        # plane_colli = PlaneCollision(mesh, plane_normal, plane_origin)
+        radius = 0.0
+
+        # if output_minimum:
+        #     return plane_origin, plane_normal, radius
+        # else:
+        return (
+            plane_origin,
+            plane_normal,
+            radius,
+            pred_3d_joints,
+            pred_3d_vertices_fine,
+        )
 
 
 def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    train_loader, test_loader, datasize = make_hand_data_loader(
-        args,
-        ring_info_pkl_rootdir=args.ring_info_pkl_rootdir,
-        batch_size=args.batch_size,
-        train_shuffle=True,
-    )
 
     mesh_sampler = Mesh(device=device)
 
@@ -284,16 +275,13 @@ def main(args):
         args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
     )
 
-    model = utils.get_my_model(
-        args,
-        mymodel_resume_dir=args.mymodel_resume_dir,
-        fastmetro_model=fastmetro_model,
-        device=device,
-    )
-    model.eval()
-
-    with torch.no_grad():
-        _do_loop(train_loader, model=model, fastmetro_model=None)
+    # model = utils.get_my_model(
+    #     args,
+    #     mymodel_resume_dir=args.mymodel_resume_dir,
+    #     fastmetro_model=fastmetro_model,
+    #     device=device,
+    # )
+    # model.eval()
 
 
 if __name__ == "__main__":
