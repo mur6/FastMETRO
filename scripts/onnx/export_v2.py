@@ -1,11 +1,15 @@
 # import cv2
 import argparse
 from pathlib import Path
+from src.handinfo.fastmetro import get_fastmetro_model
 
 import torch
 from PIL import Image
 from matplotlib import pyplot as plt
 from torchvision import transforms
+
+from src.handinfo.parser import train_parse_args
+from src.modeling._mano import Mesh, MANO
 
 
 def main(args):
@@ -59,6 +63,15 @@ def main(image_file):
     img = load_image_as_tensor(image_file)
     print(img.shape)
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    mesh_sampler = Mesh(device=device)
+    mano_model = MANO().to("cpu")
+
+    fastmetro_model = get_fastmetro_model(
+        args, mesh_sampler=mesh_sampler, force_from_checkpoint=True
+    )
+
     # return
     # # # img_tensor = transform(img)
     # mano_model = MANO().to("cpu")
@@ -78,7 +91,7 @@ def main(image_file):
     # mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine.squeeze(0))
 
 
-def parse_args():
+def parse_args_backup():
     parser = argparse.ArgumentParser()
     # parser.add_argument(
     #     "--onnx_filename",
@@ -91,6 +104,19 @@ def parse_args():
         # required=True,
     )
     args = parser.parse_args()
+    return args
+
+
+def parse_args():
+    def parser_hook(parser):
+        parser.add_argument("--batch_size", type=int, default=4)
+        parser.add_argument(
+            "--sample_dir",
+            type=Path,
+            # required=True,
+        )
+
+    args = train_parse_args(parser_hook=parser_hook)
     return args
 
 
