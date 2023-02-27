@@ -5,6 +5,7 @@ import math
 import trimesh
 import numpy as np
 import torch
+from torch import nn
 from matplotlib import pyplot as plt
 import mpld3
 from mpl_toolkits.mplot3d import Axes3D
@@ -202,32 +203,6 @@ def _do_loop(loader, *, model, fastmetro_model):
         # print(gt_radius - radius.squeeze(1))
         # print()
 
-        if False:
-            ##################################### 補正 #######################################
-            pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)
-            pred_3d_joints_from_mano_wrist = pred_3d_joints_from_mano[
-                :, cfg.J_NAME.index("Wrist"), :
-            ]
-            pred_3d_vertices_fine = (
-                pred_3d_vertices_fine - pred_3d_joints_from_mano_wrist[:, None, :]
-            )
-            pred_3d_joints = pred_3d_joints - pred_3d_joints_from_mano_wrist[:, None, :]
-            # print(f"pred_3d_joints_from_mano_wrist: {pred_3d_joints_from_mano_wrist}")
-            # print(f"pred_3d_joints_from_mano_wrist: {pred_3d_joints_from_mano_wrist}")
-            # print(f"pred_3d_joints_from_mano: {pred_3d_joints_from_mano.shape}")
-            # zero_points = pred_3d_joints_from_mano_wrist
-
-            #################################################################################
-            # # print(f"fastmetro:cam_features_1: {cam_features.shape}")
-            # # print(f"fastmetro:enc_img_features_1: {enc_img_features.shape}")
-            # # print(f"fastmetro:jv_features_1: {jv_features.shape}")
-            # pred_pca_mean, pred_normal_v, pred_radius = model(
-            #     cam_features, enc_img_features, jv_features
-            # )
-            # print(f"pred_pca_mean: {pred_pca_mean.dtype}")
-            # print(f"pred_normal_v: {pred_normal_v.shape}")
-            # print(f"pred_radius: {pred_radius.shape}")
-
         def _iter_pred():
             for i, (pred_3d_vertex, joint) in enumerate(zip(pred_3d_vertices_fine, pred_3d_joints)):
                 # ring1_point = joint[13]
@@ -255,6 +230,42 @@ def _do_loop(loader, *, model, fastmetro_model):
             )
         # if idx == 3:
         break
+
+
+class RadiusModel(nn.Module):
+    def __init__(self, fastmetro_model, *, net_for_radius=None):
+        super().__init__()
+        self.fastmetro_model = fastmetro_model
+
+    def forward(self, images, mano_model, *, output_minimum=False):
+        (
+            pred_cam,
+            pred_3d_joints,
+            pred_3d_vertices_coarse,
+            pred_3d_vertices_fine,
+            cam_features,
+            enc_img_features,
+            jv_features,
+        ) = self.fastmetro_model(images)
+        pred_3d_joints_from_mano = mano_model.get_3d_joints(pred_3d_vertices_fine)
+        pred_3d_joints_from_mano_wrist = pred_3d_joints_from_mano[:, WRIST_INDEX, :]
+        pred_3d_vertices_fine = pred_3d_vertices_fine - pred_3d_joints_from_mano_wrist[:, None, :]
+        pred_3d_joints = pred_3d_joints - pred_3d_joints_from_mano_wrist[:, None, :]
+        ring1_point = pred_3d_joints[:, 13, :]
+        ring2_point = pred_3d_joints[:, 14, :]
+        plane_normal = ring2_point - ring1_point  # (batch X 3)
+        plane_origin = (ring1_point + ring2_point) / 2  # (batch X 3)
+
+        if output_minimum:
+            return plane_origin, plane_normal, radius
+        else:
+            return (
+                plane_origin,
+                plane_normal,
+                radius,
+                pred_3d_joints,
+                pred_3d_vertices_fine,
+            )
 
 
 def main(args):
