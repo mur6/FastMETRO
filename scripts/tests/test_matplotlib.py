@@ -50,13 +50,20 @@ def iter_pca_mean_and_normal_v_points():
 def trimesh_main():
     for idx, (pca_mean, normal_v) in enumerate(iter_pca_mean_and_normal_v_points()):
         mesh = trimesh.load(f"data/3D/gt_mesh_{idx:02}.obj")
-        plane_colli = PlaneCollision(mesh, pca_mean, normal_v)
+        ring_mesh_vertices, ring_mesh_faces = PlaneCollision.ring_finger_submesh(
+            torch.from_numpy(mesh.vertices), torch.from_numpy(mesh.faces)
+        )
+        print(ring_mesh_faces)
+        print(ring_mesh_vertices)
+        ring_finger_triangles = ring_mesh_vertices[ring_mesh_faces].float()
+        print(f"ring_finger_triangles: {ring_finger_triangles.shape}")
+        plane_colli = PlaneCollision(ring_finger_triangles, pca_mean=pca_mean, normal_v=normal_v)
         print(f"plane_normal: {normal_v}")
-        vertices = plane_colli.ring_mesh.vertices  # 112 x 3
-        vertices = torch.from_numpy(vertices)
-        # print(vertices.shape)
-        faces = plane_colli.ring_mesh.faces  # 212 x 3
-        # print(faces.shape)
+        # vertices = plane_colli.ring_mesh.vertices  # 112 x 3
+        # vertices = torch.from_numpy(vertices)
+        # # print(vertices.shape)
+        # faces = plane_colli.ring_mesh.faces  # 212 x 3
+        # # print(faces.shape)
 
         #############
         points = plane_colli.get_filtered_collision_points(sort_by_angle=True)
