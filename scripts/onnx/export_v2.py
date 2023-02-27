@@ -96,14 +96,19 @@ def infer_from_image(image_file):
 
 def main():
     faces = torch.load("faces.pt")
-    vertices = torch.load("vertices.pt")
+    # vertices = torch.load("vertices.pt")
+    pred_3d_joints = torch.load("pred_3d_joints.pt")
+    pred_3d_vertices_fine = torch.load("pred_3d_vertices_fine.pt")
     print(f"faces: {faces.shape}")
-    print(f"vertices: {vertices.shape}")
+    print(f"pred_3d_joints: {pred_3d_joints.shape}")
+    print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
     mano_model = MANO().to("cpu")
     # mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine[0].detach().numpy())
     # print(mesh)
     # visualize_mesh_and_points(gt_mesh=mesh)
-    make_plane_normal_and_origin_from_3d_vertices(mano_model, vertices.unsqueeze(0))
+    plane_normal, plane_origin = make_plane_normal_and_origin_from_3d_vertices(
+        mano_model, pred_3d_joints, pred_3d_vertices_fine
+    )
     # return
     # # # img_tensor = transform(img)
     # mano_model = MANO().to("cpu")
@@ -161,5 +166,5 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    infer_from_image(args.sample_dir)
-    # main()
+    # infer_from_image(args.sample_dir)
+    main()
