@@ -1,4 +1,4 @@
-# import cv2
+import math
 import argparse
 from pathlib import Path
 
@@ -101,15 +101,22 @@ def main(args, image_file):
         collision_points,
         vertices,
         faces,
+        max_distance,
+        min_distance,
+        mean_distance,
+        ring_finger_length,
     ) = radius_model(images)
     print(f"collision_points: {collision_points.shape}")
     print(f"faces: {faces.shape}")
     print(f"vertices: {vertices.shape}")
+    print(f"推定される円周(最大): {2* math.pi * max_distance}")
+    print(f"推定される円周(最小): {2* math.pi * min_distance}")
+    print(f"推定される円周(平均): {2* math.pi * mean_distance}")
+    print(f"薬指の長さ: {ring_finger_length}")
     mesh = trimesh.Trimesh(vertices=vertices.detach(), faces=faces.detach())
-    print(mesh)
+    return
     visualize_mesh_and_points(
         gt_mesh=mesh,
-        # pred_mesh=pred_mesh,
         blue_points=collision_points.detach().numpy(),
         # yellow_points=yellow_points,
     )

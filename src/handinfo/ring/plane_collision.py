@@ -2,7 +2,7 @@
 import torch
 from torch import nn
 
-from src.handinfo.ring.helper import WRIST_INDEX
+from src.handinfo.ring.helper import WRIST_INDEX, RING_1_INDEX, RING_4_INDEX
 
 
 class PlaneCollision:
@@ -155,12 +155,27 @@ class WrapperForRadiusModel(nn.Module):
             ring_finger_triangles, pca_mean=plane_origin[0], normal_v=plane_normal[0]
         )
         collision_points = plane_colli.get_filtered_collision_points(sort_by_angle=True)
+        #### 原点からの距離: ####
+        distance_from_origin = torch.norm(collision_points, dim=1)
+        max_distance = distance_from_origin.max()
+        min_distance = distance_from_origin.min()
+        mean_distance = distance_from_origin.mean()
+        print(pred_3d_joints.shape)
+        # 1:
         collision_points = collision_points + plane_origin
+        # 2:
+        joints = pred_3d_joints[0]
+        # joints[RING_1_INDEX : RING_4_INDEX + 1]
+        ring_finger_length = torch.norm(joints[RING_1_INDEX] - joints[RING_4_INDEX])
         if True:
             return (
                 collision_points,
                 pred_3d_vertices_fine[0],
                 self.faces,
+                max_distance,
+                min_distance,
+                mean_distance,
+                ring_finger_length,
             )
         else:
             return (
