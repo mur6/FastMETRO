@@ -64,6 +64,8 @@ MANO_JOINTS_NAME = (
 WRIST_INDEX = MANO_JOINTS_NAME.index("Wrist")
 RING_1_INDEX = MANO_JOINTS_NAME.index(f"Ring_1")
 RING_2_INDEX = MANO_JOINTS_NAME.index(f"Ring_2")
+RING_3_INDEX = MANO_JOINTS_NAME.index(f"Ring_3")
+RING_4_INDEX = MANO_JOINTS_NAME.index(f"Ring_4")
 
 
 def ring_finger_point_func(gt_3d_joints, *, num):
