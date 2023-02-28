@@ -81,7 +81,7 @@ def get_wrapper_for_radius_model(args, device):
     return model
 
 
-def main(args, image_file):
+def main(args, image_file, show_mesh=False):
     images = load_image_as_tensor(image_file)
     print(images.shape)
 
@@ -110,33 +110,18 @@ def main(args, image_file):
     print(f"collision_points: {collision_points.shape}")
     print(f"faces: {faces.shape}")
     print(f"vertices: {vertices.shape}")
-    print(f"推定される円周(最大): {2* math.pi * max_distance}")
-    print(f"推定される円周(最小): {2* math.pi * min_distance}")
-    print(f"推定される円周(平均): {2* math.pi * mean_distance}")
+    print(f"推定される円周(最大): {2 * math.pi * max_distance}")
+    print(f"推定される円周(最小): {2 * math.pi * min_distance}")
+    print(f"推定される円周(平均): {2 * math.pi * mean_distance}")
     print(f"薬指の長さ: {ring_finger_length}")
-    mesh = trimesh.Trimesh(vertices=vertices.detach(), faces=faces.detach())
-
-    visualize_mesh_and_points(
-        gt_mesh=mesh,
-        blue_points=collision_points.detach().numpy(),
-        yellow_points=ring_finger_points.detach().numpy(),
-    )
-
-
-def parse_args_backup():
-    parser = argparse.ArgumentParser()
-    # parser.add_argument(
-    #     "--onnx_filename",
-    #     type=Path,
-    #     required=True,
-    # )
-    parser.add_argument(
-        "--sample_dir",
-        type=Path,
-        # required=True,
-    )
-    args = parser.parse_args()
-    return args
+    print(f"推定される円周(平均)/薬指の長さ: {(2 * math.pi * mean_distance)/ring_finger_length}")
+    if show_mesh:
+        mesh = trimesh.Trimesh(vertices=vertices.detach(), faces=faces.detach())
+        visualize_mesh_and_points(
+            gt_mesh=mesh,
+            blue_points=collision_points.detach().numpy(),
+            yellow_points=ring_finger_points.detach().numpy(),
+        )
 
 
 def parse_args():
