@@ -1,6 +1,6 @@
 from pathlib import Path
 from logging import DEBUG, INFO, basicConfig, getLogger, debug, error, exception, info, warning
-import math
+import argparse
 
 import onnxruntime as ort
 from PIL import Image
@@ -45,18 +45,18 @@ from src.handinfo.data.tools import make_hand_data_loader
 from src.handinfo.ring.plane_collision import PlaneCollision
 
 
-def parse_args():
-    def parser_hook(parser):
-        parser.add_argument("--batch_size", type=int, default=4)
-        # parser.add_argument("--gamma", type=Decimal, default=Decimal("0.97"))
-        # parser.add_argument(
-        #     "--mymodel_resume_dir",
-        #     type=Path,
-        #     required=False,
-        # )
+# def parse_args():
+#     def parser_hook(parser):
+#         parser.add_argument("--batch_size", type=int, default=4)
+#         # parser.add_argument("--gamma", type=Decimal, default=Decimal("0.97"))
+#         # parser.add_argument(
+#         #     "--mymodel_resume_dir",
+#         #     type=Path,
+#         #     required=False,
+#         # )
 
-    args = train_parse_args(parser_hook=parser_hook)
-    return args
+#     args = train_parse_args(parser_hook=parser_hook)
+#     return args
 
 
 # def test3(model_filename, image_file):
@@ -129,11 +129,30 @@ def load_image_as_tensor(image_file, show_image=False):
     return img_tensor.unsqueeze(0)
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    # parser.add_argument(
+    #     "--onnx_filename",
+    #     type=Path,
+    #     required=True,
+    # )
+    parser.add_argument(
+        "--sample_dir",
+        type=Path,
+        # required=True,
+    )
+    args = parser.parse_args()
+    return args
+
+
 def main(args):
+    images = load_image_as_tensor(args.sample_dir)
+    print(images.shape)
     # str(model_filename)
     model_filename = "onnx/radius_model.onnx"
     ort_sess = ort.InferenceSession(model_filename)
-    # outputs = ort_sess.run(None, {"input": batch_imgs})
+    outputs = ort_sess.run(None, {"images": images.numpy()})
+    print(outputs)
 
 
 if __name__ == "__main__":
