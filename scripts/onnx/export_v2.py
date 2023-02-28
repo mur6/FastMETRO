@@ -98,6 +98,25 @@ def main(args, image_file, show_mesh=False):
         ring_finger_length,
         ring_finger_points,
     ) = radius_model(images)
+
+    torch.onnx.export(
+        radius_model,
+        images,
+        "radius_model.onnx",
+        input_names=["images"],
+        # output_names=["output"],
+        output_names=[
+            "collision_points",
+            "vertices",
+            "faces",
+            "max_distance",
+            "min_distance",
+            "mean_distance",
+            "ring_finger_length",
+            "ring_finger_points",
+        ],
+    )
+    return
     print(f"collision_points: {collision_points.shape}")
     print(f"faces: {faces.shape}")
     print(f"vertices: {vertices.shape}")

@@ -395,7 +395,7 @@ class FastMETRO_Hand_Network(nn.Module):
         pred_3d_vertices_coarse = pred_3d_coordinates[
             :, self.num_joints :, :
         ]  # batch_size X num_vertices(coarse) X 3
-        pred_3d_vertices_fine = self.mesh_sampler.upsample(
+        pred_3d_vertices_fine = self.mesh_sampler.dense_upsample(
             pred_3d_vertices_coarse
         )  # batch_size X num_vertices(fine) X 3
 
