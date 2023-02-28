@@ -1,6 +1,14 @@
 # import cv2
 import argparse
 from pathlib import Path
+
+import torch
+import trimesh
+from PIL import Image
+from matplotlib import pyplot as plt
+from torchvision import transforms
+
+
 from src.handinfo.fastmetro import get_fastmetro_model
 from src.handinfo.ring.plane_collision import (
     PlaneCollision,
@@ -12,11 +20,6 @@ from src.handinfo.visualize import (
     visualize_points,
     plot_points,
 )
-import torch
-from PIL import Image
-from matplotlib import pyplot as plt
-from torchvision import transforms
-
 from src.handinfo.parser import train_parse_args
 from src.modeling._mano import Mesh, MANO
 
@@ -102,12 +105,12 @@ def main(args, image_file):
     print(f"collision_points: {collision_points.shape}")
     print(f"faces: {faces.shape}")
     print(f"vertices: {vertices.shape}")
-    return
+    mesh = trimesh.Trimesh(vertices=vertices.detach(), faces=faces.detach())
+    print(mesh)
     visualize_mesh_and_points(
-        # gt_mesh=None,
+        gt_mesh=mesh,
         # pred_mesh=pred_mesh,
-        blue_points=pred_3d_vertices_fine[0].detach().numpy(),
-        red_points=collision_points.detach().numpy(),
+        blue_points=collision_points.detach().numpy(),
         # yellow_points=yellow_points,
     )
 
