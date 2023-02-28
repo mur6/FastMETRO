@@ -155,10 +155,18 @@ class WrapperForRadiusModel(nn.Module):
             ring_finger_triangles, pca_mean=plane_origin[0], normal_v=plane_normal[0]
         )
         collision_points = plane_colli.get_filtered_collision_points(sort_by_angle=True)
-        return (
-            plane_origin,
-            plane_normal,
-            collision_points,
-            pred_3d_joints,
-            pred_3d_vertices_fine,
-        )
+        collision_points = collision_points + plane_origin
+        if True:
+            return (
+                collision_points,
+                pred_3d_vertices_fine[0],
+                self.faces,
+            )
+        else:
+            return (
+                plane_origin,
+                plane_normal,
+                collision_points,
+                pred_3d_joints,
+                pred_3d_vertices_fine,
+            )

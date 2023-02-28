@@ -85,19 +85,24 @@ def main(args, image_file):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     radius_model = get_wrapper_for_radius_model(args, device)
+    # (
+    #     plane_origin,
+    #     plane_normal,
+    #     collision_points,
+    #     pred_3d_joints,
+    #     pred_3d_vertices_fine,
+    # ) = radius_model(images)
+    # print(f"collision_points: {collision_points.shape}")
+    # print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
     (
-        plane_origin,
-        plane_normal,
         collision_points,
-        pred_3d_joints,
-        pred_3d_vertices_fine,
+        vertices,
+        faces,
     ) = radius_model(images)
-    print(plane_origin)
-    collision_points += plane_origin
     print(f"collision_points: {collision_points.shape}")
-    print(collision_points)
-    print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
-
+    print(f"faces: {faces.shape}")
+    print(f"vertices: {vertices.shape}")
+    return
     visualize_mesh_and_points(
         # gt_mesh=None,
         # pred_mesh=pred_mesh,
