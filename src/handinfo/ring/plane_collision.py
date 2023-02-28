@@ -161,12 +161,13 @@ class WrapperForRadiusModel(nn.Module):
         min_distance = distance_from_origin.min()
         mean_distance = distance_from_origin.mean()
         print(pred_3d_joints.shape)
-        # 1:
+        # 1: 薬指根本周囲の点を、原点位置から元の位置に移動
         collision_points = collision_points + plane_origin
-        # 2:
+        # 2: 薬指の長さを計算
         joints = pred_3d_joints[0]
         # joints[RING_1_INDEX : RING_4_INDEX + 1]
         ring_finger_length = torch.norm(joints[RING_1_INDEX] - joints[RING_4_INDEX])
+        ring_finger_points = joints[[RING_1_INDEX, RING_4_INDEX]]
         if True:
             return (
                 collision_points,
@@ -176,6 +177,7 @@ class WrapperForRadiusModel(nn.Module):
                 min_distance,
                 mean_distance,
                 ring_finger_length,
+                ring_finger_points,
             )
         else:
             return (

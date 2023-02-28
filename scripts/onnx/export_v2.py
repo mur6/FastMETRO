@@ -105,6 +105,7 @@ def main(args, image_file):
         min_distance,
         mean_distance,
         ring_finger_length,
+        ring_finger_points,
     ) = radius_model(images)
     print(f"collision_points: {collision_points.shape}")
     print(f"faces: {faces.shape}")
@@ -114,11 +115,11 @@ def main(args, image_file):
     print(f"推定される円周(平均): {2* math.pi * mean_distance}")
     print(f"薬指の長さ: {ring_finger_length}")
     mesh = trimesh.Trimesh(vertices=vertices.detach(), faces=faces.detach())
-    return
+
     visualize_mesh_and_points(
         gt_mesh=mesh,
         blue_points=collision_points.detach().numpy(),
-        # yellow_points=yellow_points,
+        yellow_points=ring_finger_points.detach().numpy(),
     )
 
 
