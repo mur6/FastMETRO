@@ -66,61 +66,6 @@ def infer_from_image(image_file):
     print(f"vertices: {vertices.shape}")
 
 
-def main():
-    mesh_vertices = torch.load("vertices.pt")
-    pred_3d_joints = torch.load("pred_3d_joints.pt")
-    pred_3d_vertices_fine = torch.load("pred_3d_vertices_fine.pt")
-    print(f"mesh_faces: {mesh_faces.shape}")
-    print(f"pred_3d_joints: {pred_3d_joints.shape}")
-    print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
-
-    # mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine[0].detach().numpy())
-    # print(mesh)
-    # visualize_mesh_and_points(gt_mesh=mesh)
-    (
-        pred_3d_joints,
-        pred_3d_vertices_fine,
-        plane_normal,
-        plane_origin,
-    ) = make_plane_normal_and_origin_from_3d_vertices(pred_3d_joints, pred_3d_vertices_fine)
-    print(f"pca_mean: {plane_origin[0]}")
-    print(f"normal_v: {plane_normal[0]}")
-    ring_mesh_vertices, ring_mesh_faces = PlaneCollision.ring_finger_submesh(
-        pred_3d_vertices_fine[0], mesh_faces
-    )
-    print(f"ring_mesh_faces: {ring_mesh_faces.shape}")
-    print(f"ring_mesh_vertices: {ring_mesh_vertices.shape}")
-    ring_finger_triangles = ring_mesh_vertices[ring_mesh_faces].float()
-
-    # print(ring_mesh_faces)
-    # print(ring_mesh_vertices)
-    # triangles = list(_iter_ring_mesh_triangles())
-    # ring_finger_triangles = torch.stack(triangles)
-    print(ring_finger_triangles.shape)
-
-    plane_colli = PlaneCollision(
-        ring_finger_triangles, pca_mean=plane_origin[0], normal_v=plane_normal[0]
-    )
-    points = plane_colli.get_filtered_collision_points(sort_by_angle=True)
-    print(f"points: {points}")
-    # # # img_tensor = transform(img)
-    # mano_model = MANO().to("cpu")
-
-    # batch_imgs = torch.unsqueeze(img_tensor, 0).numpy()
-    # print(batch_imgs.shape)
-    # ort_sess = ort.InferenceSession(str(model_filename))
-    # outputs = ort_sess.run(None, {"input": batch_imgs})
-    # pred_cam, pred_3d_joints, pred_3d_vertices_coarse, pred_3d_vertices_fine = outputs
-    # # Print Result
-    # print(f"pred_cam: {pred_cam}")
-    # cam = pred_cam[0]
-    # # K = torch.tensor([[fx, scale, tx], [0, fy, ty], [0, 0, 1]])
-    # print(f"pred_3d_joints: {pred_3d_joints.shape}")
-    # print(f"pred_3d_vertices_coarse: {pred_3d_vertices_coarse.shape}")
-    # print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
-    # mesh = make_hand_mesh(mano_model, pred_3d_vertices_fine.squeeze(0))
-
-
 def get_wrapper_for_radius_model(args, device):
     mesh_sampler = Mesh(device=device)
     fastmetro_model = get_fastmetro_model(
@@ -147,6 +92,19 @@ def main_2(args, image_file):
         pred_3d_joints,
         pred_3d_vertices_fine,
     ) = radius_model(images)
+    print(plane_origin)
+    collision_points += plane_origin
+    print(f"collision_points: {collision_points.shape}")
+    print(collision_points)
+    print(f"pred_3d_vertices_fine: {pred_3d_vertices_fine.shape}")
+
+    visualize_mesh_and_points(
+        # gt_mesh=None,
+        # pred_mesh=pred_mesh,
+        blue_points=pred_3d_vertices_fine[0].detach().numpy(),
+        red_points=collision_points.detach().numpy(),
+        # yellow_points=yellow_points,
+    )
 
 
 def parse_args_backup():
