@@ -78,7 +78,7 @@ def get_wrapper_for_radius_model(args, device):
     return model
 
 
-def main_2(args, image_file):
+def main(args, image_file):
     images = load_image_as_tensor(image_file)
     print(images.shape)
 
@@ -153,6 +153,5 @@ def export_joint_regressor():
 if __name__ == "__main__":
     args = parse_args()
     # infer_from_image(args.sample_dir)
-    # main()
     # export_joint_regressor()
-    main_2(args, args.sample_dir)
+    main(args, args.sample_dir)
