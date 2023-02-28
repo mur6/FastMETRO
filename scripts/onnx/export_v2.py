@@ -1,5 +1,4 @@
 import math
-import argparse
 from pathlib import Path
 
 import torch
@@ -10,16 +9,8 @@ from torchvision import transforms
 
 
 from src.handinfo.fastmetro import get_fastmetro_model
-from src.handinfo.ring.plane_collision import (
-    PlaneCollision,
-    make_plane_normal_and_origin_from_3d_vertices,
-    WrapperForRadiusModel,
-)
-from src.handinfo.visualize import make_hand_mesh, visualize_mesh_and_points
-from src.handinfo.visualize import (
-    visualize_points,
-    plot_points,
-)
+from src.handinfo.ring.plane_collision import WrapperForRadiusModel
+from src.handinfo.visualize import visualize_mesh_and_points
 from src.handinfo.parser import train_parse_args
 from src.modeling._mano import Mesh, MANO
 
