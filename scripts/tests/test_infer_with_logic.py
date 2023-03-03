@@ -2,9 +2,9 @@ import argparse
 from logging import DEBUG, INFO, basicConfig, debug, error, exception, getLogger, info, warning
 from pathlib import Path
 
-import mpld3
 import onnxruntime as ort
 import torch
+import trimesh
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from PIL import Image
@@ -128,8 +128,19 @@ def main(args):
     # str(model_filename)
     model_filename = "onnx/radius_model.onnx"
     ort_sess = ort.InferenceSession(model_filename)
-    outputs = ort_sess.run(None, {"images": images.numpy()})
-    print(outputs)
+    # outputs = ort_sess.run(None, {"images": images.numpy()})
+    (
+        collision_points,
+        vertices,
+        faces,
+        max_distance,
+        min_distance,
+        mean_distance,
+        ring_finger_length,
+        ring_finger_points,
+    ) = ort_sess.run(None, {"images": images.numpy()})
+    mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
+    visualize_mesh(mesh=mesh)
 
 
 if __name__ == "__main__":
