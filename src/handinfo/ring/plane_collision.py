@@ -2,7 +2,7 @@
 import torch
 from torch import nn
 
-from src.handinfo.ring.helper import WRIST_INDEX, RING_1_INDEX, RING_4_INDEX
+from src.handinfo.ring.helper import RING_1_INDEX, RING_4_INDEX, WRIST_INDEX
 
 
 class PlaneCollision:
@@ -118,6 +118,7 @@ class WrapperForRadiusModel(nn.Module):
         self.fastmetro_model = fastmetro_model
         self.mesh_sampler = mesh_sampler
         self.faces = faces
+        # print(f"faces: {self.faces.dtype}")
 
     def forward(self, images):
         (
@@ -167,10 +168,12 @@ class WrapperForRadiusModel(nn.Module):
         # joints[RING_1_INDEX : RING_4_INDEX + 1]
         ring_finger_length = torch.norm(joints[RING_1_INDEX] - joints[RING_4_INDEX])
         ring_finger_points = joints[[RING_1_INDEX, RING_4_INDEX]]
+        # 4:
+        vertices = pred_3d_vertices_fine[0][self.faces]
         if True:
             return (
                 collision_points,
-                pred_3d_vertices_fine[0],
+                vertices,  # pred_3d_vertices_fine[0],
                 self.faces,
                 max_distance,
                 min_distance,
