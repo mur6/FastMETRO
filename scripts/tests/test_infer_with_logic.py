@@ -1,49 +1,26 @@
-from pathlib import Path
-from logging import DEBUG, INFO, basicConfig, getLogger, debug, error, exception, info, warning
 import argparse
+from logging import DEBUG, INFO, basicConfig, debug, error, exception, getLogger, info, warning
+from pathlib import Path
 
-import onnxruntime as ort
-from PIL import Image
-import torch
-from torch import nn
-from matplotlib import pyplot as plt
 import mpld3
+import onnxruntime as ort
+import torch
+from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from PIL import Image
 from torchvision import transforms
 
-# from src.handinfo.visualize import (
-#     visualize_points,
-#     plot_points,
-# )
-from src.handinfo.ring.plane_collision import (
-    PlaneCollision,
-    make_plane_normal_and_origin_from_3d_vertices,
-)
-
-from src.handinfo.mano import ManoWrapper
-from src.handinfo.ring.helper import _adjust_vertices, calc_ring
-
-from src.handinfo.ring.helper import RING_1_INDEX, RING_2_INDEX, WRIST_INDEX
 import src.modeling.data.config as cfg
-from src.handinfo.parser import train_parse_args
-from src.handinfo.fastmetro import get_fastmetro_model
-
-
 from src.handinfo import utils
-from src.modeling._mano import Mesh, MANO
-from src.handinfo.utils import load_model_from_dir, save_checkpoint
-from src.handinfo.losses import on_circle_loss
-from src.handinfo.parser import train_parse_args
+from src.handinfo.data.tools import make_hand_data_loader
 from src.handinfo.fastmetro import get_fastmetro_model
 from src.handinfo.visualize import (
-    visualize_mesh_and_points,
+    convert_mesh,
     make_hand_mesh,
     visualize_mesh,
-    convert_mesh,
+    visualize_mesh_and_points,
 )
-from src.handinfo.data.tools import make_hand_data_loader
-from src.handinfo.ring.plane_collision import PlaneCollision
-
+from src.modeling._mano import MANO, Mesh
 
 # def parse_args():
 #     def parser_hook(parser):
