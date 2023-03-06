@@ -3,16 +3,15 @@ from pathlib import Path
 
 import torch
 import trimesh
-from PIL import Image
 from matplotlib import pyplot as plt
+from PIL import Image
 from torchvision import transforms
 
-
 from src.handinfo.fastmetro import get_fastmetro_model
+from src.handinfo.parser import train_parse_args
 from src.handinfo.ring.plane_collision import WrapperForRadiusModel
 from src.handinfo.visualize import visualize_mesh_and_points
-from src.handinfo.parser import train_parse_args
-from src.modeling._mano import Mesh, MANO
+from src.modeling._mano import MANO, Mesh
 
 
 def load_image_as_tensor(image_file, show_image=False):
@@ -97,7 +96,9 @@ def main(args, image_file, show_mesh=False):
         mean_distance,
         ring_finger_length,
         ring_finger_points,
+        pred_cam,
     ) = radius_model(images)
+    print(pred_cam)
 
     torch.onnx.export(
         radius_model,
@@ -114,6 +115,7 @@ def main(args, image_file, show_mesh=False):
             "mean_distance",
             "ring_finger_length",
             "ring_finger_points",
+            "pred_cam",
         ],
     )
     return

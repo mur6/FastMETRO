@@ -180,6 +180,7 @@ class WrapperForRadiusModel(nn.Module):
                 mean_distance,
                 ring_finger_length,
                 ring_finger_points,
+                pred_cam,
             )
         else:
             return (
