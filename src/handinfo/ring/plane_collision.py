@@ -169,7 +169,7 @@ class WrapperForRadiusModel(nn.Module):
         ring_finger_length = torch.norm(joints[RING_1_INDEX] - joints[RING_4_INDEX])
         ring_finger_points = joints[[RING_1_INDEX, RING_4_INDEX]]
         # 4:
-        vertices = pred_3d_vertices_fine[0][self.faces]
+        vertices = pred_3d_vertices_fine[0]  # [self.faces]
         if True:
             return (
                 collision_points,

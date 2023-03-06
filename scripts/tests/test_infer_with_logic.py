@@ -122,11 +122,21 @@ def parse_args():
     return args
 
 
+def conv_camera_param(camera):
+    import numpy as np
+
+    focal_length = 1000
+    # res = img.shape[1]
+    res = 224
+    camera_t = np.array([camera[1], camera[2], 2 * focal_length / (res * camera[0] + 1e-9)])
+    return camera_t
+
+
 def main(args):
     images = load_image_as_tensor(args.sample_dir)
     print(images.shape)
     # str(model_filename)
-    model_filename = "onnx/radius_model.onnx"
+    model_filename = "onnx/radius_pred_cam_model.onnx"
     ort_sess = ort.InferenceSession(model_filename)
     # outputs = ort_sess.run(None, {"images": images.numpy()})
     (
@@ -138,7 +148,12 @@ def main(args):
         mean_distance,
         ring_finger_length,
         ring_finger_points,
+        pred_cam,
     ) = ort_sess.run(None, {"images": images.numpy()})
+    print(f"pred_cam: {pred_cam}")
+    print(f"pred_cam:converted: {conv_camera_param(pred_cam[0])}")
+    # print(f"vertices: {vertices.shape}")
+    # print(f"faces: {faces.shape}")
     mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
     visualize_mesh(mesh=mesh)
 
