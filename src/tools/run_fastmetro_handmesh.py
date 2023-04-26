@@ -37,7 +37,7 @@ from src.utils.comm import is_main_process, get_rank, get_world_size
 from src.utils.miscellaneous import mkdir, set_seed
 from src.utils.metric_logger import AverageMeter
 from src.utils.geometric_layers import orthographic_projection
-from src.utils.renderer_opendr import OpenDR_Renderer, visualize_reconstruction_opendr, visualize_reconstruction_multi_view_opendr
+# from src.utils.renderer_opendr import OpenDR_Renderer, visualize_reconstruction_opendr, visualize_reconstruction_multi_view_opendr
 try:
     from src.utils.renderer_pyrender import PyRender_Renderer, visualize_reconstruction_pyrender, visualize_reconstruction_multi_view_pyrender
 except:
