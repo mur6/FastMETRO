@@ -40,11 +40,12 @@ from src.utils.geometric_layers import orthographic_projection
 from src.utils.logger import setup_logger
 from src.utils.metric_logger import AverageMeter
 from src.utils.miscellaneous import mkdir, set_seed
-from src.utils.renderer_opendr import (
-    OpenDR_Renderer,
-    visualize_reconstruction_multi_view_opendr,
-    visualize_reconstruction_opendr,
-)
+
+# from src.utils.renderer_opendr import (
+#     OpenDR_Renderer,
+#     visualize_reconstruction_multi_view_opendr,
+#     visualize_reconstruction_opendr,
+# )
 
 try:
     from src.utils.renderer_pyrender import (
