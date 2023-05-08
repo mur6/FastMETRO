@@ -12,4 +12,4 @@ python -m torch.distributed.launch --nproc_per_node=1 \
 --output_dir FastMETRO_outputs \
 --saving_epochs 1 \
 --resume_epoch 2 \
---resume_checkpoint FastMETRO-small/checkpoint-3-24420/state_dict.bin
+--resume_checkpoint FastMETRO-small/checkpoint-5-40700/state_dict.bin
